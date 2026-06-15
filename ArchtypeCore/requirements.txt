@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+alembic
+pydantic-settings
+python-jose[cryptography]
+requests
+aiosqlite
+python-multipart
+argon2-cffi

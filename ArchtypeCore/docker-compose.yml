@@ -1,0 +1,15 @@
+services:
+  archetype-core:
+    build:
+      context: .
+    container_name: archetype-core
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    cap_add:
+      - NET_ADMIN
+    privileged: true
+    env_file:
+      - .env
+    entrypoint: ["/app/entrypoint.sh"]
