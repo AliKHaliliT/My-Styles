@@ -1,9 +1,9 @@
 # ArchetypeCore
 
 <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px;">
-    <img src="https://img.shields.io/github/license/YOUR_USERNAME/YOUR_REPO" alt="License">
-    <img src="https://img.shields.io/github/last-commit/YOUR_USERNAME/YOUR_REPO" alt="Last Commit">
-    <img src="https://img.shields.io/github/issues/YOUR_USERNAME/YOUR_REPO" alt="Open Issues">
+    <img src="https://img.shields.io/github/license/AliKHaliliT/My-Styles" alt="License">
+    <img src="https://img.shields.io/github/last-commit/AliKHaliliT/My-Styles" alt="Last Commit">
+    <img src="https://img.shields.io/github/issues/AliKHaliliT/My-Styles" alt="Open Issues">
 </div>
 <br/>
 
@@ -93,7 +93,7 @@ Ensure you have Python 3.13+ installed.
 
 ```bash
 # Clone the repository
-git clone https://github.com/YOUR_USERNAME/YOUR_REPO.git
+git clone https://github.com/AliKhaliliT/YOUR_REPO.git
 cd archetype-core
 
 # Create and activate a virtual environment
