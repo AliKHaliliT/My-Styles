@@ -13,12 +13,12 @@ Happy coding!
 
 <!-- ## Featured Templates
 
-1. **[ArchetypeCore](./archetype-core)** - Strict Clean Architecture Template
-2. **[Template 2 Name](./template-2)** - Description of Template 2 -->
+1. **[ArchetypeCore](https://github.com/AliKHaliliT/My-Styles/tree/main/ArchtypeCore)** - Strict Clean Architecture Template
+2. **[Template 2 Name](https://github.com/AliKHaliliT/My-Styles/tree/main/template_2)** - Description of Template 2 -->
 
 ## All Templates
 
-- [ArchetypeCore](./archetype-core)
+- [ArchetypeCore](https://github.com/AliKHaliliT/My-Styles/tree/main/ArchtypeCore)
   - Topics: Clean Architecture, Domain-Driven Design (DDD), FastAPI, Async SQLAlchemy, Pydantic V2, Python, Unit of Work, Repository Pattern, Dependency Inversion
   - Description: A highly structured, framework-agnostic backend template designed to enforce strict boundaries and mitigate architectural drift.
   - Date: June 15, 2026
