@@ -13,11 +13,11 @@ Keel is the package-side sibling of [ArchetypeCore](https://github.com/AliKHalil
 
 ## The Philosophy: Why Does This Exist?
 
-In the era of AI coding assistants, a Python package might be a small utility, a client library, or a full runtime that hosts agents, orchestrates tools, and coordinates external providers. Whatever it is, it has to behave like a well-mannered library that other applications embed — and AI assistants suffer from the same **"Architecture Drift"** in packages as they do in services: leaking provider SDKs into business logic, configuring global state at import time, and coupling the public surface to internal representations.
+In the era of AI coding assistants, a Python package might be a small utility, a client library, or a full runtime that hosts agents, orchestrates tools, and coordinates external providers. Whatever it is, it has to behave like a well-mannered library that other applications embed, and AI assistants suffer from the same **"Architecture Drift"** in packages as they do in services: leaking provider SDKs into business logic, configuring global state at import time, and coupling the public surface to internal representations.
 
 Keel was built to mitigate this. By enforcing explicit boundaries (Translators, Protocols, a guarded Builder), it provides a strict structural foundation that guides AI agents (and developers) toward writing decoupled, maintainable packages. Because AI systems excel at pattern recognition, providing a solid structure from the beginning ensures that even when adding large architectural components, the agent is highly likely to follow the established conventions.
 
-The structure is general-purpose. Your domain logic lives in `domain` and `services`, your concrete IO lives in `adapters`, and your public surface lives in `facade` — the same spine whether you are shipping a parser, an SDK client, or an agent runtime. It ships with an agent-engine demo not because the template is "for agents," but because an agent runtime exercises every seam the architecture defends; delete the demo domain and the skeleton is a rigorous general-purpose package template.
+The structure is general-purpose. Your domain logic lives in `domain` and `services`, your concrete IO lives in `adapters`, and your public surface lives in `facade`, the same spine whether you are shipping a parser, an SDK client, or an agent runtime. It ships with an agent-engine demo not because the template is "for agents," but because an agent runtime exercises every seam the architecture defends; delete the demo domain and the skeleton is a rigorous general-purpose package template.
 
 ## The Domain Example: Why an Agent Engine?
 
@@ -30,7 +30,7 @@ Managing an agent runtime forces the architecture to handle practical, complex p
 - **Pluggable Intelligence:** The loop coordinates decisions through an abstract `IReasoner` interface. The default `RuleBasedReasoner` is deterministic and fully offline; an `AnthropicReasoner` adapter (behind the `anthropic` extra) shows exactly where a real LLM plugs in without the domain ever knowing.
 - **Untrusted Execution:** Tools are looked up through a registry, executed under a per-step timeout, and their failures are captured as data (fed back to the reasoner) rather than crashing the run.
 - **Bounded Autonomy:** Every run is capped by `max_steps`; exhaustion is a first-class outcome with a full trace, not an exception that loses the work.
-- **Extensibility:** Third parties can ship tools via the `keel.tools` entry-point group, discovered at build time by the `EngineBuilder` — opt-in, and a broken plugin is logged and skipped, never fatal.
+- **Extensibility:** Third parties can ship tools via the `keel.tools` entry-point group, discovered at build time by the `EngineBuilder`: opt-in, and a broken plugin is logged and skipped, never fatal.
 
 > ⚠️ **Disclaimer on the Anthropic Implementation:**
 > While this template acts as a logically complete agent engine, it serves primarily as an **architectural demonstration**. The `AnthropicReasoner` adapter is a theoretical example of the `IReasoner` interface and is **untested against live API traffic**. The default engine is fully offline and deterministic; validate the LLM adapter against your own account and workloads before production use.
@@ -44,7 +44,7 @@ Keel enforces the **Dependency Rule**: inner layers (Business Logic) must not de
 1. **Ports & Adapters (Dependency Inversion)**
    The orchestration service (`AgentRunner`) depends only on pure Python `Protocols` (`IReasoner`, `IToolRegistry`, `IMemory`, `IEventSink`). The `EngineBuilder` injects concrete implementations (like `RuleBasedReasoner` or `AnthropicReasoner`) at construction time.
 2. **Strict Translators**
-   API schemas are strictly for the public surface. Provider payloads are strictly for the provider SDK. Data crossing between these layers must be translated into pure Domain schemas — including inside the Anthropic adapter, which carries its own `domain <-> provider` translator pair.
+   API schemas are strictly for the public surface. Provider payloads are strictly for the provider SDK. Data crossing between these layers must be translated into pure Domain schemas, including inside the Anthropic adapter, which carries its own `domain <-> provider` translator pair.
 3. **Decoupled Exceptions**
    Business logic raises pure Python exceptions (e.g., `ToolNotFoundError`, `StepLimitExceededError`). Nothing in the domain imports a framework or an SDK.
 4. **Library Citizenship**
@@ -74,7 +74,7 @@ keel/
 ## Key Features
 
 - **Guarded Fluent Builder:** `EngineBuilder` validates every injected implementation against its `Protocol` at wiring time, so misconfigurations fail at build, not mid-run.
-- **Deterministic Offline Demo:** The default engine needs no network, no API key, and no setup — `keel "calculate (2 + 3) * 4"` works on a fresh install.
+- **Deterministic Offline Demo:** The default engine needs no network, no API key, and no setup; `keel "calculate (2 + 3) * 4"` works on a fresh install.
 - **Structured Observability:** Every run emits typed `EngineEvent`s through the `IEventSink` port; ship them to logs, collect them for assertions, or write your own sink.
 - **Plugin Entry Points:** Tools can be discovered from the `keel.tools` entry-point group, with per-plugin failure isolation.
 - **Modern Packaging:** src layout, PEP 621 metadata, PEP 561 `py.typed`, PEP 735 dev dependency group, console script plus `python -m` execution, and an optional-dependency extra for the LLM adapter.
@@ -148,9 +148,11 @@ engine = EngineBuilder().with_discovered_tools().build()
 
 ## Conventions
 
-Every module, class, and function carries a **NumPy-style docstring**. Classes additionally include a house `Usage` block — a minimal, runnable end-to-end example. Function docstrings always document a `Parameters` section (written as `None.` when the function takes no arguments), a `Returns` section, and — for any function that raises — a `Raises` section listing every exception raised directly in its body, including the defensive argument-validation guards.
+Documentation follows the **NumPy docstring style**, with one house addition: classes carry a `Usage` block (not part of the NumPy standard) that holds a minimal, runnable end-to-end example. `Usage` is not a replacement for NumPy's `Examples` section; the two serve different purposes (`Usage` shows the one canonical way to construct and drive the component, whereas `Examples` illustrates specific behaviors or edge cases), and `Examples` may still be added wherever it is warranted. Where a function warrants a full docstring, all three of `Parameters`, `Returns`, and `Raises` are always present, using the `None.` sentinel when a section is empty (no arguments, or nothing raised); `Raises` otherwise lists every exception raised directly in the body, including the defensive argument-validation guards.
 
-Standard NumPy sections that are absent (notably `Yields` and `Warns`) are omitted only because no code in the current demo domain needs them — there are no generator functions and nothing calls `warnings.warn`. Code generated from this template should add those sections as soon as it introduces the behavior that warrants them.
+Not everything is documented that heavily, by design. Purely internal helpers and thin mappers, such as the translator functions that bridge schemas across a boundary, keep a one-line summary. Unlike a service with an HTTP edge, this package has no layer whose contract is expressed elsewhere, so the `facade` is documented in full like every other layer: it is the surface an embedding application imports and calls directly, and its docstrings are the only place its failure modes are stated.
+
+The rest of the NumPy vocabulary is used where it fits and omitted where it does not: a caveat becomes a `Notes` section rather than a loose sentence, a generator would document `Yields`, a `warnings.warn` would document `Warns`, and `See Also`/`References` are there for cross-references. Sections you do not see are simply not called for by that code; generated code should add them as it introduces the behavior.
 
 ---
 

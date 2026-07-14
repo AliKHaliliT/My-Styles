@@ -9,9 +9,9 @@ from keel.domain.schemas.tools import ToolSpec
 class IReasoner(Protocol):
 
     """
-    
+
     Interface defining the decision-making capability of the engine.
-    
+
     """
 
     async def decide(self, state: RunState, tools: list[ToolSpec]) -> Action: ...

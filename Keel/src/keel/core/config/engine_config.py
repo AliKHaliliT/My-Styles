@@ -4,10 +4,10 @@ from pydantic import BaseModel, ConfigDict, Field
 class EngineConfig(BaseModel):
 
     """
-    
+
     Immutable configuration for the engine runtime.
-    
-    
+
+
     Usage
     -----
     This model is a plain, frozen value object. As a library, the engine never
@@ -15,10 +15,10 @@ class EngineConfig(BaseModel):
     application decides where values come from and passes them in explicitly.
     ```python
     from keel.core.config import EngineConfig
-    
+
     config = EngineConfig(max_steps=4, step_timeout_seconds=10.0)
     ```
-    
+
     """
 
     max_steps: int = Field(default=8, ge=1, le=128, description="Maximum number of loop iterations per run")

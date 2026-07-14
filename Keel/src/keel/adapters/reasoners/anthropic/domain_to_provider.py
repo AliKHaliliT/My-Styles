@@ -7,9 +7,9 @@ from keel.domain.schemas.tools import ToolSpec
 def domain_to_provider_tools(specs: list[ToolSpec]) -> list[dict[str, Any]]:
 
     """
-    
+
     Convert Domain ToolSpecs to provider tool definitions.
-    
+
     """
 
     return [
@@ -25,9 +25,9 @@ def domain_to_provider_tools(specs: list[ToolSpec]) -> list[dict[str, Any]]:
 def domain_to_provider_messages(state: RunState) -> list[dict[str, Any]]:
 
     """
-    
+
     Convert a Domain RunState transcript to a provider message history.
-    
+
     """
 
     messages: list[dict[str, Any]] = [{"role": "user", "content": state.goal}]

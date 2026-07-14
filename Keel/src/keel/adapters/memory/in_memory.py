@@ -4,42 +4,47 @@ from keel.domain.schemas.steps import StepRecord
 class InMemoryMemory:
 
     """
-    
+
     A process-local memory store keeping transcripts in a dictionary.
-    
-    
+
+
     Usage
     -----
     This is the default IMemory implementation: zero dependencies, zero
     persistence. Swapping in Redis, SQLite, or a vector store means writing
-    another adapter against the same three methods — the engine never knows.
+    another adapter against the same three methods; the engine never knows.
     ```python
     from keel.adapters.memory import InMemoryMemory
-    
+
     memory = InMemoryMemory()
     await memory.record("run-1", step_record)
     transcript = await memory.recall("run-1")
     await memory.forget("run-1")
     ```
-    
+
     """
 
     def __init__(self) -> None:
 
         """
-        
+
         Constructor for the InMemoryMemory class.
-        
-        
+
+
         Parameters
         ----------
         None.
-        
-        
+
+
         Returns
         -------
         None.
-        
+
+
+        Raises
+        ------
+        None.
+
         """
 
         self._transcripts: dict[str, list[StepRecord]] = {}
@@ -48,23 +53,32 @@ class InMemoryMemory:
     async def record(self, run_id: str, entry: StepRecord) -> None:
 
         """
-        
+
         Appends a step record to a run's transcript.
-        
-        
+
+
         Parameters
         ----------
         run_id : str
             The identifier of the run.
-        
+
         entry : StepRecord
             The step record to persist.
-        
-        
+
+
         Returns
         -------
         None.
-        
+
+
+        Raises
+        ------
+        ValueError
+            If `run_id` is not a non-empty string.
+
+        TypeError
+            If `entry` is not a StepRecord.
+
         """
 
         if not isinstance(run_id, str) or not run_id.strip():
@@ -79,21 +93,27 @@ class InMemoryMemory:
     async def recall(self, run_id: str) -> list[StepRecord]:
 
         """
-        
+
         Fetches the transcript recorded for a run.
-        
-        
+
+
         Parameters
         ----------
         run_id : str
             The identifier of the run.
-        
-        
+
+
         Returns
         -------
         list[StepRecord]
             The recorded steps, in order; empty if the run is unknown.
-        
+
+
+        Raises
+        ------
+        ValueError
+            If `run_id` is not a non-empty string.
+
         """
 
         if not isinstance(run_id, str) or not run_id.strip():
@@ -106,20 +126,26 @@ class InMemoryMemory:
     async def forget(self, run_id: str) -> None:
 
         """
-        
+
         Discards the transcript recorded for a run.
-        
-        
+
+
         Parameters
         ----------
         run_id : str
             The identifier of the run.
-        
-        
+
+
         Returns
         -------
         None.
-        
+
+
+        Raises
+        ------
+        ValueError
+            If `run_id` is not a non-empty string.
+
         """
 
         if not isinstance(run_id, str) or not run_id.strip():

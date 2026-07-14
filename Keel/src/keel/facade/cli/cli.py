@@ -13,20 +13,25 @@ _EXIT_CODES = {
 def build_parser() -> argparse.ArgumentParser:
 
     """
-    
+
     Builds the argument parser for the console entry point.
-    
-    
+
+
     Parameters
     ----------
     None.
-    
-    
+
+
     Returns
     -------
     argparse.ArgumentParser
         The configured parser.
-    
+
+
+    Raises
+    ------
+    None.
+
     """
 
     parser = argparse.ArgumentParser(
@@ -43,21 +48,26 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
 
     """
-    
+
     Entry point for the console script and module execution.
-    
-    
+
+
     Parameters
     ----------
     argv : list[str] | None, optional
         The argument vector; None defers to sys.argv.
-    
-    
+
+
     Returns
     -------
     int
         0 on completion, 1 on failure, 2 on step-budget exhaustion.
-    
+
+
+    Raises
+    ------
+    None.
+
     """
 
     arguments = build_parser().parse_args(argv)

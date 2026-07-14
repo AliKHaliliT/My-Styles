@@ -6,9 +6,9 @@ from pydantic import BaseModel, Field
 class ToolSpec(BaseModel):
 
     """
-    
+
     Domain schema describing a tool's callable contract.
-    
+
     """
 
     name: str
@@ -19,9 +19,9 @@ class ToolSpec(BaseModel):
 class ToolResult(BaseModel):
 
     """
-    
+
     Domain schema representing the outcome of a tool execution.
-    
+
     """
 
     content: str

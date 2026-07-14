@@ -24,25 +24,25 @@ _UNARY_OPERATORS: dict[type[ast.unaryop], Callable[[float], float]] = {
 class CalculatorTool:
 
     """
-    
+
     A safe arithmetic evaluator built on AST whitelisting.
-    
-    
+
+
     Usage
     -----
     The expression is parsed, never executed; only numeric literals, the four
     basic operations, floor division, modulo, exponentiation, and unary signs
-    are admitted. Anything else — names, calls, attributes, subscripts — is
+    are admitted. Anything else (names, calls, attributes, subscripts) is
     rejected, which is what makes this demo tool safe to expose to a reasoner
     that may produce arbitrary input.
     ```python
     from keel.adapters.tools import CalculatorTool
-    
+
     tool = CalculatorTool()
     result = await tool.execute({"expression": "(2 + 3) * 4"})
     print(result)
     ```
-    
+
     """
 
     name: str = "calculator"
@@ -62,27 +62,30 @@ class CalculatorTool:
     async def execute(self, arguments: dict[str, Any]) -> str:
 
         """
-        
+
         Evaluates the arithmetic expression in the arguments.
-        
-        
+
+
         Parameters
         ----------
         arguments : dict[str, Any]
             The tool arguments; requires an 'expression' string.
-        
-        
+
+
         Returns
         -------
         str
             The numeric result rendered as a string.
-        
-        
+
+
         Raises
         ------
+        TypeError
+            If `arguments` is not a dictionary.
+
         ToolExecutionError
             If the expression is missing, malformed, or uses a disallowed construct.
-        
+
         """
 
         if not isinstance(arguments, dict):
@@ -112,27 +115,27 @@ class CalculatorTool:
     def _evaluate(self, node: ast.expr) -> float:
 
         """
-        
+
         Recursively evaluates a whitelisted AST node.
-        
-        
+
+
         Parameters
         ----------
         node : ast.expr
             The AST node to evaluate.
-        
-        
+
+
         Returns
         -------
         float
             The numeric value of the node.
-        
-        
+
+
         Raises
         ------
         ToolExecutionError
             If the node type or operator is not whitelisted.
-        
+
         """
 
         if isinstance(node, ast.Constant) and isinstance(node.value, (int, float)) and not isinstance(node.value, bool):

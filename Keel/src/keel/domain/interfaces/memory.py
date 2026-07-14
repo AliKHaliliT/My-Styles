@@ -7,9 +7,9 @@ from keel.domain.schemas.steps import StepRecord
 class IMemory(Protocol):
 
     """
-    
+
     Interface defining the persistence surface for run transcripts.
-    
+
     """
 
     async def record(self, run_id: str, entry: StepRecord) -> None: ...

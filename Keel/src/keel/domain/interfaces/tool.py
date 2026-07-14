@@ -5,9 +5,9 @@ from typing import Any, Protocol, runtime_checkable
 class ITool(Protocol):
 
     """
-    
+
     Interface defining an executable capability the engine can invoke.
-    
+
     """
 
     name: str

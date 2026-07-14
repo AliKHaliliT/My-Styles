@@ -8,9 +8,9 @@ from keel.domain.schemas.tools import ToolSpec
 class IToolRegistry(Protocol):
 
     """
-    
+
     Interface defining the lookup surface for registered tools.
-    
+
     """
 
     def register(self, tool: ITool) -> None: ...

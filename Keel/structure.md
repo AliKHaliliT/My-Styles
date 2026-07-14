@@ -4,7 +4,7 @@ This project follows a strict Clean Architecture and Domain-Driven Design (DDD) 
 
 Two layout conventions hold throughout the package. First, every directory contains **either** subpackages **or** modules, never a mix; the package root is the sole exception, because Python requires `__init__.py`, `__main__.py`, and the PEP 561 `py.typed` marker to live there beside the layer packages. Second, an `__init__.py` appears **only** where it does real work (re-exporting a subpackage's public names), so the grouping directories are bare [namespace packages](https://peps.python.org/pep-0420/) with no `__init__.py` at all.
 
-A `translators/` package marks a layer boundary — the public-schema-to-domain bridge in `facade/`, mirroring ArchetypeCore's `api/` and `repositories/` translator layers. A leaf adapter's own translation (for example the Anthropic provider's domain-to-wire mapping) instead lives as plain modules beside it, never in a nested `translators/` folder.
+A `translators/` package marks a layer boundary: the public-schema-to-domain bridge in `facade/`, mirroring ArchetypeCore's `api/` and `repositories/` translator layers. A leaf adapter's own translation (for example the Anthropic provider's domain-to-wire mapping) instead lives as plain modules beside it, never in a nested `translators/` folder.
 
 ```text
 my_package/

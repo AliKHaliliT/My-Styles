@@ -21,10 +21,10 @@ logger = get_logger("services.execution")
 class AgentRunner:
 
     """
-    
+
     A service orchestrating the bounded reason -> act -> record loop.
-    
-    
+
+
     Usage
     -----
     This class is the single owner of the engine loop. It relies on abstract
@@ -35,12 +35,12 @@ class AgentRunner:
     and a broken event sink is logged without ever taking the run down.
     ```python
     from keel.services.execution import AgentRunner
-    
+
     runner = AgentRunner(reasoner, registry, memory, events, config)
     result = await runner.run(RunSpec(goal="calculate (2 + 3) * 4"))
     print(result.status, result.output)
     ```
-    
+
     """
 
     def __init__(
@@ -53,32 +53,38 @@ class AgentRunner:
     ) -> None:
 
         """
-        
+
         Constructor for the AgentRunner class.
-        
-        
+
+
         Parameters
         ----------
         reasoner : IReasoner
             The decision-making interface.
-        
+
         registry : IToolRegistry
             The tool lookup interface.
-        
+
         memory : IMemory
             The transcript persistence interface.
-        
+
         events : IEventSink
             The observability interface.
-        
+
         config : EngineConfig
             The immutable runtime configuration.
-        
-        
+
+
         Returns
         -------
         None.
-        
+
+
+        Raises
+        ------
+        TypeError
+            If `reasoner` does not implement IReasoner, or `registry` does not implement IToolRegistry, or `memory` does not implement IMemory, or `events` does not implement IEventSink, or `config` is not an EngineConfig.
+
         """
 
         if not isinstance(reasoner, IReasoner):
@@ -103,30 +109,33 @@ class AgentRunner:
     async def run(self, spec: RunSpec) -> RunResult:
 
         """
-        
+
         Executes a bounded run for the given specification.
-        
-        
+
+
         Parameters
         ----------
         spec : RunSpec
             The specification describing the requested run.
-        
-        
+
+
         Returns
         -------
         RunResult
             The concluded outcome, including the full step trace.
-        
-        
+
+
         Raises
         ------
+        TypeError
+            If `spec` is not a RunSpec.
+
+        ValueError
+            If `spec.max_steps` is not a positive integer or None.
+
         StepLimitExceededError
             If the step budget is consumed while raise_on_exhaustion is configured.
-        
-        ToolExecutionError
-            If a tool fails while halt_on_tool_error is configured.
-        
+
         """
 
         if not isinstance(spec, RunSpec):
@@ -205,27 +214,27 @@ class AgentRunner:
     async def _execute_tool(self, action: ToolCall) -> ToolResult:
 
         """
-        
+
         Executes a tool call under the configured timeout and error policy.
-        
-        
+
+
         Parameters
         ----------
         action : ToolCall
             The decided tool invocation.
-        
-        
+
+
         Returns
         -------
         ToolResult
             The execution outcome; failures become error results unless halting is configured.
-        
-        
+
+
         Raises
         ------
         ToolExecutionError
             If the tool fails while halt_on_tool_error is configured.
-        
+
         """
 
         try:
@@ -267,26 +276,31 @@ class AgentRunner:
     async def _emit(self, event_type: str, run_id: str, payload: dict[str, Any]) -> None:
 
         """
-        
+
         Emits an engine event, isolating sink failures from the run.
-        
-        
+
+
         Parameters
         ----------
         event_type : str
             The dotted event type identifier.
-        
+
         run_id : str
             The identifier of the run the event belongs to.
-        
+
         payload : dict[str, Any]
             The structured event payload.
-        
-        
+
+
         Returns
         -------
         None.
-        
+
+
+        Raises
+        ------
+        None.
+
         """
 
         event = EngineEvent(type=event_type, run_id=run_id, payload=payload, created_at=datetime.now(UTC))

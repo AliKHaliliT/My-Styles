@@ -11,35 +11,41 @@ logger = get_logger("core.plugins")
 def load_entry_point_tools(group: str = PLUGIN_GROUP) -> list[ITool]:
 
     """
-    
+
     Discovers third-party tools published under an entry-point group.
-    
-    
+
+
     Usage
     -----
     A plugin is any installed distribution exposing an ITool implementation
     (a class or a zero-argument factory) under the group. Discovery is fault
     isolated: a plugin that fails to load, fails to construct, or does not
-    satisfy the ITool contract is logged and skipped, never fatal — one broken
+    satisfy the ITool contract is logged and skipped, never fatal; one broken
     third-party package must not take the engine down with it.
     ```python
     from keel.core.plugins import load_entry_point_tools
-    
+
     tools = load_entry_point_tools()
     ```
-    
-    
+
+
     Parameters
     ----------
     group : str, optional
         The entry-point group to scan.
-    
-    
+
+
     Returns
     -------
     list[ITool]
         The successfully constructed tool implementations.
-    
+
+
+    Raises
+    ------
+    ValueError
+        If `group` is not a non-empty string.
+
     """
 
     if not isinstance(group, str) or not group.strip():

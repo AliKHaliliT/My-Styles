@@ -7,10 +7,10 @@ from keel.services.execution import AgentRunner
 class Engine:
 
     """
-    
+
     The public facade wrapping an assembled agent runner.
-    
-    
+
+
     Usage
     -----
     Consumers obtain an Engine from the EngineBuilder and interact with the
@@ -18,33 +18,39 @@ class Engine:
     directions and never leaks domain objects.
     ```python
     import asyncio
-    
+
     from keel import EngineBuilder
-    
+
     engine = EngineBuilder().build()
     report = asyncio.run(engine.run("calculate (2 + 3) * 4"))
     print(report.status, report.output)
     ```
-    
+
     """
 
     def __init__(self, runner: AgentRunner) -> None:
 
         """
-        
+
         Constructor for the Engine class.
-        
-        
+
+
         Parameters
         ----------
         runner : AgentRunner
             The assembled orchestration service.
-        
-        
+
+
         Returns
         -------
         None.
-        
+
+
+        Raises
+        ------
+        TypeError
+            If `runner` is not an AgentRunner.
+
         """
 
         if not isinstance(runner, AgentRunner):
@@ -57,24 +63,30 @@ class Engine:
     async def run(self, goal: str, max_steps: int | None = None) -> RunReport:
 
         """
-        
+
         Executes a bounded run toward the given goal.
-        
-        
+
+
         Parameters
         ----------
         goal : str
             The natural-language goal for the run.
-        
+
         max_steps : int | None, optional
             A per-run override of the configured step budget.
-        
-        
+
+
         Returns
         -------
         RunReport
             The concluded outcome, including the flattened step trace.
-        
+
+
+        Raises
+        ------
+        ValueError
+            If `goal` is not a non-empty string, or `max_steps` is not a positive integer or None.
+
         """
 
         if not isinstance(goal, str) or not goal.strip():

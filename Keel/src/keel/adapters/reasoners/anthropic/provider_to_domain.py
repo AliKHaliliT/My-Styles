@@ -7,9 +7,9 @@ from keel.domain.schemas.actions import Action, Finish, ToolCall
 def provider_to_domain_action(response: Any) -> Action:
 
     """
-    
+
     Convert a provider message response to a Domain Action.
-    
+
     """
 
     if getattr(response, "stop_reason", None) == "refusal":

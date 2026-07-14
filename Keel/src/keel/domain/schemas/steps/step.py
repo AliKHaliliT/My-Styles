@@ -9,9 +9,9 @@ from keel.domain.schemas.tools import ToolResult
 class StepRecord(BaseModel):
 
     """
-    
+
     Domain schema recording a single iteration of the engine loop.
-    
+
     """
 
     index: int

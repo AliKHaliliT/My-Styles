@@ -17,10 +17,10 @@ logger = get_logger("api.builder")
 class EngineBuilder:
 
     """
-    
+
     A guarded fluent builder assembling an Engine from its ports.
-    
-    
+
+
     Usage
     -----
     Every injected implementation is validated against its Protocol at wiring
@@ -30,7 +30,7 @@ class EngineBuilder:
     default EngineConfig.
     ```python
     from keel import EngineBuilder
-    
+
     engine = (
         EngineBuilder()
         .with_config(EngineConfig(max_steps=4))
@@ -38,25 +38,30 @@ class EngineBuilder:
         .build()
     )
     ```
-    
+
     """
 
     def __init__(self) -> None:
 
         """
-        
+
         Constructor for the EngineBuilder class.
-        
-        
+
+
         Parameters
         ----------
         None.
-        
-        
+
+
         Returns
         -------
         None.
-        
+
+
+        Raises
+        ------
+        None.
+
         """
 
         self._reasoner: IReasoner | None = None
@@ -71,21 +76,27 @@ class EngineBuilder:
     def with_reasoner(self, reasoner: IReasoner) -> "EngineBuilder":
 
         """
-        
+
         Injects the decision-making implementation.
-        
-        
+
+
         Parameters
         ----------
         reasoner : IReasoner
             The reasoner implementation to use.
-        
-        
+
+
         Returns
         -------
         EngineBuilder
             The builder, for chaining.
-        
+
+
+        Raises
+        ------
+        TypeError
+            If `reasoner` does not implement IReasoner.
+
         """
 
         if not isinstance(reasoner, IReasoner):
@@ -99,21 +110,27 @@ class EngineBuilder:
     def with_memory(self, memory: IMemory) -> "EngineBuilder":
 
         """
-        
+
         Injects the transcript persistence implementation.
-        
-        
+
+
         Parameters
         ----------
         memory : IMemory
             The memory implementation to use.
-        
-        
+
+
         Returns
         -------
         EngineBuilder
             The builder, for chaining.
-        
+
+
+        Raises
+        ------
+        TypeError
+            If `memory` does not implement IMemory.
+
         """
 
         if not isinstance(memory, IMemory):
@@ -127,21 +144,27 @@ class EngineBuilder:
     def with_event_sink(self, events: IEventSink) -> "EngineBuilder":
 
         """
-        
+
         Injects the observability implementation.
-        
-        
+
+
         Parameters
         ----------
         events : IEventSink
             The event sink implementation to use.
-        
-        
+
+
         Returns
         -------
         EngineBuilder
             The builder, for chaining.
-        
+
+
+        Raises
+        ------
+        TypeError
+            If `events` does not implement IEventSink.
+
         """
 
         if not isinstance(events, IEventSink):
@@ -155,21 +178,27 @@ class EngineBuilder:
     def with_config(self, config: EngineConfig) -> "EngineBuilder":
 
         """
-        
+
         Injects the runtime configuration.
-        
-        
+
+
         Parameters
         ----------
         config : EngineConfig
             The immutable configuration to use.
-        
-        
+
+
         Returns
         -------
         EngineBuilder
             The builder, for chaining.
-        
+
+
+        Raises
+        ------
+        TypeError
+            If `config` is not an EngineConfig.
+
         """
 
         if not isinstance(config, EngineConfig):
@@ -183,21 +212,27 @@ class EngineBuilder:
     def with_tool(self, tool: ITool) -> "EngineBuilder":
 
         """
-        
+
         Adds a tool to the engine's registry.
-        
-        
+
+
         Parameters
         ----------
         tool : ITool
             The tool implementation to register at build time.
-        
-        
+
+
         Returns
         -------
         EngineBuilder
             The builder, for chaining.
-        
+
+
+        Raises
+        ------
+        TypeError
+            If `tool` does not implement ITool.
+
         """
 
         if not isinstance(tool, ITool):
@@ -211,20 +246,25 @@ class EngineBuilder:
     def without_default_tools(self) -> "EngineBuilder":
 
         """
-        
+
         Excludes the built-in demo tools from the registry.
-        
-        
+
+
         Parameters
         ----------
         None.
-        
-        
+
+
         Returns
         -------
         EngineBuilder
             The builder, for chaining.
-        
+
+
+        Raises
+        ------
+        None.
+
         """
 
         self._include_default_tools = False
@@ -234,20 +274,25 @@ class EngineBuilder:
     def with_discovered_tools(self) -> "EngineBuilder":
 
         """
-        
+
         Opts in to entry-point tool discovery at build time.
-        
-        
+
+
         Parameters
         ----------
         None.
-        
-        
+
+
         Returns
         -------
         EngineBuilder
             The builder, for chaining.
-        
+
+
+        Raises
+        ------
+        None.
+
         """
 
         self._discover_plugins = True
@@ -257,26 +302,25 @@ class EngineBuilder:
     def build(self) -> Engine:
 
         """
-        
+
         Assembles the Engine from the collected parts and defaults.
-        
-        
+
+
         Parameters
         ----------
         None.
-        
-        
+
+
         Returns
         -------
         Engine
             The ready-to-run engine facade.
-        
-        
+
+
         Raises
         ------
-        DuplicateToolError
-            If an explicitly provided tool collides with an already registered name.
-        
+        None.
+
         """
 
         registry = ToolRegistry()

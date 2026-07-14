@@ -6,9 +6,9 @@ from pydantic import BaseModel, Field
 class ToolCall(BaseModel):
 
     """
-    
+
     Domain schema for a decision to invoke a tool.
-    
+
     """
 
     kind: Literal["tool_call"] = "tool_call"
@@ -20,9 +20,9 @@ class ToolCall(BaseModel):
 class Finish(BaseModel):
 
     """
-    
+
     Domain schema for a decision to conclude the run.
-    
+
     """
 
     kind: Literal["finish"] = "finish"

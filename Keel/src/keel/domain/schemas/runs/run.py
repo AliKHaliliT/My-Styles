@@ -11,9 +11,9 @@ RunStatus = Literal["completed", "exhausted", "failed"]
 class RunSpec(BaseModel):
 
     """
-    
+
     Domain schema describing a requested run.
-    
+
     """
 
     goal: str
@@ -23,9 +23,9 @@ class RunSpec(BaseModel):
 class RunState(BaseModel):
 
     """
-    
+
     Domain schema for the evolving state the reasoner decides against.
-    
+
     """
 
     run_id: str
@@ -45,9 +45,9 @@ class RunState(BaseModel):
 class RunResult(BaseModel):
 
     """
-    
+
     Domain schema for the concluded outcome of a run.
-    
+
     """
 
     run_id: str

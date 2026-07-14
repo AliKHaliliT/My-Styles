@@ -7,9 +7,9 @@ from pydantic import BaseModel, Field
 class EngineEvent(BaseModel):
 
     """
-    
+
     Domain schema for a structured observability event emitted by the engine.
-    
+
     """
 
     type: str

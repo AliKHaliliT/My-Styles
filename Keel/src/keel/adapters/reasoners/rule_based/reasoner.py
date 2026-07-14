@@ -12,47 +12,53 @@ _CLOCK_PATTERN = re.compile(r"\b(?:time|date)\b", re.IGNORECASE)
 class RuleBasedReasoner:
 
     """
-    
+
     A deterministic, fully offline reasoner for the demo domain.
-    
-    
+
+
     Usage
     -----
     The reasoner pattern-matches the goal to one of the built-in tools, waits
     for the tool result on the transcript, and then finishes with it. It
     exists to prove the architecture: the engine loop, the trace, and every
     port behave identically whether decisions come from these regexes or from
-    a frontier model — swap in another IReasoner and nothing else changes.
+    a frontier model; swap in another IReasoner and nothing else changes.
     ```python
     from keel.adapters.reasoners.rule_based import RuleBasedReasoner
-    
+
     reasoner = RuleBasedReasoner()
     action = await reasoner.decide(state, tools)
     ```
-    
+
     """
 
     async def decide(self, state: RunState, tools: list[ToolSpec]) -> Action:
 
         """
-        
+
         Decides the next action for the given run state.
-        
-        
+
+
         Parameters
         ----------
         state : RunState
             The evolving state of the run, including the transcript.
-        
+
         tools : list[ToolSpec]
             The callable contracts currently registered with the engine.
-        
-        
+
+
         Returns
         -------
         Action
             A ToolCall while work remains, otherwise a Finish.
-        
+
+
+        Raises
+        ------
+        TypeError
+            If `state` is not a RunState, or `tools` is not a list.
+
         """
 
         if not isinstance(state, RunState):

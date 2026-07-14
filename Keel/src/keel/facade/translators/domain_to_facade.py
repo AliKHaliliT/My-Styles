@@ -7,9 +7,9 @@ from keel.facade.schemas import RunReport, StepReport
 def domain_to_facade_step_report(record: StepRecord) -> StepReport:
 
     """
-    
+
     Convert a domain StepRecord to a facade StepReport.
-    
+
     """
 
     action = record.action
@@ -32,9 +32,9 @@ def domain_to_facade_step_report(record: StepRecord) -> StepReport:
 def domain_to_facade_run_report(result: RunResult) -> RunReport:
 
     """
-    
+
     Convert a domain RunResult to a facade RunReport.
-    
+
     """
 
     return RunReport(

@@ -7,9 +7,9 @@ from keel.domain.schemas.events import EngineEvent
 class IEventSink(Protocol):
 
     """
-    
+
     Interface defining the observability surface for engine events.
-    
+
     """
 
     async def emit(self, event: EngineEvent) -> None: ...

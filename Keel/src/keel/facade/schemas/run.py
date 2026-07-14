@@ -7,9 +7,9 @@ from pydantic import BaseModel, ConfigDict, Field
 class RunRequest(BaseModel):
 
     """
-    
+
     API schema describing a requested run.
-    
+
     """
 
     goal: str
@@ -28,9 +28,9 @@ class RunRequest(BaseModel):
 class StepReport(BaseModel):
 
     """
-    
+
     API schema for one flattened step of a run trace.
-    
+
     """
 
     index: int
@@ -63,9 +63,9 @@ class StepReport(BaseModel):
 class RunReport(BaseModel):
 
     """
-    
+
     API schema for the concluded outcome of a run.
-    
+
     """
 
     run_id: str
