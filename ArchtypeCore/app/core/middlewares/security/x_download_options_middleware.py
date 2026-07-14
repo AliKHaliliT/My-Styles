@@ -47,6 +47,11 @@ class XDownloadOptionsMiddleware:
         -------
         None.
 
+
+        Raises
+        ------
+        None.
+
         """
 
         self.app = app
@@ -73,6 +78,11 @@ class XDownloadOptionsMiddleware:
 
         Returns
         -------
+        None.
+
+
+        Raises
+        ------
         None.
 
         """

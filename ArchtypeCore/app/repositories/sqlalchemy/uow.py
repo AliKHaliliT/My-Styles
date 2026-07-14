@@ -87,6 +87,11 @@ class SQLAlchemyUnitOfWork(IUnitOfWork):
         SQLAlchemyUnitOfWork
             The active UnitOfWork instance.
 
+
+        Raises
+        ------
+        None.
+
         """
 
         self.session = self.session_factory()

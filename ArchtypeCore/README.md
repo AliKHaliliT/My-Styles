@@ -129,11 +129,11 @@ _(Note: The `entrypoint.sh` automatically handles Alembic migrations upon contai
 
 ## Conventions
 
-Documentation follows the **NumPy docstring style**. Classes carry a `Usage` block with a minimal, runnable example. Where a function warrants a full docstring it documents `Parameters` (written `None.` when there are no arguments), `Returns`, and — if it raises — a `Raises` section covering every exception raised directly in its body, including the defensive argument-validation guards.
+Documentation follows the **NumPy docstring style**, with one house addition: classes carry a `Usage` block (not part of the NumPy standard) that holds a minimal, runnable end-to-end example. `Usage` is not a replacement for NumPy's `Examples` section; the two serve different purposes (`Usage` shows the one canonical way to construct and drive the component, whereas `Examples` illustrates specific behaviors or edge cases), and `Examples` may still be added wherever it is warranted. Where a function warrants a full docstring, all three of `Parameters`, `Returns`, and `Raises` are always present, using the `None.` sentinel when a section is empty (no arguments, or nothing raised); `Raises` otherwise lists every exception raised directly in the body, including the defensive argument-validation guards.
 
 Not everything is documented that heavily, by design. Purely internal helpers and thin mappers keep a one-line summary, and the API layer omits `Parameters`/`Returns`/`Raises` because its contract is already expressed through the Pydantic schemas, the OpenAPI docs, and the global exception handlers.
 
-The rest of the NumPy vocabulary is used where it fits and omitted where it does not: a caveat becomes a `Notes` section (see the middleware classes) rather than a loose sentence, a generator would document `Yields`, a `warnings.warn` would document `Warns`, and `See Also`/`References` are there for cross-references. Sections you do not see are simply not called for by that code — generated code should add them as it introduces the behavior.
+The rest of the NumPy vocabulary is used where it fits and omitted where it does not: a caveat becomes a `Notes` section (see the middleware classes) rather than a loose sentence, a generator would document `Yields`, a `warnings.warn` would document `Warns`, and `See Also`/`References` are there for cross-references. Sections you do not see are simply not called for by that code; generated code should add them as it introduces the behavior.
 
 ---
 

@@ -51,6 +51,11 @@ class ContentSecurityPolicyMiddleware:
         -------
         None.
 
+
+        Raises
+        ------
+        None.
+
         """
 
         self.app = app
@@ -78,6 +83,11 @@ class ContentSecurityPolicyMiddleware:
 
         Returns
         -------
+        None.
+
+
+        Raises
+        ------
         None.
 
         """

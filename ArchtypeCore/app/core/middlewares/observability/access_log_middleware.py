@@ -53,6 +53,11 @@ class AccessLogMiddleware:
         -------
         None.
 
+
+        Raises
+        ------
+        None.
+
         """
 
         self.app = app
@@ -80,6 +85,11 @@ class AccessLogMiddleware:
 
         Returns
         -------
+        None.
+
+
+        Raises
+        ------
         None.
 
         """

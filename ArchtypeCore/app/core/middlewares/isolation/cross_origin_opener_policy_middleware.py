@@ -58,6 +58,11 @@ class CrossOriginOpenerPolicyMiddleware:
         -------
         None.
 
+
+        Raises
+        ------
+        None.
+
         """
 
         self.app = app
@@ -85,6 +90,11 @@ class CrossOriginOpenerPolicyMiddleware:
 
         Returns
         -------
+        None.
+
+
+        Raises
+        ------
         None.
 
         """

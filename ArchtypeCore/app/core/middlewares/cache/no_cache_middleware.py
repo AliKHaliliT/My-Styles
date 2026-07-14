@@ -46,6 +46,11 @@ class NoCacheMiddleware:
         -------
         None.
 
+
+        Raises
+        ------
+        None.
+
         """
 
         self.app = app
@@ -72,6 +77,11 @@ class NoCacheMiddleware:
 
         Returns
         -------
+        None.
+
+
+        Raises
+        ------
         None.
 
         """

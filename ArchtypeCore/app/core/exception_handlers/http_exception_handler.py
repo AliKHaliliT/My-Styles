@@ -29,6 +29,11 @@ async def http_exception_handler(request: Request, exc: HTTPException) -> JSONRe
     JSONResponse
         A JSON response detailing the HTTP error.
 
+
+    Raises
+    ------
+    None.
+
     """
 
     logger.error(f"HTTP Exception: {exc.status_code}: {exc.detail}")

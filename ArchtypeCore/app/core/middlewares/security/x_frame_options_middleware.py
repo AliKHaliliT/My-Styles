@@ -55,6 +55,11 @@ class XFrameOptionsMiddleware:
         -------
         None.
 
+
+        Raises
+        ------
+        None.
+
         """
 
         self.app = app
@@ -82,6 +87,11 @@ class XFrameOptionsMiddleware:
 
         Returns
         -------
+        None.
+
+
+        Raises
+        ------
         None.
 
         """

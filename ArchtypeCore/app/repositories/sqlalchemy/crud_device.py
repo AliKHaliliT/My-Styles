@@ -96,7 +96,12 @@ class CRUDDevice(IDeviceRepository):
         -------
         DomainDevice | None
             The mapped domain schema, or None if not found.
-        
+
+
+        Raises
+        ------
+        None.
+
         """
 
         db_obj = await self.session.scalar(select(self.model).where(self.model.id == id))
@@ -202,7 +207,12 @@ class CRUDDevice(IDeviceRepository):
         -------
         list[DomainDevice]
             A list of mapped domain schemas.
-        
+
+
+        Raises
+        ------
+        None.
+
         """
 
         db_objs = await self.session.scalars(

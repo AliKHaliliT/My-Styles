@@ -60,6 +60,11 @@ class CustomHTTPException(HTTPException):
         -------
         None.
 
+
+        Raises
+        ------
+        None.
+
         """
 
         super().__init__(status_code=status_code, detail=detail, headers=headers)

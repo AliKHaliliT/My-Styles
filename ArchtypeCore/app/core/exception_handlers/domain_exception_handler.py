@@ -31,6 +31,11 @@ async def domain_exception_handler(request: Request, exc: Exception) -> JSONResp
     JSONResponse
         A JSON response detailing the domain error.
 
+
+    Raises
+    ------
+    None.
+
     """
 
     logger.warning(f"Domain exception: {exc}")

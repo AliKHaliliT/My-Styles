@@ -52,6 +52,11 @@ class LocalAuthAdapter(IAuthManager):
         -------
         None.
 
+
+        Raises
+        ------
+        None.
+
         """
 
         self.secret_key = settings.SECRET_KEY

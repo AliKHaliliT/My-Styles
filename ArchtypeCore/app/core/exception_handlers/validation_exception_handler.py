@@ -30,6 +30,11 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     JSONResponse
         A JSON response detailing the validation error.
 
+
+    Raises
+    ------
+    None.
+
     """
 
     logger.error(f"Validation error: {exc.errors()}")

@@ -49,6 +49,11 @@ class ReferrerPolicyMiddleware:
         -------
         None.
 
+
+        Raises
+        ------
+        None.
+
         """
 
         self.app = app
@@ -76,6 +81,11 @@ class ReferrerPolicyMiddleware:
 
         Returns
         -------
+        None.
+
+
+        Raises
+        ------
         None.
 
         """

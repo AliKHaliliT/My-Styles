@@ -50,6 +50,11 @@ class XXSSProtectionMiddleware:
         -------
         None.
 
+
+        Raises
+        ------
+        None.
+
         """
 
         self.app = app
@@ -77,6 +82,11 @@ class XXSSProtectionMiddleware:
 
         Returns
         -------
+        None.
+
+
+        Raises
+        ------
         None.
 
         """

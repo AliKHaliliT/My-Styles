@@ -104,7 +104,12 @@ class CRUDAdmin(IAdminRepository):
         -------
         DomainAdminInDB | None
             The mapped domain schema, or None if not found.
-        
+
+
+        Raises
+        ------
+        None.
+
         """
 
         db_obj = await self.session.scalar(select(self.model).where(self.model.id == id))

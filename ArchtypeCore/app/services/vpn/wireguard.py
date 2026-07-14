@@ -157,6 +157,11 @@ class WireGuardProvider(IVPNProvider):
         tuple[str, dict[str, Any]]
             A tuple containing the client_identifier (pubkey) and protocol_data (privkey).
 
+
+        Raises
+        ------
+        None.
+
         """
 
         privkey = await self._run_command([self.wg_show_path, "genkey"])
@@ -184,6 +189,11 @@ class WireGuardProvider(IVPNProvider):
 
         protocol_data : dict[str, Any]
             Protocol specific parameters.
+
+
+        Returns
+        -------
+        None.
 
 
         Raises
@@ -217,6 +227,11 @@ class WireGuardProvider(IVPNProvider):
 
         protocol_data : dict[str, Any]
             Protocol specific parameters.
+
+
+        Returns
+        -------
+        None.
 
 
         Raises
@@ -304,6 +319,11 @@ class WireGuardProvider(IVPNProvider):
         dict[str, int]
             A dictionary mapping each peer's public key to its total data transfer in bytes.
 
+
+        Raises
+        ------
+        None.
+
         """
 
         output = await self._run_command([self.wg_show_path, "show", self.interface, "transfer"])
@@ -333,6 +353,11 @@ class WireGuardProvider(IVPNProvider):
         -------
         list[str]
             A list of peer public keys.
+
+
+        Raises
+        ------
+        None.
 
         """
 

@@ -46,6 +46,11 @@ class OriginAgentClusterMiddleware:
         -------
         None.
 
+
+        Raises
+        ------
+        None.
+
         """
 
         self.app = app
@@ -72,6 +77,11 @@ class OriginAgentClusterMiddleware:
 
         Returns
         -------
+        None.
+
+
+        Raises
+        ------
         None.
 
         """

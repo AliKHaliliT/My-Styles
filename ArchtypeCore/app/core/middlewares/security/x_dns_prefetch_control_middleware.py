@@ -55,6 +55,11 @@ class XDNSPrefetchControlMiddleware:
         -------
         None.
 
+
+        Raises
+        ------
+        None.
+
         """
 
         self.app = app
@@ -82,6 +87,11 @@ class XDNSPrefetchControlMiddleware:
 
         Returns
         -------
+        None.
+
+
+        Raises
+        ------
         None.
 
         """

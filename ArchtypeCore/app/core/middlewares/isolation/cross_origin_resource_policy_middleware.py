@@ -56,6 +56,11 @@ class CrossOriginResourcePolicyMiddleware:
         -------
         None.
 
+
+        Raises
+        ------
+        None.
+
         """
 
         self.app = app
@@ -83,6 +88,11 @@ class CrossOriginResourcePolicyMiddleware:
 
         Returns
         -------
+        None.
+
+
+        Raises
+        ------
         None.
 
         """

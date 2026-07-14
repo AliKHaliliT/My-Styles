@@ -52,6 +52,11 @@ class StrictTransportSecurityMiddleware:
         -------
         None.
 
+
+        Raises
+        ------
+        None.
+
         """
 
         self.app = app
@@ -80,6 +85,11 @@ class StrictTransportSecurityMiddleware:
             
         Returns
         -------
+        None.
+
+
+        Raises
+        ------
         None.
 
         """

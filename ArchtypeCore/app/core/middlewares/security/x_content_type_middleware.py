@@ -46,6 +46,11 @@ class XContentTypeOptionsMiddleware:
         -------
         None.
 
+
+        Raises
+        ------
+        None.
+
         """
 
         self.app = app
@@ -72,6 +77,11 @@ class XContentTypeOptionsMiddleware:
 
         Returns
         -------
+        None.
+
+
+        Raises
+        ------
         None.
 
         """

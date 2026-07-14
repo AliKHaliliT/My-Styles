@@ -51,6 +51,11 @@ class PermissionsPolicyMiddleware:
         -------
         None.
 
+
+        Raises
+        ------
+        None.
+
         """
 
         self.app = app
@@ -78,6 +83,11 @@ class PermissionsPolicyMiddleware:
 
         Returns
         -------
+        None.
+
+
+        Raises
+        ------
         None.
 
         """

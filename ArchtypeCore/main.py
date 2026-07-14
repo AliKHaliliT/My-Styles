@@ -84,7 +84,7 @@ app.add_middleware(
 app.add_middleware(StrictTransportSecurityMiddleware)
 app.add_middleware(XContentTypeOptionsMiddleware)
 ### For demonstration purposes, security settings have been relaxed to make publishing and viewing the auto-generated documentation easier.
-### In a real enterprise project, you should enforce stricter policies—avoid practices like "unsafe-inline" and instead use safer alternatives such as nonce.
+### In a real enterprise project, you should enforce stricter policies and avoid practices like "unsafe-inline" and instead use safer alternatives such as nonce.
 ### Additionally, the frontend here uses a development build of Tailwind. 
 ### In an enterprise environment, this should be properly optimized and prepared for production.
 app.add_middleware(

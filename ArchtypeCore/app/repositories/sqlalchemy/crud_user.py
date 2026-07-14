@@ -96,7 +96,12 @@ class CRUDUser(IUserRepository):
         -------
         DomainUser | None
             The mapped domain schema, or None if not found.
-        
+
+
+        Raises
+        ------
+        None.
+
         """
 
         db_obj = await self.session.scalar(select(self.model).options(selectinload(self.model.devices)).where(self.model.id == id))
@@ -192,7 +197,12 @@ class CRUDUser(IUserRepository):
         -------
         list[DomainUser]
             A list of mapped domain schemas.
-        
+
+
+        Raises
+        ------
+        None.
+
         """
 
         db_objs = await self.session.scalars(
@@ -221,7 +231,12 @@ class CRUDUser(IUserRepository):
         -------
         int
             The total count of users.
-        
+
+
+        Raises
+        ------
+        None.
+
         """
 
         count = await self.session.scalar(select(func.count(self.model.id)))
@@ -244,7 +259,12 @@ class CRUDUser(IUserRepository):
         -------
         int
             The count of users near their quota.
-        
+
+
+        Raises
+        ------
+        None.
+
         """
 
         count = await self.session.scalar(

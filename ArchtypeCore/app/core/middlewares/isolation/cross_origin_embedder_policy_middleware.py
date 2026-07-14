@@ -54,6 +54,11 @@ class CrossOriginEmbedderPolicyMiddleware:
         -------
         None.
 
+
+        Raises
+        ------
+        None.
+
         """
 
         self.app = app
@@ -81,6 +86,11 @@ class CrossOriginEmbedderPolicyMiddleware:
 
         Returns
         -------
+        None.
+
+
+        Raises
+        ------
         None.
 
         """
