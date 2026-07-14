@@ -67,7 +67,13 @@ class CRUDAdmin(IAdminRepository):
         Returns
         -------
         None.
-        
+
+
+        Raises
+        ------
+        TypeError
+            If `session` is not an AsyncSession, or `auth_manager` does not implement IAuthManager.
+
         """
 
         if not isinstance(session, AsyncSession):
@@ -122,7 +128,13 @@ class CRUDAdmin(IAdminRepository):
         -------
         DomainAdminInDB | None
             The mapped domain schema, or None if not found.
-        
+
+
+        Raises
+        ------
+        TypeError
+            If `username` is not a str.
+
         """
 
         if not isinstance(username, str):
@@ -150,6 +162,12 @@ class CRUDAdmin(IAdminRepository):
         -------
         DomainAdminInDB
             The newly created mapped domain schema.
+
+
+        Raises
+        ------
+        TypeError
+            If `entity_in` is not an DomainAdminCreate.
 
         """
 
@@ -187,6 +205,15 @@ class CRUDAdmin(IAdminRepository):
         -------
         DomainAdminInDB
             The updated mapped domain schema.
+
+
+        Raises
+        ------
+        TypeError
+            If `db_obj` is not an DomainAdminInDB, or `obj_in` is not a DomainAdminUpdate.
+
+        NoResultFound
+            If the requested admin does not exist.
 
         """
 
@@ -234,6 +261,15 @@ class CRUDAdmin(IAdminRepository):
         -------
         DomainAdminInDB
             The deleted mapped domain schema.
+
+
+        Raises
+        ------
+        TypeError
+            If `id` is not an int.
+
+        NoResultFound
+            If the requested admin does not exist.
 
         """
 

@@ -48,6 +48,12 @@ class ColoredDefaultFormatter(Formatter):
         formatted_log : str
             The formatted log message string.
 
+
+        Raises
+        ------
+        TypeError
+            If `record` is not an instance of `logging.LogRecord`.
+
         """
 
         if not isinstance(record, LogRecord):
@@ -104,6 +110,12 @@ class ColoredAccessFormatter(Formatter):
         -------
         formatted_log : str
             The formatted log message string.
+
+
+        Raises
+        ------
+        TypeError
+            If `record` is not an instance of `logging.LogRecord`.
 
         """
 

@@ -21,7 +21,13 @@ def wrap_swagger_single_example(description: str, example_payload: dict[str, Any
     -------
     swagger_dict : dict[str, Any]
         The heavily nested dictionary required by FastAPI's `responses` parameter.
-    
+
+
+    Raises
+    ------
+    TypeError
+        If `description` is not a string, or `example_payload` is not a dict.
+
     """
 
     if not isinstance(description, str):
@@ -60,7 +66,13 @@ def wrap_swagger_multi_examples(description: str, examples_dict: dict[str, dict[
     -------
     swagger_dict : dict[str, Any]
         The heavily nested dictionary required by FastAPI's `responses` parameter.
-    
+
+
+    Raises
+    ------
+    TypeError
+        If `description` is not a string, or `examples_dict` is not a dict.
+
     """
 
     if not isinstance(description, str):

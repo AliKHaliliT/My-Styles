@@ -62,7 +62,13 @@ class CRUDDevice(IDeviceRepository):
         Returns
         -------
         None.
-        
+
+
+        Raises
+        ------
+        TypeError
+            If `session` is not an AsyncSession.
+
         """
 
         if not isinstance(session, AsyncSession):
@@ -117,7 +123,13 @@ class CRUDDevice(IDeviceRepository):
         -------
         list[DomainDevice]
             A list of mapped domain schemas.
-        
+
+
+        Raises
+        ------
+        TypeError
+            If `skip` is not an int, or `limit` is not an int.
+
         """
 
         if not isinstance(skip, int):
@@ -153,7 +165,13 @@ class CRUDDevice(IDeviceRepository):
         -------
         list[DomainDevice]
             A list of mapped domain schemas.
-        
+
+
+        Raises
+        ------
+        TypeError
+            If `user_id` is not an int, or `skip` is not an int, or `limit` is not an int.
+
         """
 
         if not isinstance(user_id, int):
@@ -213,6 +231,12 @@ class CRUDDevice(IDeviceRepository):
         str
             The next available IP string.
 
+
+        Raises
+        ------
+        RuntimeError
+            If the available IP address space is exhausted.
+
         """
         
         last_ip = await self.session.scalar(select(self.model.ip_address).order_by(self.model.id.desc()))
@@ -255,6 +279,12 @@ class CRUDDevice(IDeviceRepository):
         -------
         DomainDevice
             The newly created mapped domain schema.
+
+
+        Raises
+        ------
+        TypeError
+            If `entity_in` is not a DomainDeviceCreate, or `client_identifier` is not a str, or `protocol_data` is not a dict.
 
         """
 
@@ -301,6 +331,15 @@ class CRUDDevice(IDeviceRepository):
         DomainDevice
             The updated mapped domain schema.
 
+
+        Raises
+        ------
+        TypeError
+            If `db_obj` is not a DomainDevice, or `obj_in` is not a DomainDeviceUpdate.
+
+        NoResultFound
+            If the requested device does not exist.
+
         """
 
         if not isinstance(db_obj, DomainDevice):
@@ -343,6 +382,15 @@ class CRUDDevice(IDeviceRepository):
         -------
         DomainDevice
             The deleted mapped domain schema.
+
+
+        Raises
+        ------
+        TypeError
+            If `id` is not an int.
+
+        NoResultFound
+            If the requested device does not exist.
 
         """
 

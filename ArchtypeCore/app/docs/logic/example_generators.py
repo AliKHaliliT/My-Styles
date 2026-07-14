@@ -26,6 +26,12 @@ def generate_example_from_exception(exc: BaseException) -> dict[str, Any]:
     example : dict[str, Any]
         A dictionary containing serializable public attributes of the exception.
 
+
+    Raises
+    ------
+    TypeError
+        If the argument is not an exception class or instance.
+
     """
 
     # Special case for FastAPI's RequestValidationError
@@ -89,6 +95,12 @@ def generate_example_from_pydantic(model: type[BaseModel]) -> dict[str, Any]:
     -------
     example : dict[str, Any]
         A dictionary containing example values matching the model's schema.
+
+
+    Raises
+    ------
+    TypeError
+        If `Input` is not a Pydantic model class (subclass of BaseModel).
 
     """
 

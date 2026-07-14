@@ -62,7 +62,13 @@ class CRUDUser(IUserRepository):
         Returns
         -------
         None.
-        
+
+
+        Raises
+        ------
+        TypeError
+            If `session` is not an AsyncSession.
+
         """
 
         if not isinstance(session, AsyncSession):
@@ -114,7 +120,13 @@ class CRUDUser(IUserRepository):
         -------
         DomainUser | None
             The mapped domain schema, or None if not found.
-        
+
+
+        Raises
+        ------
+        TypeError
+            If `username` is not a str.
+
         """
 
         if not isinstance(username, str):
@@ -145,7 +157,13 @@ class CRUDUser(IUserRepository):
         -------
         list[DomainUser]
             A list of mapped domain schemas.
-        
+
+
+        Raises
+        ------
+        TypeError
+            If `skip` is not an int, or `limit` is not an int.
+
         """
 
         if not isinstance(skip, int):
@@ -258,6 +276,12 @@ class CRUDUser(IUserRepository):
         DomainUser
             The newly created mapped domain schema.
 
+
+        Raises
+        ------
+        TypeError
+            If `entity_in` is not a DomainUserCreate.
+
         """
 
         if not isinstance(entity_in, DomainUserCreate):
@@ -293,6 +317,15 @@ class CRUDUser(IUserRepository):
         -------
         DomainUser
             The updated mapped domain schema.
+
+
+        Raises
+        ------
+        TypeError
+            If `db_obj` is not a DomainUser, or `obj_in` is not a DomainUserUpdate.
+
+        NoResultFound
+            If the requested user does not exist.
 
         """
 
@@ -336,6 +369,15 @@ class CRUDUser(IUserRepository):
         -------
         DomainUser
             The deleted mapped domain schema.
+
+
+        Raises
+        ------
+        TypeError
+            If `id` is not an int.
+
+        NoResultFound
+            If the requested user does not exist.
 
         """
 

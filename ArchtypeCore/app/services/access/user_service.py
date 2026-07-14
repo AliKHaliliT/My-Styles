@@ -60,6 +60,12 @@ class UserService:
         -------
         None.
 
+
+        Raises
+        ------
+        TypeError
+            If `uow` does not implement IUnitOfWork, or `vpn_provider` does not implement IVPNProvider.
+
         """
 
         if not isinstance(uow, IUnitOfWork):
@@ -89,6 +95,12 @@ class UserService:
         -------
         User | None
             The domain schema for the user if found, otherwise None.
+
+
+        Raises
+        ------
+        ValueError
+            If `user_id` is not a positive integer.
 
         """
 
@@ -120,6 +132,12 @@ class UserService:
         -------
         list[User]
             A list of domain-level user schemas.
+
+
+        Raises
+        ------
+        ValueError
+            If `skip` is not a non-negative integer, or `limit` is not a positive integer.
 
         """
 
@@ -157,6 +175,18 @@ class UserService:
         -------
         User
             The domain schema for the newly created user.
+
+
+        Raises
+        ------
+        TypeError
+            If `user_in` is not a UserCreate.
+
+        ValueError
+            If `initial_device_name` is not a non-empty string.
+
+        DuplicateEntityError
+            If a user with the same username already exists.
 
         """
 
@@ -225,6 +255,12 @@ class UserService:
         User
             The updated domain schema.
 
+
+        Raises
+        ------
+        EntityNotFoundError
+            If the requested user does not exist.
+
         """
 
         async with self.uow:
@@ -283,6 +319,12 @@ class UserService:
         User
             The domain schema for the updated user.
 
+
+        Raises
+        ------
+        ValueError
+            If `user_id` is not a positive integer.
+
         """
 
         if not isinstance(user_id, int) or user_id <= 0:
@@ -310,6 +352,12 @@ class UserService:
         User
             The domain schema for the updated user.
 
+
+        Raises
+        ------
+        ValueError
+            If `user_id` is not a positive integer.
+
         """
 
         if not isinstance(user_id, int) or user_id <= 0:
@@ -336,6 +384,15 @@ class UserService:
         -------
         UserStats
             A domain-level schema containing user statistics.
+
+
+        Raises
+        ------
+        ValueError
+            If `user_id` is not a positive integer.
+
+        EntityNotFoundError
+            If the requested user does not exist.
 
         """
 

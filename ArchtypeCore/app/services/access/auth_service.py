@@ -60,6 +60,12 @@ class AuthService:
         -------
         None.
 
+
+        Raises
+        ------
+        TypeError
+            If `uow` does not implement IUnitOfWork, or `auth_manager` does not implement IAuthManager, or `settings` is not an instance of Settings.
+
         """
 
         if not isinstance(uow, IUnitOfWork):
@@ -99,6 +105,18 @@ class AuthService:
         -------
         token : AuthToken
             A domain-level schema containing the access token.
+
+
+        Raises
+        ------
+        ValueError
+            If `username` is not a non-empty string.
+
+        TypeError
+            If `password` is not a string.
+
+        AuthenticationError
+            If the username or password is incorrect, or the account is disabled.
 
         """
 

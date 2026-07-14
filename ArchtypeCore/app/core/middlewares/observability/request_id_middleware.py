@@ -16,9 +16,12 @@ class RequestIDMiddleware:
     For WebSocket requests, it only sets the ID for internal tracing (no response header).
     This enables consistent tracing and correlation across logs regardless of protocol.
 
-    Note that the Request ID for the WebSocket requests are implemented but not critically tested.
 
-    
+    Notes
+    -----
+    The Request ID for the WebSocket requests are implemented but not critically tested.
+
+
     Usage
     -----
     ```python

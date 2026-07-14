@@ -14,9 +14,12 @@ class XDownloadOptionsMiddleware:
     Sub-Category: Browser/Client Focused
     Reason for inclusion: Provides a specific security enhancement for users on Internet Explorer 8 and newer, preventing HTML files from being executed in the context of the site.
 
-    Note that this middleware only handles HTTP requests and is implemented in ASGI manner for consistency and to avoid silent failures.
 
-    
+    Notes
+    -----
+    This middleware only handles HTTP requests and is implemented in ASGI manner for consistency and to avoid silent failures.
+
+
     Usage
     -----
     ```python

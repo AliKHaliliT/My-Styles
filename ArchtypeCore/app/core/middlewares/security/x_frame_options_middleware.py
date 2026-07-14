@@ -14,9 +14,12 @@ class XFrameOptionsMiddleware:
     Sub-Category: Browser/Client Focused
     Reason for inclusion: This header provides a fallback layer of protection against clickjacking attacks for older browsers that do not support the modern Content-Security-Policy `frame-ancestors` directive.
 
-    Note that this middleware only handles HTTP requests and is implemented in ASGI manner for consistency and to avoid silent failures.
 
-    
+    Notes
+    -----
+    This middleware only handles HTTP requests and is implemented in ASGI manner for consistency and to avoid silent failures.
+
+
     Usage
     -----
     ```python

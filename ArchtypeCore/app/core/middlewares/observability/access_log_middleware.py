@@ -19,10 +19,13 @@ class AccessLogMiddleware:
     For HTTP, it logs request method, path, status code, and processing time.
     For WebSocket, it logs the initial handshake and connection metadata.
     Useful for monitoring traffic and debugging.
-    
-    Note that the Logging for the WebSocket requests are implemented but not critically tested.
 
-    
+
+    Notes
+    -----
+    The Logging for the WebSocket requests are implemented but not critically tested.
+
+
     Usage
     -----
     ```python

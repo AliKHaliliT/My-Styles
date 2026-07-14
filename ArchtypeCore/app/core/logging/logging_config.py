@@ -65,6 +65,15 @@ def setup_logging(handler_log_level: str = "DEBUG", root_log_level: str = "INFO"
     -------
     None.
 
+
+    Raises
+    ------
+    TypeError
+        If `handler_log_level` is not a string, or `root_log_level` is not a string, or `uvicorn_log_level` is not a string.
+
+    ValueError
+        If any of `handler_log_level`, `root_log_level`, or `uvicorn_log_level` is not a valid logging level name.
+
     """
 
     if not isinstance(handler_log_level, str):

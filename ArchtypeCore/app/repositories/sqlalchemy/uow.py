@@ -53,6 +53,12 @@ class SQLAlchemyUnitOfWork(IUnitOfWork):
         -------
         None.
 
+
+        Raises
+        ------
+        TypeError
+            If `auth_manager` does not implement IAuthManager.
+
         """
 
         if not isinstance(auth_manager, IAuthManager):
@@ -69,6 +75,11 @@ class SQLAlchemyUnitOfWork(IUnitOfWork):
         """
 
         Enter the async context manager, instantiating the session and repos.
+
+
+        Parameters
+        ----------
+        None.
 
 
         Returns

@@ -63,6 +63,12 @@ class DeviceService:
         -------
         None.
 
+
+        Raises
+        ------
+        TypeError
+            If `uow` does not implement IUnitOfWork, or `vpn_provider` does not implement IVPNProvider, or `settings` is not an instance of Settings.
+
         """
 
         if not isinstance(uow, IUnitOfWork):
@@ -95,7 +101,13 @@ class DeviceService:
         -------
         Device | None
             The Device domain instance if found, otherwise None.
-        
+
+
+        Raises
+        ------
+        ValueError
+            If `device_id` is not a positive integer.
+
         """
 
         if not isinstance(device_id, int) or device_id <= 0:
@@ -123,6 +135,15 @@ class DeviceService:
         -------
         Device
             The newly created Device domain instance.
+
+
+        Raises
+        ------
+        TypeError
+            If `device_in` is not a DeviceCreate.
+
+        EntityNotFoundError
+            If the requested user does not exist.
 
         """
 
@@ -180,6 +201,15 @@ class DeviceService:
         Device
             The updated Device domain instance.
 
+
+        Raises
+        ------
+        ValueError
+            If `device_id` is not a positive integer.
+
+        EntityNotFoundError
+            If the requested device does not exist.
+
         """
 
         if not isinstance(device_id, int) or device_id <= 0:
@@ -224,6 +254,15 @@ class DeviceService:
         Device
             The updated Device domain instance.
 
+
+        Raises
+        ------
+        ValueError
+            If `device_id` is not a positive integer.
+
+        EntityNotFoundError
+            If the requested device does not exist.
+
         """
 
         if not isinstance(device_id, int) or device_id <= 0:
@@ -266,6 +305,12 @@ class DeviceService:
         -------
         DeviceConfig
             The mapped Config schema.
+
+
+        Raises
+        ------
+        TypeError
+            If `device` is not a Device.
 
         """
 

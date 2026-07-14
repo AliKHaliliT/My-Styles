@@ -57,6 +57,12 @@ class WireGuardProvider(IVPNProvider):
         -------
         None.
 
+
+        Raises
+        ------
+        TypeError
+            If `settings` is not a Settings.
+
         """
 
         if not isinstance(settings, Settings):
@@ -91,6 +97,15 @@ class WireGuardProvider(IVPNProvider):
         -------
         str
             The stripped stdout from the command.
+
+
+        Raises
+        ------
+        TypeError
+            If `command` is not a list.
+
+        RuntimeError
+            If the underlying command exits with a non-zero status.
 
         """
 
@@ -132,6 +147,11 @@ class WireGuardProvider(IVPNProvider):
         Generates a new WireGuard private and public key pair.
 
         
+        Parameters
+        ----------
+        None.
+
+
         Returns
         -------
         tuple[str, dict[str, Any]]
@@ -165,6 +185,12 @@ class WireGuardProvider(IVPNProvider):
         protocol_data : dict[str, Any]
             Protocol specific parameters.
 
+
+        Raises
+        ------
+        TypeError
+            If `client_identifier` is not a str, or `ip_address` is not a str.
+
         """
 
         if not isinstance(client_identifier, str):
@@ -191,6 +217,12 @@ class WireGuardProvider(IVPNProvider):
 
         protocol_data : dict[str, Any]
             Protocol specific parameters.
+
+
+        Raises
+        ------
+        TypeError
+            If `client_identifier` is not a str.
 
         """
 
@@ -226,6 +258,12 @@ class WireGuardProvider(IVPNProvider):
         str
             The configuration file content.
 
+
+        Raises
+        ------
+        TypeError
+            If `client_identifier` is not a str, or `protocol_data` is not a dict.
+
         """
 
         if not isinstance(client_identifier, str):
@@ -256,6 +294,11 @@ class WireGuardProvider(IVPNProvider):
         Retrieves the total data transfer (up + down) for each peer.
 
 
+        Parameters
+        ----------
+        None.
+
+
         Returns
         -------
         dict[str, int]
@@ -279,6 +322,11 @@ class WireGuardProvider(IVPNProvider):
         """
 
         Lists the public keys of all peers on the WireGuard interface.
+
+
+        Parameters
+        ----------
+        None.
 
 
         Returns

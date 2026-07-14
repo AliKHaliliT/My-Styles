@@ -14,9 +14,12 @@ class XDNSPrefetchControlMiddleware:
     Sub-Category: Browser/Client Focused
     Reason for inclusion: Provides a privacy enhancement by disabling a browser feature that could potentially leak user navigation patterns to DNS servers.
 
-    Note that this middleware only handles HTTP requests and is implemented in ASGI manner for consistency and to avoid silent failures.
 
-    
+    Notes
+    -----
+    This middleware only handles HTTP requests and is implemented in ASGI manner for consistency and to avoid silent failures.
+
+
     Usage
     -----
     ```python

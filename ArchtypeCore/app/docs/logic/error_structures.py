@@ -32,7 +32,13 @@ def build_standard_error_payload(
     -------
     payload : dict[str, Any]
         A dictionary formatted exactly how the API will return it to the client.
-    
+
+
+    Raises
+    ------
+    TypeError
+        If `title` is not a string, or `status_code` is not an integer, or `error_type` is not a string.
+
     """
 
     if not isinstance(title, str):

@@ -43,6 +43,12 @@ class RequestIDFilter(Filter):
         record_logging_switch : bool
             Always returns True to indicate the record should be logged.
 
+
+        Raises
+        ------
+        TypeError
+            If `record` is not an instance of `logging.LogRecord`.
+
         """
 
         if not isinstance(record, LogRecord):

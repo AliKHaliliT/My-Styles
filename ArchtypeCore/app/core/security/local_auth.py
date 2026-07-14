@@ -88,6 +88,12 @@ class LocalAuthAdapter(IAuthManager):
         bool
             True if the password is correct, False otherwise.
 
+
+        Raises
+        ------
+        TypeError
+            If `plain_password` is not a str, or `hashed_password` is not a str.
+
         """
 
         if not isinstance(plain_password, str):
@@ -124,6 +130,15 @@ class LocalAuthAdapter(IAuthManager):
         str
             The hashed password string.
 
+
+        Raises
+        ------
+        TypeError
+            If `password` is not a str.
+
+        ValueError
+            If the password could not be hashed.
+
         """
 
         if not isinstance(password, str):
@@ -157,6 +172,15 @@ class LocalAuthAdapter(IAuthManager):
         -------
         str
             The encoded JWT access token.
+
+
+        Raises
+        ------
+        TypeError
+            If `data` is not a dict.
+
+        ValueError
+            If the token payload does not contain a 'sub' field, or the access token could not be created.
 
         """
 
@@ -196,6 +220,12 @@ class LocalAuthAdapter(IAuthManager):
         -------
         dict[str, Any] | None
             The decoded payload data if the token is valid, otherwise None.
+
+
+        Raises
+        ------
+        TypeError
+            If `token` is not a str.
 
         """
 

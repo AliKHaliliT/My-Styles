@@ -14,9 +14,12 @@ class XXSSProtectionMiddleware:
     Sub-Category: Browser/Client Focused
     Reason for inclusion: This header provides a minimal, last-resort fallback against some reflective XSS attacks for users on very old browsers that do not support Content-Security-Policy. It should be set to disable the auditor (`0`) or enable block mode (`1; mode=block`).
 
-    Note that this middleware only handles HTTP requests and is implemented in ASGI manner for consistency and to avoid silent failures.
 
-    
+    Notes
+    -----
+    This middleware only handles HTTP requests and is implemented in ASGI manner for consistency and to avoid silent failures.
+
+
     Usage
     -----
     ```python

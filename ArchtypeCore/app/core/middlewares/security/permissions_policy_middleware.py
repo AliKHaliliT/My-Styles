@@ -14,9 +14,12 @@ class PermissionsPolicyMiddleware:
     Primary Category: Modern Header
     Sub-Category: Browser/Client Focused
 
-    Note that this middleware only handles HTTP requests and is implemented in ASGI manner for consistency and to avoid silent failures.
 
-    
+    Notes
+    -----
+    This middleware only handles HTTP requests and is implemented in ASGI manner for consistency and to avoid silent failures.
+
+
     Usage
     -----
     ```python

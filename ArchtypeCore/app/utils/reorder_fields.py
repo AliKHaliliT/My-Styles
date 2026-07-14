@@ -71,6 +71,12 @@ def reorder_fields(
         A decorator that returns a new Pydantic model class with
         reordered fields.
 
+
+    Raises
+    ------
+    TypeError
+        If `include_fields` is not an instance of set, or `exclude_fields` is not an instance of set, or `fields_to_move_last` is not an instance of dict, or `interleave_last` is not an instance of list.
+
     """
     
     if include_fields and not isinstance(include_fields, set):
