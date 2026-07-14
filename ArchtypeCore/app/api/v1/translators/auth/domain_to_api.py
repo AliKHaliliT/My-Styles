@@ -10,4 +10,4 @@ def domain_to_api_auth_token(domain: DomainAuthToken) -> APIAuthToken:
 
     """
 
-    return APIAuthToken.model_validate(domain)
+    return APIAuthToken.model_validate(domain, from_attributes=True)

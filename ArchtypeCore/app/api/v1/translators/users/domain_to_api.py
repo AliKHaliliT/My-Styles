@@ -14,7 +14,7 @@ def domain_to_api_user(domain: DomainUser) -> APIUser:
 
     """
 
-    return APIUser.model_validate(domain)
+    return APIUser.model_validate(domain, from_attributes=True)
 
 
 def domain_to_api_user_stats(domain: DomainUserStats) -> APIUserStats:
@@ -25,7 +25,7 @@ def domain_to_api_user_stats(domain: DomainUserStats) -> APIUserStats:
 
     """
 
-    return APIUserStats.model_validate(domain)
+    return APIUserStats.model_validate(domain, from_attributes=True)
 
 
 def domain_to_api_user_list(domain_users: DomainUserList) -> APIUserList:

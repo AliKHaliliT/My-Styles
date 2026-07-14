@@ -8,10 +8,10 @@ ADD_DEVICE_RESPONSES = {
     status.HTTP_404_NOT_FOUND: wrap_swagger_single_example(
         description="User Not Found",
         example_payload=build_standard_error_payload(
-            title="HTTP Error 404",
+            title="Not Found",
             detail="User with ID {id} not found",
             status_code=status.HTTP_404_NOT_FOUND,
-            error_type="http_error"
+            error_type="not_found"
         )
     ),
     **STANDARD_ROUTER_RESPONSES
@@ -22,10 +22,10 @@ DEVICE_ACTION_RESPONSES = {
     status.HTTP_404_NOT_FOUND: wrap_swagger_single_example(
         description="Device Not Found",
         example_payload=build_standard_error_payload(
-            title="HTTP Error 404",
+            title="Not Found",
             detail="Device with ID {id} not found",
             status_code=status.HTTP_404_NOT_FOUND,
-            error_type="http_error"
+            error_type="not_found"
         )
     ),
     **STANDARD_ROUTER_RESPONSES

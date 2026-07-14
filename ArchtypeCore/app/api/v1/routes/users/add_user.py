@@ -1,4 +1,4 @@
-from fastapi import Depends, HTTPException, Request, status
+from fastapi import Depends, Request
 
 from app.api.v1.dependencies import get_user_service
 from app.api.v1.schemas.users import User, UserCreate
@@ -19,10 +19,6 @@ async def add_user(
 
     """
 
-    try:
-        domain_user_in = api_to_domain_user_create(user_in)
-        domain_user = await user_service.create_user_with_device(user_in=domain_user_in)
-        return domain_to_api_user(domain_user)
-
-    except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    domain_user_in = api_to_domain_user_create(user_in)
+    domain_user = await user_service.create_user_with_device(user_in=domain_user_in)
+    return domain_to_api_user(domain_user)

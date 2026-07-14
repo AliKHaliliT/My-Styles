@@ -4,7 +4,8 @@ from fastapi import Request, status
 from fastapi.responses import JSONResponse
 
 from app.docs.logic import build_standard_error_payload
-from app.domain.exceptions import AuthenticationError, EntityNotFoundError
+from app.domain.exceptions import (AuthenticationError, DuplicateEntityError,
+                                   EntityNotFoundError)
 
 logger = getLogger(__name__)
 
@@ -46,6 +47,10 @@ async def domain_exception_handler(request: Request, exc: Exception) -> JSONResp
         status_code = status.HTTP_404_NOT_FOUND
         title = "Not Found"
         error_type = "not_found"
+    elif isinstance(exc, DuplicateEntityError):
+        status_code = status.HTTP_409_CONFLICT
+        title = "Conflict"
+        error_type = "conflict"
     else:
         status_code = status.HTTP_400_BAD_REQUEST
         title = "Bad Request"

@@ -1,4 +1,5 @@
-from sqlalchemy import CheckConstraint, Column, Integer, String, Text
+from sqlalchemy import (BigInteger, CheckConstraint, Column, Integer, String,
+                        Text)
 from sqlalchemy.orm import relationship
 
 from db.base import Base
@@ -27,8 +28,8 @@ class User(Base, TimestampMixin):
         default="enabled",
         nullable=False,
     )
-    quota_bytes = Column(Integer, default=0, nullable=False)
-    used_bytes = Column(Integer, default=0, nullable=False)
+    quota_bytes = Column(BigInteger, default=0, nullable=False)
+    used_bytes = Column(BigInteger, default=0, nullable=False)
 
     devices = relationship(
         "Device",

@@ -12,7 +12,7 @@ def domain_to_api_device(domain: DomainDevice) -> APIDevice:
 
     """
 
-    return APIDevice.model_validate(domain)
+    return APIDevice.model_validate(domain, from_attributes=True)
 
 
 def domain_to_api_device_config(domain: DomainDeviceConfig) -> APIDeviceConfig:
@@ -23,4 +23,4 @@ def domain_to_api_device_config(domain: DomainDeviceConfig) -> APIDeviceConfig:
     
     """
 
-    return APIDeviceConfig.model_validate(domain)
+    return APIDeviceConfig.model_validate(domain, from_attributes=True)

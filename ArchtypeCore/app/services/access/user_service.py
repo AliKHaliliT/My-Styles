@@ -1,5 +1,6 @@
 import asyncio
 
+from app.domain.exceptions import DuplicateEntityError, EntityNotFoundError
 from app.domain.interfaces.uow import IUnitOfWork
 from app.domain.interfaces.vpn import IVPNProvider
 from app.domain.schemas.devices import DeviceCreate, DeviceUpdate
@@ -168,7 +169,7 @@ class UserService:
         async with self.uow:
             existing = await self.uow.users.get_by_username(username=user_in.username)
             if existing:
-                raise ValueError(f"User with username '{user_in.username}' already exists")
+                raise DuplicateEntityError(f"User with username '{user_in.username}' already exists")
 
             user_domain = await self.uow.users.add(entity_in=user_in)
 
@@ -229,7 +230,7 @@ class UserService:
         async with self.uow:
             user_domain = await self.uow.users.get(id=user_id)
             if not user_domain:
-                raise ValueError(f"User with ID {user_id} not found")
+                raise EntityNotFoundError(f"User with ID {user_id} not found")
 
             vpn_tasks =[]
             
@@ -241,17 +242,15 @@ class UserService:
                     )
                     
                     if status == "enabled":
-                        vpn_tasks.append(asyncio.to_thread(
-                            self.vpn_provider.provision_client, 
-                            device.client_identifier, 
-                            device.ip_address, 
-                            device.protocol_data
+                        vpn_tasks.append(self.vpn_provider.provision_client(
+                            client_identifier=device.client_identifier, 
+                            ip_address=device.ip_address, 
+                            protocol_data=device.protocol_data
                         ))
                     else:
-                        vpn_tasks.append(asyncio.to_thread(
-                            self.vpn_provider.revoke_client, 
-                            device.client_identifier, 
-                            device.protocol_data
+                        vpn_tasks.append(self.vpn_provider.revoke_client(
+                            client_identifier=device.client_identifier, 
+                            protocol_data=device.protocol_data
                         ))
             
             if vpn_tasks:
@@ -347,7 +346,7 @@ class UserService:
         async with self.uow:
             domain_user = await self.uow.users.get(id=user_id)
             if not domain_user:
-                raise TypeError(f"User with ID {user_id} not found.")
+                raise EntityNotFoundError(f"User with ID {user_id} not found.")
 
         total_devices = len(domain_user.devices)
         enabled_devices = sum(1 for d in domain_user.devices if d.status == "enabled")

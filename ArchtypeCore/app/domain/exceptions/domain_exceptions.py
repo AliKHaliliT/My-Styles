@@ -29,3 +29,14 @@ class EntityNotFoundError(DomainException):
     """
     
     pass
+
+
+class DuplicateEntityError(DomainException):
+
+    """
+    
+    Raised when a user or device already exists.
+    
+    """
+    
+    pass

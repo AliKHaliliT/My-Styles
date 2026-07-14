@@ -1,4 +1,4 @@
-from fastapi import Depends, HTTPException, Request, status
+from fastapi import Depends, Request
 
 from app.api.v1.dependencies import get_user_service
 from app.api.v1.schemas.users import UserList
@@ -19,12 +19,5 @@ async def list_users(
 
     """
 
-    try:
-        domain_users = await user_service.get_all_users(skip=skip, limit=limit)
-        return domain_to_api_user_list(domain_users)
-
-    except Exception:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="An unexpected error occurred while trying to list users."
-        )
+    domain_users = await user_service.get_all_users(skip=skip, limit=limit)
+    return domain_to_api_user_list(domain_users)

@@ -71,7 +71,7 @@ class Settings(BaseSettings):
 
 
     # --- CORS ---
-    CORS_ORIGINS: list[str] = Field(default_factory=lambda: ["*"], description="List of allowed CORS origins")
+    CORS_ORIGINS: list[str] = Field(default_factory=lambda: ["http://localhost:8000", "http://127.0.0.1:8000"], description="List of allowed CORS origins")
     CORS_ALLOW_CREDENTIALS: bool = Field(default=True, description="Whether to allow credentials in cross-origin requests")
     CORS_METHODS: list[str] = Field(default_factory=lambda: ["*"], description="List of allowed HTTP methods for CORS")
     CORS_HEADERS: list[str] = Field(default_factory=lambda: ["*"], description="List of allowed HTTP headers for CORS")

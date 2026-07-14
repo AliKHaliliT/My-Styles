@@ -1,4 +1,4 @@
-from fastapi import Depends, HTTPException, Request, status
+from fastapi import Depends, Request
 
 from app.api.v1.dependencies import get_device_service
 from app.api.v1.schemas.devices import Device, DeviceCreate
@@ -19,10 +19,6 @@ async def add_device(
     
     """
 
-    try:
-        domain_in = api_to_domain_device_create(device_in)
-        domain_device = await device_service.create_device(device_in=domain_in)
-        return domain_to_api_device(domain_device)
-
-    except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    domain_in = api_to_domain_device_create(device_in)
+    domain_device = await device_service.create_device(device_in=domain_in)
+    return domain_to_api_device(domain_device)

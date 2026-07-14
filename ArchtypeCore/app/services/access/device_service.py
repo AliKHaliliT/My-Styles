@@ -1,4 +1,5 @@
 from app.core.config.settings import Settings
+from app.domain.exceptions import EntityNotFoundError
 from app.domain.interfaces.uow import IUnitOfWork
 from app.domain.interfaces.vpn import IVPNProvider
 from app.domain.schemas.devices import (Device, DeviceConfig, DeviceCreate,
@@ -132,7 +133,7 @@ class DeviceService:
         async with self.uow:
             user = await self.uow.users.get(id=device_in.user_id)
             if not user:
-                raise ValueError(f"User with ID {device_in.user_id} not found")
+                raise EntityNotFoundError(f"User with ID {device_in.user_id} not found")
 
             # 1. Ask external interface for credentials
             client_id, protocol_data = await self.vpn_provider.generate_credentials()
@@ -188,7 +189,7 @@ class DeviceService:
         async with self.uow:
             device = await self.uow.devices.get(id=device_id)
             if not device:
-                raise ValueError(f"Device with ID {device_id} not found")
+                raise EntityNotFoundError(f"Device with ID {device_id} not found")
 
             await self.vpn_provider.provision_client(
                 client_identifier=device.client_identifier, 
@@ -232,7 +233,7 @@ class DeviceService:
         async with self.uow:
             device = await self.uow.devices.get(id=device_id)
             if not device:
-                raise ValueError(f"Device with ID {device_id} not found")
+                raise EntityNotFoundError(f"Device with ID {device_id} not found")
 
             await self.vpn_provider.revoke_client(
                 client_identifier=device.client_identifier, 

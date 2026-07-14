@@ -1,4 +1,4 @@
-from fastapi import Depends, HTTPException, Request, status
+from fastapi import Depends, Request
 
 from app.api.v1.dependencies import get_user_service
 from app.api.v1.schemas.users import UserStats
@@ -18,9 +18,5 @@ async def get_user_stats(
 
     """
 
-    try:
-        domain_stats = await user_service.get_user_stats(user_id=user_id)
-        return domain_to_api_user_stats(domain_stats)
-
-    except (ValueError, TypeError):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    domain_stats = await user_service.get_user_stats(user_id=user_id)
+    return domain_to_api_user_stats(domain_stats)
