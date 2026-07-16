@@ -1,9 +1,10 @@
-# Project Structure
+# Architecture
 
 This project follows a strict Clean Architecture and Domain-Driven Design (DDD) pattern. The core business logic (`domain` and `services`) is completely isolated from the web framework (`api`) and the database (`repositories`). Business logic that is meant to outlive the framework lives in `engines/` as self-contained, framework-free cores that the app depends on and never the reverse, so a change of framework or language replaces `app/` while the engines survive untouched.
 
 ```text
 my_project/
+├── AGENTS.md                   # Agent entry point and the single documentation index
 ├── alembic.ini                 # Configuration file for Alembic database migrations
 ├── app/                        # Main application code
 │   ├── api/                    # Web presentation layer (FastAPI specific)
@@ -62,6 +63,11 @@ my_project/
 ├── Dockerfile                  # Instructions to build the application container
 ├── entrypoint.sh               # Startup script for the Docker container (runs migrations, starts uvicorn)
 │
+├── docs/                       # Technical documentation for maintainers and agents (indexed in AGENTS.md)
+│   ├── ARCHITECTURE.md         # This file; the annotated map of the template
+│   ├── CONVENTIONS.md          # The documentation rulebook (frozen; do not edit)
+│   └── decisions/              # Immutable decision records; the project's "why" log
+│
 ├── engines/                    # Self-contained, framework-free business engines (portable Clean Architecture cores)
 │   └── your_engine/            # One engine per folder; app depends on it only through its facade
 │       ├── domain/             # Pure business logic and port definitions (no framework)
@@ -81,6 +87,8 @@ my_project/
 │   ├── create_admin.py         # CLI tool to securely bootstrap an admin user
 │   ├── peer_sync.py            # Cron job to sync VPN interface peers with the DB
 │   └── quota_monitor.py        # Cron job to calculate usage and enforce VPN data quotas
+│
+├── STATE.md                    # Living project state (Now / Next / Deferred / Blocked)
 │
 └── tests/                      # Automated test suite for the app (mirrors the app structure)
     └── app/                    # Tests for the main FastAPI application

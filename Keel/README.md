@@ -64,9 +64,12 @@ keel/
 │       ├── adapters/           # Concrete implementations (Reasoners, Tools, Memory, Registry, Event Sinks)
 │       └── services/           # Business logic orchestration (the bounded AgentRunner loop)
 │
+├── docs/                       # Technical documentation (the annotated map lives at docs/ARCHITECTURE.md)
 ├── tests/                      # Automated test suite mirroring the src structure
-├── pyproject.toml              # PEP 621 metadata, hatchling build backend, extras, entry points
-└── structure.md                # The annotated map of the template
+├── AGENTS.md                   # Agent entry point and the documentation index
+├── STATE.md                    # Living project state
+├── CHANGELOG.md                # Curated per-release change summary
+└── pyproject.toml              # PEP 621 metadata, hatchling build backend, extras, entry points
 ```
 
 ---
@@ -153,6 +156,8 @@ Documentation follows the **NumPy docstring style**, with one house addition: cl
 Not everything is documented that heavily, by design. Purely internal helpers and thin mappers, such as the translator functions that bridge schemas across a boundary, keep a one-line summary. Unlike a service with an HTTP edge, this package has no layer whose contract is expressed elsewhere, so the `facade` is documented in full like every other layer: it is the surface an embedding application imports and calls directly, and its docstrings are the only place its failure modes are stated.
 
 The rest of the NumPy vocabulary is used where it fits and omitted where it does not: a caveat becomes a `Notes` section rather than a loose sentence, a generator would document `Yields`, a `warnings.warn` would document `Warns`, and `See Also`/`References` are there for cross-references. Sections you do not see are simply not called for by that code; generated code should add them as it introduces the behavior.
+
+Beyond docstrings, the project's technical documentation is governed by a fixed documentation system: a vendor-neutral [AGENTS.md](AGENTS.md) serves as the agent entry point and the single index of every document, [STATE.md](STATE.md) tracks the living project state, [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) holds the current map of the system, immutable decision records under [docs/decisions/](docs/decisions/) hold the reasoning behind every settled choice, and [CHANGELOG.md](CHANGELOG.md) carries the curated per-release summary for consumers of the package. The full rulebook, including the split between living documents and records and the writing rules for each species, lives in [docs/CONVENTIONS.md](docs/CONVENTIONS.md); that file is normative and must not be modified. The rationale behind the system itself is recorded in [its founding decision record](docs/decisions/0001-adopt-the-documentation-system.md).
 
 ---
 

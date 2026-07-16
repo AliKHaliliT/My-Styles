@@ -69,8 +69,12 @@ archetype-core/
 │   └── utils/                  # General-purpose utilities (e.g., Field Reordering)
 │
 ├── db/                         # Database connection, mixins, and Alembic migrations
+├── docs/                       # Technical documentation (indexed in AGENTS.md)
+├── engines/                    # Self-contained, framework-free business engines
 ├── scripts/                    # Background jobs and CLI commands (e.g., Quota Monitors)
 ├── tests/                      # Automated test suite mirroring root structure
+├── AGENTS.md                   # Agent entry point and the documentation index
+├── STATE.md                    # Living project state
 └── main.py                     # Entrypoint for the FastAPI application
 ```
 
@@ -134,6 +138,8 @@ Documentation follows the **NumPy docstring style**, with one house addition: cl
 Not everything is documented that heavily, by design. Purely internal helpers and thin mappers keep a one-line summary, and the API layer omits `Parameters`/`Returns`/`Raises` because its contract is already expressed through the Pydantic schemas, the OpenAPI docs, and the global exception handlers.
 
 The rest of the NumPy vocabulary is used where it fits and omitted where it does not: a caveat becomes a `Notes` section (see the middleware classes) rather than a loose sentence, a generator would document `Yields`, a `warnings.warn` would document `Warns`, and `See Also`/`References` are there for cross-references. Sections you do not see are simply not called for by that code; generated code should add them as it introduces the behavior.
+
+Beyond docstrings, the project's technical documentation is governed by a fixed documentation system: a vendor-neutral [AGENTS.md](AGENTS.md) serves as the agent entry point and the single index of every document, [STATE.md](STATE.md) tracks the living project state, [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) holds the current map of the system, and immutable decision records under [docs/decisions/](docs/decisions/) hold the reasoning behind every settled choice. The full rulebook, including the split between living documents and records and the writing rules for each species, lives in [docs/CONVENTIONS.md](docs/CONVENTIONS.md); that file is normative and must not be modified. The rationale behind the system itself is recorded in [its founding decision record](docs/decisions/0001-adopt-the-documentation-system.md).
 
 ---
 

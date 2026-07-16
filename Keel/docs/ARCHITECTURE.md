@@ -1,4 +1,4 @@
-# Project Structure
+# Architecture
 
 This project follows a strict Clean Architecture and Domain-Driven Design (DDD) pattern, adapted to the shape of an installable Python package. The core business logic (`domain` and `services`) is completely isolated from the public surface (`facade`) and the concrete implementations (`adapters`).
 
@@ -8,9 +8,16 @@ A `translators/` package marks a layer boundary: the public-schema-to-domain bri
 
 ```text
 my_package/
+├── AGENTS.md                   # Agent entry point and the single documentation index
+├── CHANGELOG.md                # Curated per-release change summary for consumers
 ├── pyproject.toml              # PEP 621 metadata, build backend, extras, entry points, tool config
 ├── README.md                   # Project documentation and setup guide
-├── structure.md                # This file; the annotated map of the template
+├── STATE.md                    # Living project state (Now / Next / Deferred / Blocked)
+│
+├── docs/                       # Technical documentation for maintainers and agents (indexed in AGENTS.md)
+│   ├── ARCHITECTURE.md         # This file; the annotated map of the template
+│   ├── CONVENTIONS.md          # The documentation rulebook (frozen; do not edit)
+│   └── decisions/              # Immutable decision records; the project's "why" log
 │
 ├── local_util_resources/       # Internal development and repository management scripts
 │
