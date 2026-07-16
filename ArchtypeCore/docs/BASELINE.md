@@ -7,13 +7,15 @@ This file is the living rulebook for the repository's always-present files: whic
 | File | Role | Modification rule |
 | --- | --- | --- |
 | `README.md` | Human-facing overview. | Living document. The section order is fixed: title and badges, one-line pitch, Philosophy, Domain Example, Core Pillars, Project Structure, Key Features, Getting Started, Conventions, License. The License section accompanies the `LICENCE` file, so like the file it is present in public repositories only. |
-| `.gitignore` | What git must never track. | Append into the matching labeled section (project rules under `Project specific`); never delete inherited rules without an owner decision. |
+| `.gitignore` | What git must never track. | Every rule must correspond to the actual stack: add into the matching labeled section (project rules under `Project specific`), and remove a rule when the tool or framework it serves leaves the project, including when instantiating this template for a different stack. Never remove a rule that still matches something real without an owner decision. The same stack-matching curation applies to `.dockerignore`. |
 | `.gitattributes` | Line-ending and binary policy, so repository bytes never depend on a contributor's local git configuration. | Near-frozen; changes are owner decisions, because they silently rewrite every contributor's checkout. |
 | `.editorconfig` | Vendor-neutral editor baseline (charset, indentation, final newline). | Near-frozen; same reasoning as `.gitattributes`. |
 
 The documentation spine (`AGENTS.md`, `STATE.md`, `docs/`) is also always present; it is governed by [CONVENTIONS.md](CONVENTIONS.md), not by this file.
 
 ## Present when the trigger exists
+
+Triggers are bidirectional: the file appears when its trigger appears and is removed when its trigger disappears. A conditional file whose trigger is gone is clutter, not caution.
 
 | File | Trigger |
 | --- | --- |
