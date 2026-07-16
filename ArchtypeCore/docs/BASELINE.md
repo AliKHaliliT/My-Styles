@@ -32,6 +32,10 @@ Triggers are bidirectional: the file appears when its trigger appears and is rem
 - Anything regenerable: caches (`__pycache__/`, `.mypy_cache/`, `.ruff_cache/`, `.pytest_cache/`), build artifacts (`build/`, `dist/`, `*.egg-info/`), coverage output.
 - Operating system junk: `.DS_Store`, `Thumbs.db`, `Desktop.ini`.
 
+## Temporary development files
+
+Files created only to support a task in progress (scratch scripts, debug outputs, one-off harnesses, refactoring aids) are not repository content. Prefer creating them outside the repository tree in the first place. When one does live inside the tree, it is purged in the same change that ends its usefulness; it is safe to purge once its task is complete and nothing tracked references it. A development utility worth keeping across tasks belongs in `local_util_resources/`, which is already untracked. If it is unclear whether a file is still needed, surface it to the owner rather than deleting it or silently leaving it behind.
+
 ## Line endings
 
 `.gitattributes` is the single authority: text files are stored normalized (`* text=auto`), shell scripts always check out LF (they run inside Linux containers, where a CRLF shebang breaks them), and Windows script formats (`.bat`, `.cmd`, `.ps1`) always check out CRLF. Local `core.autocrlf` settings must never be load-bearing.
