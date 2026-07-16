@@ -65,6 +65,7 @@ my_project/
 │
 ├── docs/                       # Technical documentation for maintainers and agents (indexed in AGENTS.md)
 │   ├── ARCHITECTURE.md         # This file; the annotated map of the template
+│   ├── BASELINE.md             # The repository baseline (always-present files and their rules)
 │   ├── CONVENTIONS.md          # The documentation rulebook (frozen; do not edit)
 │   └── decisions/              # Immutable decision records; the project's "why" log
 │

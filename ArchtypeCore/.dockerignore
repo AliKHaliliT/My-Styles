@@ -3,6 +3,12 @@ __pycache__/
 *.pyo
 *.db
 venv/
+.venv/
 .git/
 *.log
 .env
+.vscode/
+.idea/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/

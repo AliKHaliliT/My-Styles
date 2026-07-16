@@ -27,6 +27,7 @@ This is the single index of the project's technical documentation. A document th
 | [STATE.md](STATE.md) | Living project state (Now / Next / Deferred / Blocked). Read first, always. |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | The annotated map of the whole template. Read before any structural change. |
 | [docs/CONVENTIONS.md](docs/CONVENTIONS.md) | The documentation rulebook: document species, schemas, naming. Frozen; do not edit. Read before writing or changing any documentation. |
+| [docs/BASELINE.md](docs/BASELINE.md) | The repository baseline: always-present files, never-tracked files, and their modification rules. Read before adding, removing, or reshaping root-level or dot files. |
 | [docs/decisions/](docs/decisions/) | Immutable decision records holding the project's "why". Read the relevant record before revisiting a settled topic; never edit an accepted record. |
 | [engines/README.md](engines/README.md) | What engines are, why they live outside `app/`, and the rules for adding one. |
 
