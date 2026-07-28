@@ -39,7 +39,7 @@ Triggers are bidirectional: the file appears when its trigger appears and is rem
 | `.dockerignore` | A `Dockerfile` exists. |
 | `requirements.txt` / `pyproject.toml` | The project's dependency manifest, per project type. |
 | `CHANGELOG.md` | The project is a versioned package that consumers upgrade through (see CONVENTIONS.md). |
-| `util_resources/readme/` | The repository embeds images. Every image the repository uses (a logo, screenshots, README figures) lives in this folder and nowhere else. |
+| `util_resources/` | The repository carries tracked assets. `readme/` holds every image the repository embeds (a logo, screenshots, README figures), and nothing references an image from anywhere else. Further purpose-named subfolders may be added as new asset kinds arise, each under the same trigger logic: it exists only while something uses it. |
 
 ## Never tracked
 
