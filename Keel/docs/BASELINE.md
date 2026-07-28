@@ -28,6 +28,8 @@ The README's sections appear in this order, each with a content contract. Headin
 9. **Conventions.** The canonical paragraphs (the docstring convention, the documentation system, and the prose rule) are inherited verbatim from the template, with only truth-preserving clause edits, such as a project without a changelog dropping that clause. Project-specific rules may be appended as new sentences; the canonical text is never rewritten. Paraphrase is drift, not adaptation.
 10. **License.** Present in public repositories only, accompanying the `LICENSE` file. Its body is always exactly one line: `This work is under an [someLicense](url) License.`, with the license name and its URL filled in (for example `[MIT](https://choosealicense.com/licenses/mit/)`).
 
+Link and image referencing follows the repository boundary. Internal document links are always relative, because they never leave the repository that resolves them, and relative paths survive forks and renames. Images are referenced relatively too, until the README itself leaves the repository: when the project is published to a package index, every image switches to the absolute raw form, `https://github.com/<owner>/<repo>/blob/<branch>/util_resources/readme/<file>?raw=true`, since the index page has no repository to resolve a relative path against. Pin the branch to `main` by default; pin to the release tag instead when a version's index page must stay historically accurate, at the cost of updating the URL when tagging.
+
 ## Present when the trigger exists
 
 Triggers are bidirectional: the file appears when its trigger appears and is removed when its trigger disappears. A conditional file whose trigger is gone is clutter, not caution.
