@@ -56,7 +56,10 @@ my_package/
 │       └── services/           # Business logic orchestration (coordinates the ports)
 │           └── execution/      # AgentRunner; the bounded reason -> act -> record loop
 │
-└── tests/                      # Automated test suite (mirrors the src structure)
-    └── src/
-        └── keel/
+├── tests/                      # Automated test suite (mirrors the src structure)
+│   └── src/
+│       └── keel/
+│
+└── util_resources/             # Tracked repository assets
+    └── readme/                 # Every image the repository embeds (logo, screenshots, figures)
 ```

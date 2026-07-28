@@ -154,6 +154,8 @@ The rest of the NumPy vocabulary is used where it fits and omitted where it does
 
 Beyond docstrings, the project's technical documentation is governed by a fixed documentation system: a vendor-neutral [AGENTS.md](AGENTS.md) serves as the agent entry point and the single index of every document, [STATE.md](STATE.md) tracks the living project state, [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) holds the current map of the system, immutable decision records under [docs/decisions/](docs/decisions/) hold the reasoning behind every settled choice, and [CHANGELOG.md](CHANGELOG.md) carries the curated per-release summary for consumers of the package. The full rulebook, including the split between living documents and records and the writing rules for each species, lives in [docs/CONVENTIONS.md](docs/CONVENTIONS.md); that file is normative and must not be modified. The rationale behind the system itself is recorded in [its founding decision record](docs/decisions/0001-adopt-the-documentation-system.md).
 
+One further rule applies to every piece of prose in the project, from this README through docstrings to commit messages: it must read as if a person wrote it. Rhetorical devices that language models overuse, such as a colon-led definition, a balanced semicolon antithesis, or a neat triadic list, are each fine on their own. Stacking them is what gives text away, because a paragraph in which every sentence is a polished epigram reads as machine writing even when each sentence would pass alone. Allow at most one such flourish per paragraph and write the rest as plain declarative sentences.
+
 ---
 
 ## License

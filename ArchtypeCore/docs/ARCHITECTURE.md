@@ -91,8 +91,11 @@ my_project/
 │
 ├── STATE.md                    # Living project state (Now / Next / Deferred / Blocked)
 │
-└── tests/                      # Automated test suite for the app (mirrors the app structure)
-    └── app/                    # Tests for the main FastAPI application
-        ├── api/                # Integration tests for HTTP endpoints
-        └── services/           # Unit tests for business logic
+├── tests/                      # Automated test suite for the app (mirrors the app structure)
+│   └── app/                    # Tests for the main FastAPI application
+│       ├── api/                # Integration tests for HTTP endpoints
+│       └── services/           # Unit tests for business logic
+│
+└── util_resources/             # Tracked repository assets
+    └── readme/                 # Every image the repository embeds (logo, screenshots, figures)
 ```

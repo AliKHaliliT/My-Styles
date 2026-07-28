@@ -17,6 +17,7 @@ Keel is a strict, AI-ready Clean Architecture template for installable Python pa
 - Every directory holds either subpackages or modules, never a mix (the package root is the sole exception); an `__init__.py` exists only where it re-exports.
 - Follow the docstring convention in the [README's Conventions section](README.md#conventions) and the documentation rules in [docs/CONVENTIONS.md](docs/CONVENTIONS.md); the latter is frozen and must not be edited.
 - No em dashes anywhere: code, docstrings, comments, documentation, commit messages.
+- All prose must read as if a person wrote it. The language-model tells (colon-led definitions, balanced semicolon antitheses, triadic lists, not-X-but-Y reversals) are fine one at a time and forbidden stacked: at most one such flourish per paragraph, plain declarative sentences for the rest.
 - Read [STATE.md](STATE.md) before starting work; update it when the state changes.
 
 ## Documentation index
