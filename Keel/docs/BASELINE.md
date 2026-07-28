@@ -17,7 +17,7 @@ The documentation spine (`AGENTS.md`, `STATE.md`, `docs/`) is also always presen
 
 The README's sections appear in this order, each with a content contract. Heading stems are fixed; the prose voice inside a section is the project's own.
 
-1. **Title and badges.** Badges are required in public repositories and optional in private ones. Their content is the project's choice, but every badge must state something true about this repository; the template's own badges are never inherited, since they point at the template's repository.
+1. **Title and badges.** Badges are required in public repositories and optional in private ones. Their content is the project's choice, but every badge must state something true about this repository; the template's own badges are never inherited, since they point at the template's repository. Badges are written in plain Markdown image syntax on a single line. When a showcase image follows the badges (a logo or a screenshot, either is fine, sitting between the badges and the pitch), the badges and the image are wrapped together in a `<div align="center">` block with blank lines around the Markdown inside it; Markdown alone cannot center, `align` is the one attribute GitHub's sanitizer honors, and inline `style` is stripped. Without such an image, the badges stay as left-aligned plain Markdown with no HTML.
 2. **One-line pitch**, then a short expansion. In a project instantiated from this template, the expansion carries the attribution: one sentence linking the template. It is required because the inherited conventions and decision records are unintelligible without their provenance. The template itself has no upstream, so this applies to derived projects.
 3. **The Philosophy: Why Does This Exist?** The problem the project exists to solve and the drift it defends against.
 4. **The Domain.** Justifies why this domain demands the architecture. The template heads it `The Domain Example: Why ...?` because its domain is a demo; a derived project heads it `The Domain: ...` because its domain is real.
@@ -26,7 +26,7 @@ The README's sections appear in this order, each with a content contract. Headin
 7. **Key Features.** Bulleted, each led by a bold name.
 8. **Getting Started.** Copy-paste commands grouped by scenario.
 9. **Conventions.** The canonical paragraphs (the docstring convention and the documentation system) are inherited verbatim from the template, with only truth-preserving clause edits, such as a project without a changelog dropping that clause. Project-specific rules may be appended as new sentences; the canonical text is never rewritten. Paraphrase is drift, not adaptation.
-10. **License.** Present in public repositories only, accompanying the `LICENCE` file.
+10. **License.** Present in public repositories only, accompanying the `LICENSE` file. Its body is always exactly one line: `This work is under an [someLicense](url) License.`, with the license name and its URL filled in (for example `[MIT](https://choosealicense.com/licenses/mit/)`).
 
 ## Present when the trigger exists
 
@@ -34,7 +34,7 @@ Triggers are bidirectional: the file appears when its trigger appears and is rem
 
 | File | Trigger |
 | --- | --- |
-| `LICENCE` | The repository is public. The MIT license text (house spelling: LICENCE), owner-only and effectively immutable; agents never touch it. A private repository or codebase omits it, and should: with no license granted, default all-rights-reserved copyright applies, which is exactly the posture private code wants. |
+| `LICENSE` | The repository is public. The license text (American spelling: LICENSE), owner-only and effectively immutable; agents never touch it. A private repository or codebase omits it, and should: with no license granted, default all-rights-reserved copyright applies, which is exactly the posture private code wants. |
 | `.env.example` | Anything reads a `.env`. Tracked and secret-free, it mirrors every variable the project consumes; the real `.env` stays ignored. |
 | `.dockerignore` | A `Dockerfile` exists. |
 | `requirements.txt` / `pyproject.toml` | The project's dependency manifest, per project type. |

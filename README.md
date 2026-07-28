@@ -1,11 +1,6 @@
 # My Styles
 
-<div style="display: flex; gap: 10px; flex-wrap: wrap;">
-    <img src="https://img.shields.io/github/license/AliKHaliliT/My-Styles" alt="License">
-    <img src="https://img.shields.io/github/last-commit/AliKHaliliT/My-Styles" alt="Last Commit">
-    <img src="https://img.shields.io/github/issues/AliKHaliliT/My-Styles" alt="Open Issues">
-</div>
-<br/>
+![License](https://img.shields.io/github/license/AliKHaliliT/My-Styles) ![Last Commit](https://img.shields.io/github/last-commit/AliKHaliliT/My-Styles) ![Open Issues](https://img.shields.io/github/issues/AliKHaliliT/My-Styles)
 
 A curated collection of my custom software engineering templates, architectural blueprints, and boilerplate designs built to enforce clean execution and reliable human-AI collaboration.
 

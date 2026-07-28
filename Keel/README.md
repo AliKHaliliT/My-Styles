@@ -1,11 +1,6 @@
 # Keel
 
-<div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px;">
-    <img src="https://img.shields.io/github/license/AliKHaliliT/My-Styles" alt="License">
-    <img src="https://img.shields.io/github/last-commit/AliKHaliliT/My-Styles" alt="Last Commit">
-    <img src="https://img.shields.io/github/issues/AliKHaliliT/My-Styles" alt="Open Issues">
-</div>
-<br/>
+![License](https://img.shields.io/github/license/AliKHaliliT/My-Styles) ![Last Commit](https://img.shields.io/github/last-commit/AliKHaliliT/My-Styles) ![Open Issues](https://img.shields.io/github/issues/AliKHaliliT/My-Styles)
 
 A Strict, AI-Ready Clean Architecture Template for Python Packages.
 
