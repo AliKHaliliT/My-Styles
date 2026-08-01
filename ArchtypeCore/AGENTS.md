@@ -15,7 +15,7 @@ ArchetypeCore is a strict, AI-ready Clean Architecture template for FastAPI serv
 - The Dependency Rule is absolute: `domain` and `services` never import from `api`, `models`, or any framework; data crosses layer boundaries only through translators. Engines never import from `app/`.
 - Follow the docstring convention in the [README's Conventions section](README.md#conventions) and the documentation rules in [docs/CONVENTIONS.md](docs/CONVENTIONS.md); the latter is frozen and must not be edited.
 - No em dashes anywhere: code, docstrings, comments, documentation, commit messages.
-- All prose must read as if a person wrote it. The language-model tells (colon-led definitions, balanced semicolon antitheses, triadic lists, not-X-but-Y reversals) are fine one at a time and forbidden stacked: at most one such flourish per paragraph, plain declarative sentences for the rest.
+- All prose must read as if a person wrote it. Never write the clause-colon splice, a sentence shaped as claim, colon, elaboration; in prose a colon may only introduce a list, a quote, or a label. The softer language-model tells (balanced semicolon antitheses, triadic lists, not-X-but-Y reversals) are fine one at a time and forbidden stacked, so allow at most one flourish per paragraph and keep the rest plain declarative sentences.
 - Read [STATE.md](STATE.md) before starting work; update it when the state changes.
 
 ## Documentation index
