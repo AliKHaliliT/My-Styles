@@ -12,7 +12,7 @@ Keel is a strict, AI-ready Clean Architecture template for installable Python pa
 
 ## Hard rules
 
-- The Dependency Rule is absolute: `domain` and `services` never import from `facade`, `adapters`, or any SDK; data crosses layer boundaries only through translators.
+- The Dependency Rule is absolute: `domain` and `services` never import from `facade`, `adapters`, or any SDK; layer-owned objects cross a layer boundary only through translators.
 - Library citizenship: no global mutable state, no environment reads at import time, and a `NullHandler` on the package logger.
 - Every directory holds either subpackages or modules, never a mix (the package root is the sole exception); an `__init__.py` exists only where it re-exports.
 - Follow the docstring convention in the [README's Conventions section](README.md#conventions) and the documentation rules in [docs/CONVENTIONS.md](docs/CONVENTIONS.md); the latter is frozen and must not be edited.

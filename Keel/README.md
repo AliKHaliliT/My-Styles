@@ -4,7 +4,7 @@
 
 A Strict, AI-Ready Clean Architecture Template for Python Packages.
 
-Keel is the package-side sibling of [ArchetypeCore](https://github.com/AliKHaliliT/My-Styles/tree/main/ArchtypeCore). It is a highly structured, installable Python package template built with Pydantic V2 and the modern packaging stack (PEP 621 `pyproject.toml`, src layout, PEP 561 typing). It is designed around **Domain-Driven Design (DDD)** and **Clean Architecture** principles.
+Keel is the package-side sibling of [ArchetypeCore](https://github.com/AliKHaliliT/My-Styles/tree/main/ArchtypeCore). It is a highly structured, installable Python package template built with Pydantic V2 and the modern packaging stack (PEP 621 `pyproject.toml`, src layout, PEP 561 typing). It is designed around **Hexagonal Architecture (Ports and Adapters)** and Clean Architecture's Dependency Rule, keeping the decision logic pure and pushing every piece of IO behind a port in the spirit of the **functional core, imperative shell** school.
 
 ## The Philosophy: Why Does This Exist?
 
@@ -39,7 +39,7 @@ Keel enforces the **Dependency Rule**: inner layers (Business Logic) must not de
 1. **Ports & Adapters (Dependency Inversion)**
    The orchestration service (`AgentRunner`) depends only on pure Python `Protocols` (`IReasoner`, `IToolRegistry`, `IMemory`, `IEventSink`). The `EngineBuilder` injects concrete implementations (like `RuleBasedReasoner` or `AnthropicReasoner`) at construction time.
 2. **Strict Translators**
-   API schemas are strictly for the public surface. Provider payloads are strictly for the provider SDK. Data crossing between these layers must be translated into pure Domain schemas, including inside the Anthropic adapter, which carries its own `domain <-> provider` translator pair.
+   Domain objects never leak through the public surface; run results are translated into the facade's report schemas before a caller sees them. Provider payloads are strictly for the provider SDK, and the Anthropic adapter carries its own `domain <-> provider` translator pair. There is no inbound mirror schema, because the facade builds domain schemas directly from the primitives its callers pass (see [the boundary decision record](docs/decisions/0005-translate-only-outward-at-the-facade-boundary.md)).
 3. **Decoupled Exceptions**
    Business logic raises pure Python exceptions (e.g., `ToolNotFoundError`, `StepLimitExceededError`). Nothing in the domain imports a framework or an SDK.
 4. **Library Citizenship**

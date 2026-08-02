@@ -1,10 +1,10 @@
 # Architecture
 
-This project follows a strict Clean Architecture and Domain-Driven Design (DDD) pattern, adapted to the shape of an installable Python package. The core business logic (`domain` and `services`) is completely isolated from the public surface (`facade`) and the concrete implementations (`adapters`).
+This project follows a strict Hexagonal Architecture (Ports and Adapters), adapted to the shape of an installable Python package and enforcing Clean Architecture's Dependency Rule throughout. The domain holds deliberately plain data records and pure decision logic, with every piece of IO behind a port in the spirit of the functional-core school; the reasoning behind this naming is recorded in [decision 0004](decisions/0004-describe-the-architecture-as-hexagonal.md). The core business logic (`domain` and `services`) is completely isolated from the public surface (`facade`) and the concrete implementations (`adapters`).
 
 Two layout conventions hold throughout the package. First, every directory contains **either** subpackages **or** modules, never a mix; the package root is the sole exception, because Python requires `__init__.py`, `__main__.py`, and the PEP 561 `py.typed` marker to live there beside the layer packages. Second, an `__init__.py` appears **only** where it does real work (re-exporting a subpackage's public names), so the grouping directories are bare [namespace packages](https://peps.python.org/pep-0420/) with no `__init__.py` at all.
 
-A `translators/` package marks a layer boundary: the public-schema-to-domain bridge in `facade/`, mirroring ArchetypeCore's `api/` and `repositories/` translator layers. A leaf adapter's own translation (for example the Anthropic provider's domain-to-wire mapping) instead lives as plain modules beside it, never in a nested `translators/` folder.
+A `translators/` package marks a layer boundary. In `facade/` it holds the outbound bridge that flattens domain results into the public report schemas; there is no inbound counterpart, because the facade builds domain schemas directly from the primitives its callers pass (see [decision 0005](decisions/0005-translate-only-outward-at-the-facade-boundary.md)). A leaf adapter's own translation (for example the Anthropic provider's domain-to-wire mapping) instead lives as plain modules beside it, never in a nested `translators/` folder.
 
 ```text
 my_package/
@@ -31,8 +31,8 @@ my_package/
 │       ├── facade/             # Public surface: the simplified entry point consumers touch
 │       │   ├── engine/         # Engine facade + EngineBuilder (guarded fluent construction)
 │       │   ├── cli/            # Argparse CLI wired to the console script and __main__
-│       │   ├── schemas/        # Pydantic models for public request/response payloads
-│       │   └── translators/    # Bridge public schemas <-> domain schemas (both ways)
+│       │   ├── schemas/        # Pydantic models for the public report payloads
+│       │   └── translators/    # Flatten domain results into the public reports (outbound only)
 │       │
 │       ├── core/               # Package-wide infrastructure and configuration
 │       │   ├── config/         # EngineConfig (frozen Pydantic model; no env at import)

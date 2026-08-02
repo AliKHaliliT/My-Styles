@@ -4,7 +4,7 @@ from logging import NullHandler, getLogger
 from keel.core.config import EngineConfig
 from keel.core.logging import PACKAGE_LOGGER_NAME
 from keel.facade.engine import Engine, EngineBuilder
-from keel.facade.schemas import RunReport, RunRequest, StepReport
+from keel.facade.schemas import RunReport, StepReport
 
 try:
     __version__ = version("keel")
@@ -18,7 +18,6 @@ __all__ = [
     "EngineBuilder",
     "EngineConfig",
     "RunReport",
-    "RunRequest",
     "StepReport",
     "__version__",
 ]

@@ -1,6 +1,6 @@
-from keel.facade.schemas import RunReport, RunRequest
-from keel.facade.translators import (domain_to_facade_run_report,
-                                     facade_to_domain_run_request)
+from keel.domain.schemas.runs import RunSpec
+from keel.facade.schemas import RunReport
+from keel.facade.translators import domain_to_facade_run_report
 from keel.services.execution import AgentRunner
 
 
@@ -14,8 +14,9 @@ class Engine:
     Usage
     -----
     Consumers obtain an Engine from the EngineBuilder and interact with the
-    facade's schemas only; the facade translates across the boundary in both
-    directions and never leaks domain objects.
+    facade's schemas only; the facade builds the domain run specification from
+    the caller's arguments, translates every result into a report on the way
+    out, and never leaks domain objects.
     ```python
     import asyncio
 
@@ -95,8 +96,6 @@ class Engine:
             raise ValueError(f"max_steps must be a positive integer or None. Received: {max_steps} with type {type(max_steps)}")
 
 
-        request = RunRequest(goal=goal, max_steps=max_steps)
-        domain_spec = facade_to_domain_run_request(request)
-        domain_result = await self._runner.run(domain_spec)
+        domain_result = await self._runner.run(RunSpec(goal=goal, max_steps=max_steps))
 
         return domain_to_facade_run_report(domain_result)
