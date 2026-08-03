@@ -18,6 +18,6 @@ Happy coding!
   - Description: A highly structured, framework-agnostic backend template designed to enforce strict boundaries and mitigate architectural drift.
   - Date: June 15, 2026
 - [Keel](https://github.com/AliKHaliliT/My-Styles/tree/main/Keel)
-  - Topics: Clean Architecture, Domain-Driven Design (DDD), Python Packaging, Ports & Adapters, Pydantic V2, Plugin Entry Points, src Layout, Typed (py.typed)
+  - Topics: Clean Architecture, Hexagonal Architecture (Ports & Adapters), Python Packaging, Pydantic V2, Plugin Entry Points, src Layout, Typed (py.typed)
   - Description: A strict, AI-ready, general-purpose template for installable Python packages, enforcing the same boundaries as ArchetypeCore in library form, demonstrated on an agent-engine domain.
   - Date: July 14, 2026
