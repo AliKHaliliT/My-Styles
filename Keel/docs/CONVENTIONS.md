@@ -8,7 +8,7 @@ Every technical document is exactly one of two species, and the species dictates
 
 **Living documents** describe the present. They are edited in place, they are always current, and they are bounded in size. A living document never contains history: no dates, no "previously", no "we changed X to Y" narration. When reality changes, the document is rewritten to match it and the old text disappears; git remembers what it used to say. `AGENTS.md`, `STATE.md`, and `docs/ARCHITECTURE.md` are living documents.
 
-**Records** describe one past event. A record is written once, dated, and never edited again. It is not updated to stay current, because its job is to remain an accurate account of a moment. When reality moves past a record, a new record is written that supersedes the old one. Everything under `docs/decisions/` is a record, and so is each released entry in `CHANGELOG.md`.
+**Records** describe one past event. A record is written once, dated, and never edited again. It is not updated to stay current, because its job is to remain an accurate account of a moment. When reality moves past a record, a new record is written that supersedes the old one. Everything under `docs/decisions/` is a record, and so is each released entry in `CHANGELOG.md` where the project keeps one.
 
 Nearly every documentation failure is a species violation. A history file that grows until it is unusable is record-species content forced into one ever-growing living file. An architecture document that rots is a living document treated as append-only. Never mix the two species in one file.
 
@@ -20,7 +20,7 @@ Every project carries this fixed spine:
 | --- | --- | --- |
 | `AGENTS.md` | Living | Vendor-neutral agent entry point: the operating manual and the single documentation index. |
 | `STATE.md` | Living | Current project state: what is in flight, queued, deferred, or blocked. |
-| `CHANGELOG.md` | Records | Curated per-release summary for consumers; one immutable entry per release. |
+| `CHANGELOG.md` | Records | Curated per-release summary for consumers; one immutable entry per release. Present only where consumers upgrade through releases (the trigger lives in BASELINE.md). |
 | `docs/ARCHITECTURE.md` | Living | The map of the system as it is today. |
 | `docs/CONVENTIONS.md` | Living, frozen | This rulebook. |
 | `docs/decisions/` | Records | The decision log; the durable home of rationale. |
@@ -79,7 +79,7 @@ Rationale has exactly three homes here, chosen by reach:
 
 1. A "why" that fits in a sentence or two and only explains one change goes in the **commit message body**.
 2. A "why" that will shape future decisions, or that would be re-litigated without a record, becomes a **decision record**.
-3. A "what changed" that a consumer of the package needs when upgrading goes in **`CHANGELOG.md`**, curated per release; it summarizes impact, not reasoning.
+3. A "what changed" that a consumer of the package needs when upgrading goes in **`CHANGELOG.md`**, curated per release where the project versions releases; it summarizes impact, not reasoning. Where it versions none, upgrade-facing summaries have no home and impact lives in commit subjects.
 
 Chronology itself is never documented: git already is the complete log, and any document that re-narrates it degenerates into a worse git log.
 

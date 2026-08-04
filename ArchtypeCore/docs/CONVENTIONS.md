@@ -20,6 +20,7 @@ Every project carries this fixed spine:
 | --- | --- | --- |
 | `AGENTS.md` | Living | Vendor-neutral agent entry point: the operating manual and the single documentation index. |
 | `STATE.md` | Living | Current project state: what is in flight, queued, deferred, or blocked. |
+| `CHANGELOG.md` | Records | Curated per-release summary for consumers; present only where consumers upgrade through releases (the trigger lives in BASELINE.md). |
 | `docs/ARCHITECTURE.md` | Living | The map of the system as it is today. |
 | `docs/CONVENTIONS.md` | Living, frozen | This rulebook. |
 | `docs/decisions/` | Records | The decision log; the durable home of rationale. |
@@ -79,7 +80,7 @@ Rationale has exactly two homes here, chosen by reach:
 1. A "why" that fits in a sentence or two and only explains one change goes in the **commit message body**.
 2. A "why" that will shape future decisions, or that would be re-litigated without a record, becomes a **decision record**.
 
-This project does not maintain a changelog: it is an application template, not a versioned artifact that consumers upgrade through. A packaged library adds `CHANGELOG.md` as a third home, carrying the curated per-release summary for its consumers.
+A changelog exists only where consumers upgrade through releases, so a project that versions none maintains none (the trigger lives in BASELINE.md). A versioned artifact, such as a packaged library, adds `CHANGELOG.md` as a third home, carrying the curated per-release summary for its consumers; it summarizes impact, not reasoning.
 
 Chronology itself is never documented: git already is the complete log, and any document that re-narrates it degenerates into a worse git log.
 

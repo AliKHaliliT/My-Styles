@@ -20,7 +20,7 @@ Every project carries this fixed spine:
 | --- | --- | --- |
 | `AGENTS.md` | Living | Vendor-neutral agent entry point: the operating manual and the single documentation index. |
 | `STATE.md` | Living | Current project state: what is in flight, queued, deferred, or blocked. |
-| `CHANGELOG.md` | Records | Curated per-release summary for consumers; present only where consumers upgrade through releases. This application template versions no releases, so it carries none. |
+| `CHANGELOG.md` | Records | Curated per-release summary for consumers; present only where consumers upgrade through releases (the trigger lives in BASELINE.md). |
 | `docs/ARCHITECTURE.md` | Living | The map of the system as it is today. |
 | `docs/CONVENTIONS.md` | Living, frozen | This rulebook. |
 | `docs/decisions/` | Records | The decision log; the durable home of rationale. |
@@ -79,7 +79,7 @@ Rationale has exactly three homes here, chosen by reach:
 
 1. A "why" that fits in a sentence or two and only explains one change goes in the **commit message body**.
 2. A "why" that will shape future decisions, or that would be re-litigated without a record, becomes a **decision record**.
-3. A "what changed" that a consumer needs when upgrading goes in **`CHANGELOG.md`** where the project versions releases. This template does not, so upgrade-facing summaries have no home here and impact lives in commit subjects.
+3. A "what changed" that a consumer needs when upgrading goes in **`CHANGELOG.md`** where the project versions releases. Where it versions none, upgrade-facing summaries have no home and impact lives in commit subjects.
 
 Chronology itself is never documented: git already is the complete log, and any document that re-narrates it degenerates into a worse git log.
 
