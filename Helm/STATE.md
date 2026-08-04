@@ -2,7 +2,9 @@
 
 ## Now
 
-- Nothing in flight.
+- The layer rule is checked by ESLint rather than by review, using the built-in
+  no-restricted-imports rule so it costs no new dependency (2026-08-04). Decision 0008
+  carries the reasoning.
 
 ## Next
 
@@ -10,7 +12,7 @@
 
 ## Deferred
 
-- A boundary linter (eslint-plugin-boundaries or similar) enforcing the layer rule mechanically, once the rules have proven themselves in review (2026-08-03).
+- Nothing deferred.
 
 ## Blocked
 
