@@ -243,9 +243,9 @@ def reorder_fields(
             if hasattr(cls, attr):
                 setattr(new_model, attr, getattr(cls, attr))
 
-        if hasattr(cls, '__dict__'):
+        if hasattr(cls, "__dict__"):
             for name, value in cls.__dict__.items():
-                if hasattr(value, '_attributes') and 'validator' in value._attributes:
+                if hasattr(value, "_attributes") and "validator" in value._attributes:
                     setattr(new_model, name, value)
 
 

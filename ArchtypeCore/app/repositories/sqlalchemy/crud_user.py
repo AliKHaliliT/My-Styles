@@ -312,7 +312,7 @@ class CRUDUser(IUserRepository):
         
         self.session.add(db_obj)
         await self.session.flush()
-        await self.session.refresh(db_obj, attribute_names=['devices'])
+        await self.session.refresh(db_obj, attribute_names=["devices"])
 
         return db_to_domain_user(db_obj)
 
@@ -367,7 +367,7 @@ class CRUDUser(IUserRepository):
 
         self.session.add(db_model)
         await self.session.flush()
-        await self.session.refresh(db_model, attribute_names=['devices'])
+        await self.session.refresh(db_model, attribute_names=["devices"])
 
         return db_to_domain_user(db_model)
 
