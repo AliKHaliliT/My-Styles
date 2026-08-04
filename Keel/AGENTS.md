@@ -16,10 +16,24 @@ Keel is a strict, AI-ready Clean Architecture template for installable Python pa
 - Library citizenship: no global mutable state, no environment reads at import time, and a `NullHandler` on the package logger.
 - Every directory holds either subpackages or modules, never a mix (the package root is the sole exception); an `__init__.py` exists only where it re-exports.
 - Follow the docstring convention in the [README's Conventions section](README.md#conventions) and the documentation rules in [docs/CONVENTIONS.md](docs/CONVENTIONS.md); the latter is frozen and must not be edited.
+- The documentation rulebook is owned by the style. [docs/CONVENTIONS.md](docs/CONVENTIONS.md) changes only inside the template itself, in the My-Styles repository and by its owner; a project derived from this template never edits its copy and never diverges from it. A derived project that believes a rule is wrong or missing sends the case upstream instead (see [The upstream report](#the-upstream-report)).
 - No em dashes anywhere: code, docstrings, comments, documentation, commit messages.
 - All prose must read as if a person wrote it. Never write the clause-colon splice, a sentence shaped as claim, colon, elaboration; in prose a colon may only introduce a list, a quote, or a label. The softer language-model tells (balanced semicolon antitheses, triadic lists, not-X-but-Y reversals) are fine one at a time and forbidden stacked, so allow at most one flourish per paragraph and keep the rest plain declarative sentences.
 - Every tracked byte is public prose. Confidential facts, private repository names, deployment details, and the description of what was withheld and why never enter a tracked file or a commit message, even in a private repository, because visibility can flip and history is permanent. Such context goes to the untracked `LOCAL.md` at the root (see [docs/BASELINE.md](docs/BASELINE.md)); read it when it exists, create it when first needed, and when unsure whether a fact is sensitive, ask the owner instead of recording it.
 - Read [STATE.md](STATE.md) before starting work; update it when the state changes.
+
+## The upstream report
+
+This template is the style's single statement of its form, and it only stays that way if improvements flow back to it. When a refactor against this template surfaces something the template itself should have had, the improvement belongs in the template first and in the refactored project second; an improvement kept privately by one child is a quiet fork of the style.
+
+The order is strict:
+
+1. **Finish the refactor as specified.** The report comes after the template has been properly implemented, never instead of finishing.
+2. **Qualify every candidate.** An improvement earns an entry only if it is genuinely better rather than differently shaped, the template does not already have it, and [docs/decisions/](docs/decisions/) shows no record of it being considered and rejected. Read the decision records before writing anything; a rejected idea returning without new evidence is noise, and a report invented to satisfy this section when nothing real was found is worse than no report.
+3. **Write each entry as a hand-off.** One entry per improvement, self-contained enough to be pasted verbatim to an agent or handed to the template's maintainer and acted on with no other context. Each entry states what the improvement is, how the refactor surfaced it, why it is believed better than what the template does today, and that the decision records were checked and hold no prior ruling. Each entry ends by telling the receiver to verify the claim with proper research-backed grounding before adopting it, because the report is a lead, not a verdict.
+4. **Apply upstream first, then align.** The improvement lands in the template before the child keeps it. Integrating it there often refines it further, so afterwards run a manual final alignment check on the refactored project, confirming it carries the upstream form of each improvement rather than the draft it started from.
+
+Every report opens by saying why the reader is seeing it. The style's owner uses the report to point an agent at the template and improve it directly. Anyone else is holding it because this template is open source, and the right move is to file the report as an issue on the template's repository so the improvement reaches everyone who builds on the style.
 
 ## Documentation index
 
