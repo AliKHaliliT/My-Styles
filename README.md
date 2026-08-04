@@ -21,3 +21,7 @@ Happy coding!
   - Topics: Clean Architecture, Hexagonal Architecture (Ports & Adapters), Python Packaging, Pydantic V2, Plugin Entry Points, src Layout, Typed (py.typed)
   - Description: A strict, AI-ready, general-purpose template for installable Python packages, enforcing the same boundaries as ArchetypeCore in library form, demonstrated on an agent-engine domain.
   - Date: July 14, 2026
+- [Helm](https://github.com/AliKHaliliT/My-Styles/tree/main/Helm)
+  - Topics: Client-Side SPA, One-Way Sliced Layers (after Feature-Sliced Design), Guarded Wire Boundary, React 19, TypeScript, Vite, TanStack Query, Zustand, zod, MSW
+  - Description: A strict, AI-ready template for client-side web applications, splitting the server cache from client state behind a schema-checked wire boundary, demonstrated on a harbormaster-console domain.
+  - Date: August 3, 2026

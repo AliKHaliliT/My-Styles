@@ -1,0 +1,40 @@
+/*
+ * Design tokens. Components consume colors only through the utilities mapped
+ * in the @theme block (bg-surface, text-ink, border-line, and so on); raw
+ * palette classes are off limits by convention.
+ */
+:root {
+  --surface: #f4f3ee;
+  --card: #ffffff;
+  --ink: #1d2733;
+  --muted: #5f6c7b;
+  --line: #d9d6cc;
+  --signal: #9a5b2d;
+  --ok: #15803d;
+  --warn: #b45309;
+  --alert: #b91c1c;
+}
+
+[data-theme="dark"] {
+  --surface: #0f151c;
+  --card: #18202a;
+  --ink: #e6ebf1;
+  --muted: #93a1b1;
+  --line: #2a3542;
+  --signal: #d99a4e;
+  --ok: #3fae7a;
+  --warn: #e0a04f;
+  --alert: #e5665f;
+}
+
+@theme inline {
+  --color-surface: var(--surface);
+  --color-card: var(--card);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-signal: var(--signal);
+  --color-ok: var(--ok);
+  --color-warn: var(--warn);
+  --color-alert: var(--alert);
+}

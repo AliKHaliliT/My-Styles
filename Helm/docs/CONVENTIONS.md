@@ -1,0 +1,92 @@
+# Documentation Conventions
+
+This file is the rulebook for this project's technical documentation: which documents exist, what species each one is, how each species is written, and where a "why" belongs. It is normative and frozen: **do not modify this file**. If a rule ever has to change, the change is made deliberately by the repository owner and recorded as a new decision record superseding [0001](decisions/0001-adopt-the-documentation-system.md), which is also where the rationale behind this whole system lives.
+
+## The two species of documents
+
+Every technical document is exactly one of two species, and the species dictates all of its rules.
+
+**Living documents** describe the present. They are edited in place, they are always current, and they are bounded in size. A living document never contains history: no dates, no "previously", no "we changed X to Y" narration. When reality changes, the document is rewritten to match it and the old text disappears; git remembers what it used to say. `AGENTS.md`, `STATE.md`, and `docs/ARCHITECTURE.md` are living documents.
+
+**Records** describe one past event. A record is written once, dated, and never edited again. It is not updated to stay current, because its job is to remain an accurate account of a moment. When reality moves past a record, a new record is written that supersedes the old one. Everything under `docs/decisions/` is a record.
+
+Nearly every documentation failure is a species violation. A history file that grows until it is unusable is record-species content forced into one ever-growing living file. An architecture document that rots is a living document treated as append-only. Never mix the two species in one file.
+
+## The spine and the organic zone
+
+Every project carries this fixed spine:
+
+| Document | Species | Role |
+| --- | --- | --- |
+| `AGENTS.md` | Living | Vendor-neutral agent entry point: the operating manual and the single documentation index. |
+| `STATE.md` | Living | Current project state: what is in flight, queued, deferred, or blocked. |
+| `CHANGELOG.md` | Records | Curated per-release summary for consumers; present only where consumers upgrade through releases. This application template versions no releases, so it carries none. |
+| `docs/ARCHITECTURE.md` | Living | The map of the system as it is today. |
+| `docs/CONVENTIONS.md` | Living, frozen | This rulebook. |
+| `docs/decisions/` | Records | The decision log; the durable home of rationale. |
+
+Assistant-specific instruction files (a `CLAUDE.md`, a `GEMINI.md`, tool rule files) do not exist in this project: every assistant reads `AGENTS.md` directly. If a tool ever genuinely cannot read `AGENTS.md`, it gets a one-line shim that does nothing but import or point to `AGENTS.md` in whatever include syntax the tool understands. A shim is not a document: it is not indexed, it carries no content of its own, and it never grows a second line.
+
+Beyond the spine, documentation grows organically: any further document the project needs is added under `docs/` (UPPERCASE markdown, one subject per file, one species per file) and registered in the index. Growth changes the number of documents, never the species rules of an existing one.
+
+## The index contract
+
+`AGENTS.md` holds the single index of all technical documents, each with a one-line description of what it contains and when to read it. A document that is not listed there does not exist: no reader can be expected to find it, and no agent will. Creating a document and registering it in the index happen in the same change, as does delisting on removal.
+
+## Rules for living documents
+
+- Present tense only; describe what is, never what was or how it got here.
+- No dates and no changelog narration (`STATE.md` entries are the one exception: each carries the absolute date it was recorded).
+- Rewrite in place; never append-and-preserve. Deleting stale text is the job; git is the archive.
+- Size budget: one comfortable read, roughly 150 lines. A living document that outgrows its budget is split by subject into child documents, each registered in the index. Growth happens by fission, never by accretion.
+
+### The STATE.md schema
+
+`STATE.md` has exactly four sections: `Now` (in flight), `Next` (queued), `Deferred` (consciously postponed), and `Blocked` (waiting on something external). Every entry is one line, ends with the absolute date it was recorded (YYYY-MM-DD), and is deleted, not struck through, when it no longer applies; finished work is git's memory, not STATE.md's.
+
+## Rules for records (decision records)
+
+Write a decision record when a choice shapes future work and its reasoning would otherwise be lost: an architectural boundary, a convention, a rejected-but-tempting alternative, a reversal of an earlier decision. Records live in `docs/decisions/`, named `NNNN-short-kebab-title.md` with a zero-padded sequence number, and follow this template:
+
+```markdown
+# NNNN. Title stating the decision
+
+Status: Accepted
+Date: YYYY-MM-DD
+
+## Context
+
+The situation that forced a decision, and the constraints that shaped it.
+
+## Options considered
+
+Each realistic option with the one-or-two-line reason it lost. This section is the highest-value part of the record: it is what stops the same alternative from being re-proposed a year later.
+
+## Decision
+
+What was decided, stated plainly.
+
+## Consequences
+
+What becomes easier, what becomes harder, and what future work this implies.
+```
+
+An accepted record is immutable. When a decision changes, write a new record explaining why, and flip the old record's `Status:` line to `Superseded by [NNNN](NNNN-the-new-record.md)`; that status line is the only edit an accepted record may ever receive.
+
+## Where a "why" belongs
+
+Rationale has exactly three homes here, chosen by reach:
+
+1. A "why" that fits in a sentence or two and only explains one change goes in the **commit message body**.
+2. A "why" that will shape future decisions, or that would be re-litigated without a record, becomes a **decision record**.
+3. A "what changed" that a consumer needs when upgrading goes in **`CHANGELOG.md`** where the project versions releases. This template does not, so upgrade-facing summaries have no home here and impact lives in commit subjects.
+
+Chronology itself is never documented: git already is the complete log, and any document that re-narrates it degenerates into a worse git log.
+
+## Naming
+
+Spine and organic technical documents use UPPERCASE basenames at predictable locations (`STATE.md`, `docs/ARCHITECTURE.md`), matching the ecosystem convention that uppercase markdown means "meta-document about the project". Decision records use `NNNN-short-kebab-title.md` because they are many, ordered, and cited by number.
+
+## Code-level documentation
+
+Doc comments are governed separately by the TSDoc convention in the [README's Conventions section](../README.md#conventions): one-sentence summaries on every export, the `@param`/`@returns`/`@throws` trio on fully documented functions, direct-only `@throws`, and runnable `@example` blocks on complex components and services.

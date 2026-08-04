@@ -1,0 +1,1 @@
+export { VesselDetailPage } from "./VesselDetailPage"

@@ -1,0 +1,34 @@
+# User Defined
+LOCAL.md
+local_util_resources/
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Test / coverage
+coverage/
+
+# Environments
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# Project specific
+public/mockServiceWorker.js
+
+# Editors and IDEs
+.vscode/
+.idea/
+.history/
+
+# Operating system junk
+.DS_Store
+Thumbs.db
+Desktop.ini
