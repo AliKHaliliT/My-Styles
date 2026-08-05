@@ -8,7 +8,7 @@ Helm is a strict, AI-ready template for client-side web applications (React, Vit
 - Run the offline demo: `npm run dev` (sign in with username "harbormaster", password "saltmere")
 - Test: `npm test`
 - Lint: `npm run lint`
-- Type-check: `npm run typecheck`
+- Type-check: `npm run typecheck` (it runs `tsc -b`, because the root tsconfig is solution-style and a plain `tsc --noEmit` would check nothing)
 - Build: `npm run build`
 - Preview the build: `npm run preview`
 
