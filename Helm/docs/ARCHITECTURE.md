@@ -69,4 +69,6 @@ In mock mode (the default) an MSW service worker answers the same HTTP the clien
 
 ## Testing
 
+Three rules hold however broad the suite is. Suites live in `tests/`, mirroring the source tree, one suite named after the unit it covers. A collaborator is replaced only at an architectural seam, by the MSW handlers answering at the wire boundary or a hand-written fake satisfying the contract it stands in for, never by mocking a module's internals, since a test bound to an implementation voids the substitutability the layering exists to provide. And no coverage threshold is imposed, because a percentage gate buys assertions that assert nothing, so breadth stays a judgment call while placement and substitution do not.
+
 The suites are characterization tests pinning the seams: the translators (pure), the query hooks (against the mock backend), the HTTP client's failure modes (401 and a broken wire contract), the auth store, and the schedule-arrival form end to end. `tests/setup.ts` starts the node mock server, resets the pretend database between cases, and clears the token provider and storage so no test inherits another's session.

@@ -41,3 +41,6 @@ ignore_missing_imports = true
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
+# The application is run in place rather than installed, so the suite needs the repository
+# root on the import path to reach `app`.
+pythonpath = ["."]

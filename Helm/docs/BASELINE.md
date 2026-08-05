@@ -41,6 +41,7 @@ Triggers are bidirectional: the file appears when its trigger appears and is rem
 | `.env.example` | Anything reads environment configuration. Tracked and secret-free, it mirrors every variable the project consumes; real `.env` files stay ignored. |
 | `.dockerignore` | A `Dockerfile` exists. |
 | `CHANGELOG.md` | The project is a versioned package that consumers upgrade through (see CONVENTIONS.md). |
+| `.github/workflows/` | The project runs its checks on a hosted runner. `ci.yml` runs the commands AGENTS.md documents, on push and on pull request. GitHub reads workflows only from a repository root, so a copy of this project nested inside another repository carries the file inertly until it becomes a root of its own. |
 | `util_resources/` | The repository carries tracked assets. `readme/` holds every image the repository embeds (a logo, screenshots, README figures), and nothing references an image from anywhere else. Further purpose-named subfolders may be added as new asset kinds arise, each under the same trigger logic: it exists only while something uses it. |
 
 ## Never tracked

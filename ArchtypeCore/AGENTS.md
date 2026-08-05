@@ -1,6 +1,6 @@
 # ArchetypeCore Agent Guide
 
-ArchetypeCore is a strict, AI-ready Clean Architecture template for FastAPI servers, demonstrated on a VPN (WireGuard) control-plane domain. It is a style template and living blueprint, not a production deployment: some gaps (test breadth, live networking validation) are intentional, so do not "fix" them unprompted.
+ArchetypeCore is a strict, AI-ready Clean Architecture template for FastAPI servers, demonstrated on a VPN (WireGuard) control-plane domain. It is a style template and living blueprint rather than a production deployment, so some gaps are intentional and must not be "fixed" unprompted. Here those are the suites, which demonstrate the test shape rather than covering the surface, and the WireGuard interactions, which are never exercised against live routing. STATE.md holds the current list.
 
 ## Commands
 
@@ -8,7 +8,7 @@ ArchetypeCore is a strict, AI-ready Clean Architecture template for FastAPI serv
 - Run: `uvicorn main:app --reload`
 - Test: `pytest`
 - Lint: `ruff check .`
-- Type-check: `mypy app main.py db scripts`
+- Type-check: `mypy app main.py db scripts tests`
 - Migrate: `alembic upgrade head`
 - Docker: `docker-compose up --build -d`
 

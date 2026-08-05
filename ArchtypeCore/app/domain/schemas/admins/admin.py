@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from app.domain.schemas.common import IDMixin
 
@@ -39,8 +39,7 @@ class AdminInDB(IDMixin, AdminBase):
     role: str
     status: str
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class Admin(AdminBase):

@@ -1,0 +1,81 @@
+name: CI
+
+# The three styles live in one repository, and GitHub only reads workflows from a repository
+# root. Each template therefore carries its own workflow file, which sits inert here and
+# activates once that template becomes the root of a project. This file is what checks the
+# styles inside this repository, running the same five commands each of them documents.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  archetypecore:
+    name: ArchetypeCore
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ArchtypeCore
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-dev.txt
+      - name: Lint
+        run: ruff check .
+      - name: Type-check
+        run: mypy app main.py db scripts tests
+      - name: Test
+        run: pytest
+
+  keel:
+    name: Keel
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Keel
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+          python -m pip install --group dev
+      - name: Lint
+        run: ruff check .
+      - name: Type-check
+        run: mypy src tests
+      - name: Test
+        run: pytest
+
+  helm:
+    name: Helm
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Helm
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: Helm/package-lock.json
+      - name: Install
+        run: npm ci
+      - name: Lint
+        run: npm run lint
+      - name: Type-check
+        run: npm run typecheck
+      - name: Test
+        run: npm test
+      - name: Build
+        run: npm run build

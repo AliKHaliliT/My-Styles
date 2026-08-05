@@ -1,16 +1,16 @@
 # Helm Agent Guide
 
-Helm is a strict, AI-ready template for client-side web applications (React, Vite, TypeScript), demonstrated on a harbormaster console for the fictional Port of Saltmere. It is a style template and living blueprint, not a production deployment: some gaps (test breadth, the absence of a real backend) are intentional, so do not "fix" them unprompted.
+Helm is a strict, AI-ready template for client-side web applications (React, Vite, TypeScript), demonstrated on a harbormaster console for the fictional Port of Saltmere. It is a style template and living blueprint rather than a production deployment, so some gaps are intentional and must not be "fixed" unprompted. Here those are the suites, which pin the seams rather than covering the surface, and the backend, which is answered by an in-browser mock instead of a server. STATE.md holds the current list.
 
 ## Commands
 
 - Install: `npm install` (Node 20.19+; also regenerates the untracked msw worker in `public/`)
 - Run the offline demo: `npm run dev` (sign in with username "harbormaster", password "saltmere")
-- Build: `npm run build`
-- Preview the build: `npm run preview`
 - Test: `npm test`
 - Lint: `npm run lint`
 - Type-check: `npm run typecheck`
+- Build: `npm run build`
+- Preview the build: `npm run preview`
 
 ## Hard rules
 
@@ -19,6 +19,7 @@ Helm is a strict, AI-ready template for client-side web applications (React, Vit
 - Server data lives in the TanStack Query cache only, keyed in each entity's `queries.ts`; never copy query data into a store. Client state (session, theme, drafts, filters) lives in small Zustand stores or component state.
 - Colors and status tones come only from the token utilities defined in `src/app/styles/tokens.css` (`bg-surface`, `text-ink`, `text-signal`, and so on); raw palette classes are off limits.
 - The environment is read only through `shared/config`; no other module touches `import.meta.env`.
+- Test suites live in `tests/`, mirroring the source tree, one suite named after the unit it covers. A collaborator is replaced only at an architectural seam, by the MSW handlers answering at the wire boundary or a hand-written fake satisfying the contract it stands in for; never `vi.mock` a module's internals, because a test bound to an implementation voids the substitutability the layering exists to provide. No coverage threshold is imposed, so breadth stays a judgment call while the placement and substitution rules do not. The shape is mapped in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#testing).
 - Follow the doc-comment convention in the [README's Conventions section](README.md#conventions) and the documentation rules in [docs/CONVENTIONS.md](docs/CONVENTIONS.md); the latter is frozen and must not be edited.
 - The documentation rulebook is owned by the style. [docs/CONVENTIONS.md](docs/CONVENTIONS.md) changes only inside the template itself, in the My-Styles repository and by its owner; a project derived from this template never edits its copy and never diverges from it. A derived project that believes a rule is wrong or missing sends the case upstream instead (see [The upstream report](#the-upstream-report)).
 - No em dashes anywhere: code, doc comments, documentation, commit messages, UI copy.

@@ -1,0 +1,29 @@
+name: CI
+
+# Runs the five commands AGENTS.md documents, so a rule the configuration claims to enforce
+# is actually enforced rather than remembered.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+          python -m pip install --group dev
+      - name: Lint
+        run: ruff check .
+      - name: Type-check
+        run: mypy src tests
+      - name: Test
+        run: pytest

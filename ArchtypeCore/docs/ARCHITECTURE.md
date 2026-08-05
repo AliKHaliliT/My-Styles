@@ -91,11 +91,19 @@ my_project/
 │
 ├── STATE.md                    # Living project state (Now / Next / Deferred / Blocked)
 │
-├── tests/                      # Automated test suite for the app (mirrors the app structure)
-│   └── app/                    # Tests for the main FastAPI application
-│       ├── api/                # Integration tests for HTTP endpoints
-│       └── services/           # Unit tests for business logic
+├── tests/                      # Automated test suite (mirrors the app structure)
+│   ├── conftest.py             # Supplies the required settings values before any app import
+│   └── app/
+│       └── services/           # Business logic, with fakes at the domain interfaces
 │
 └── util_resources/             # Tracked repository assets
     └── readme/                 # Every image the repository embeds (logo, screenshots, figures)
 ```
+
+## Testing
+
+Three rules hold however broad the suite is. Suites live in `tests/`, mirroring the source tree, one suite named after the unit it covers. A collaborator is replaced only at an architectural seam, by a hand-written fake satisfying the interface in `app/domain/interfaces` that it stands in for, never by patching a module's internals, since a test bound to an implementation voids the substitutability the Dependency Rule exists to provide. And no coverage threshold is imposed, because a percentage gate buys assertions that assert nothing, so breadth stays a judgment call while placement and substitution do not.
+
+`tests/app/services/test_user_service.py` is the worked example. It drives `UserService.create_user_with_device` with hand-written fakes for the unit of work, its three repositories, and the VPN provider, so the real orchestration runs while nothing reaches a database or a network interface. The assertions follow the credentials from the provider into both the stored device and the provisioning call, and one case proves the duplicate-username guard runs before any external effect happens. Each fake is declared against the interface it satisfies rather than against its own class, which is what lets the type checker confirm the substitution is legitimate.
+
+`tests/conftest.py` assigns the four settings values that carry no default, because the settings module builds its instance at import time. They are deliberately fake and assigned rather than defaulted, so a real environment on the machine running the suite cannot leak into a run. Integration tests that speak HTTP would sit beside the unit tests under a `tests/app/api/` of their own; the breadth of the suite is deliberately narrow here, since this repository is a blueprint rather than a deployment.

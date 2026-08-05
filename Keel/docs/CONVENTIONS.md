@@ -90,3 +90,5 @@ Spine and organic technical documents use UPPERCASE basenames at predictable loc
 ## Code-level documentation
 
 Docstrings are governed separately by the docstring convention in the [README's Conventions section](../README.md#conventions): NumPy style, the house `Usage` block, the three-section trio with `None.` sentinels, and direct-only `Raises`.
+
+Test files stand outside the every-export rule, because a suite documents itself through the name of each case and the assertion it makes. A comment belongs in a test only where the reason a case exists is invisible from its name, as with a regression guard that should name the defect it pins.

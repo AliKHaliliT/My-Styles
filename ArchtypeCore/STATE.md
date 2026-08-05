@@ -2,6 +2,13 @@
 
 ## Now
 
+- The test contract is specified rather than assumed. Suites mirror the source tree,
+  collaborators are substituted only at the interfaces in `app/domain/interfaces`, no coverage
+  threshold is imposed, and `tests/app/services/test_user_service.py` is the worked example
+  (2026-08-05). Decision 0008 carries the reasoning, and writing that suite immediately
+  surfaced a deprecated pydantic config class that had been warning unnoticed.
+- The five documented commands now run in continuous integration on push and on pull request,
+  with the type checker covering the suite as well as the application (2026-08-05).
 - The template answers the same five commands as the other styles. Ruff and mypy are
   configured in a `pyproject.toml` that carries tool settings and no `[project]` table, and
   `requirements-dev.txt` holds the tooling so the runtime image never receives it

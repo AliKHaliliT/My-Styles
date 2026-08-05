@@ -1,20 +1,21 @@
 # Keel Agent Guide
 
-Keel is a strict, AI-ready Clean Architecture template for installable Python packages, demonstrated on a fully offline agent-engine domain. It is a style template and living blueprint, not a production library: some gaps (test breadth, the untested Anthropic adapter) are intentional, so do not "fix" them unprompted.
+Keel is a strict, AI-ready Clean Architecture template for installable Python packages, demonstrated on a fully offline agent-engine domain. It is a style template and living blueprint rather than a production library, so some gaps are intentional and must not be "fixed" unprompted. Here those are the suites, which demonstrate the test shape rather than covering the surface, and the Anthropic adapter, which stays unexercised because reaching a live model would end the offline guarantee. STATE.md holds the current list.
 
 ## Commands
 
-- Install (editable): `pip install -e .` (Python 3.13+; add the LLM adapter with `pip install -e ".[anthropic]"`)
+- Install (editable): `pip install -e .` (Python 3.13+; add the tooling with `pip install --group dev`, and the LLM adapter with `pip install -e ".[anthropic]"`)
 - Run the offline demo: `keel "calculate (2 + 3) * 4"` or `python -m keel "count words in the quick brown fox" --show-trace`
-- Lint: `ruff check .`
-- Type-check: `mypy src` (strict mode is configured in `pyproject.toml`)
 - Test: `pytest`
+- Lint: `ruff check .`
+- Type-check: `mypy src tests` (strict mode is configured in `pyproject.toml`)
 
 ## Hard rules
 
 - The Dependency Rule is absolute: `domain` and `services` never import from `facade`, `adapters`, or any SDK; layer-owned objects cross a layer boundary only through translators.
 - Library citizenship: no global mutable state, no environment reads at import time, and a `NullHandler` on the package logger.
 - Every directory holds either subpackages or modules, never a mix (the package root is the sole exception); an `__init__.py` exists only where it re-exports.
+- Test suites live in `tests/`, mirroring the source tree, one suite named after the unit it covers. A collaborator is replaced only at an architectural seam, by a hand-written fake satisfying the port in `domain/interfaces` that it stands in for; never patch or monkey-patch a module's internals, because a test bound to an implementation voids the substitutability the ports exist to provide. No coverage threshold is imposed, so breadth stays a judgment call while the placement and substitution rules do not. The shape is mapped in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#testing).
 - Follow the docstring convention in the [README's Conventions section](README.md#conventions) and the documentation rules in [docs/CONVENTIONS.md](docs/CONVENTIONS.md); the latter is frozen and must not be edited.
 - The documentation rulebook is owned by the style. [docs/CONVENTIONS.md](docs/CONVENTIONS.md) changes only inside the template itself, in the My-Styles repository and by its owner; a project derived from this template never edits its copy and never diverges from it. A derived project that believes a rule is wrong or missing sends the case upstream instead (see [The upstream report](#the-upstream-report)).
 - No em dashes anywhere: code, docstrings, comments, documentation, commit messages.

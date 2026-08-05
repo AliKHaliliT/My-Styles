@@ -59,7 +59,15 @@ my_package/
 ├── tests/                      # Automated test suite (mirrors the src structure)
 │   └── src/
 │       └── keel/
+│           └── services/
+│               └── execution/  # The loop's contract, with fakes at the outward ports
 │
 └── util_resources/             # Tracked repository assets
     └── readme/                 # Every image the repository embeds (logo, screenshots, figures)
 ```
+
+## Testing
+
+Three rules hold however broad the suite is. Suites live in `tests/`, mirroring the source tree, one suite named after the unit it covers. A collaborator is replaced only at an architectural seam, by a hand-written fake satisfying the port in `domain/interfaces` that it stands in for, never by patching a module's internals, since a test bound to an implementation voids the substitutability the ports exist to provide. And no coverage threshold is imposed, because a percentage gate buys assertions that assert nothing, so breadth stays a judgment call while placement and substitution do not.
+
+`tests/src/keel/services/execution/test_agent_runner.py` is the worked example, and it shows the two ways a port pays off. The registry, the transcript, and the event sink are the shipped adapters, since each is already deterministic and runs in process, so a test composes the real thing. Only the reasoner and a tool are stood in for, because those are what reach a model and the outside world in production. The suite pins the loop's contract rather than its internals: a finish action completes the run and records one step, a tool result reaches the next decision, a failing tool becomes data unless the configuration says to halt, an unknown tool is reported without ending the run, the step budget bounds a reasoner that never stops, and a broken event sink never takes the run down.
