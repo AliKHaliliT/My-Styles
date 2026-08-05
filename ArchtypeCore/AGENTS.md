@@ -4,15 +4,18 @@ ArchetypeCore is a strict, AI-ready Clean Architecture template for FastAPI serv
 
 ## Commands
 
-- Install: `pip install -r requirements.txt` (Python 3.13+)
-- Migrate: `alembic upgrade head`
+- Install: `pip install -r requirements.txt` (Python 3.13+; add the tooling with `pip install -r requirements-dev.txt`)
 - Run: `uvicorn main:app --reload`
 - Test: `pytest`
+- Lint: `ruff check .`
+- Type-check: `mypy app main.py db scripts`
+- Migrate: `alembic upgrade head`
 - Docker: `docker-compose up --build -d`
 
 ## Hard rules
 
 - The Dependency Rule is absolute: `domain` and `services` never import from `api`, `models`, or any framework; data crosses layer boundaries only through translators. Engines never import from `app/`.
+- Test suites live in `tests/`, mirroring the source tree, one suite named after the unit it covers. A collaborator is replaced only at an architectural seam, by a hand-written fake satisfying the interface in `app/domain/interfaces` that it stands in for; never patch or monkey-patch a module's internals, because a test bound to an implementation voids the substitutability the Dependency Rule exists to provide. No coverage threshold is imposed, so breadth stays a judgment call while the placement and substitution rules do not. The shape is mapped in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#testing).
 - Follow the docstring convention in the [README's Conventions section](README.md#conventions) and the documentation rules in [docs/CONVENTIONS.md](docs/CONVENTIONS.md); the latter is frozen and must not be edited.
 - The documentation rulebook is owned by the style. [docs/CONVENTIONS.md](docs/CONVENTIONS.md) changes only inside the template itself, in the My-Styles repository and by its owner; a project derived from this template never edits its copy and never diverges from it. A derived project that believes a rule is wrong or missing sends the case upstream instead (see [The upstream report](#the-upstream-report)).
 - No em dashes anywhere: code, docstrings, comments, documentation, commit messages.

@@ -62,7 +62,7 @@ class AdminUpdate(AdminBase):
     
     """
     
-    username: str | None = None
+    username: str | None = None  # type: ignore[assignment]  # an update variant widens a required base field on purpose
     password: str | None = None
     role: str | None = None
     status: str | None = None

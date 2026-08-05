@@ -14,8 +14,9 @@ from app.core.exception_handlers import (domain_exception_handler,
 from app.core.exceptions import CustomHTTPException
 from app.core.logging.logging_config import setup_logging
 from app.core.middlewares.cache import NoCacheMiddleware
+# COEP and COOP are imported but not installed; they are enabled at the calls below.
 from app.core.middlewares.isolation import (
-    CrossOriginEmbedderPolicyMiddleware, CrossOriginOpenerPolicyMiddleware,
+    CrossOriginEmbedderPolicyMiddleware, CrossOriginOpenerPolicyMiddleware,  # noqa: F401
     CrossOriginResourcePolicyMiddleware, OriginAgentClusterMiddleware)
 from app.core.middlewares.observability import (AccessLogMiddleware,
                                                 RequestIDMiddleware)
@@ -57,8 +58,8 @@ app = FastAPI(
 
 # Configure Exception Handlers
 ## Custom Default Handlers 
-app.add_exception_handler(RequestValidationError, validation_exception_handler)
-app.add_exception_handler(CustomHTTPException, http_exception_handler)
+app.add_exception_handler(RequestValidationError, validation_exception_handler)  # type: ignore[arg-type]  # Starlette types a handler against Exception, not the subclass it handles
+app.add_exception_handler(CustomHTTPException, http_exception_handler)  # type: ignore[arg-type]  # Starlette types a handler against Exception, not the subclass it handles
 app.add_exception_handler(DomainException, domain_exception_handler)
 app.add_exception_handler(Exception, general_exception_handler)
 
@@ -123,6 +124,7 @@ app.add_middleware(
     )
 )
 app.add_middleware(PermissionsPolicyMiddleware)
+# COOP and COEP stay off by default because they block the CDN assets the API docs load.
 # app.add_middleware(CrossOriginOpenerPolicyMiddleware)
 # app.add_middleware(CrossOriginEmbedderPolicyMiddleware)
 app.add_middleware(CrossOriginResourcePolicyMiddleware)

@@ -35,7 +35,7 @@ def domain_to_db_device_update(domain_obj: DomainDeviceUpdate) -> dict[str, Any]
 
     """
 
-    update_data = {}
+    update_data: dict[str, Any] = {}
     
     if domain_obj.device_name is not None:
         update_data["device_name"] = domain_obj.device_name

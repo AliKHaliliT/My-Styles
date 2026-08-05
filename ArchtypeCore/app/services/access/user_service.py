@@ -227,7 +227,7 @@ class UserService:
 
             await self.uow.commit()
 
-            return await self.uow.users.get(id=user_domain.id)
+            return await self.uow.users.get(id=user_domain.id)  # type: ignore[return-value]  # the row was created in this transaction, so the lookup cannot miss
 
 
     async def _update_user_and_device_status(
@@ -279,13 +279,13 @@ class UserService:
                     
                     if status == "enabled":
                         vpn_tasks.append(self.vpn_provider.provision_client(
-                            client_identifier=device.client_identifier, 
+                            client_identifier=device.client_identifier,  # type: ignore[arg-type]  # a provisioned device always carries an identifier
                             ip_address=device.ip_address, 
                             protocol_data=device.protocol_data
                         ))
                     else:
                         vpn_tasks.append(self.vpn_provider.revoke_client(
-                            client_identifier=device.client_identifier, 
+                            client_identifier=device.client_identifier,  # type: ignore[arg-type]  # a provisioned device always carries an identifier
                             protocol_data=device.protocol_data
                         ))
             

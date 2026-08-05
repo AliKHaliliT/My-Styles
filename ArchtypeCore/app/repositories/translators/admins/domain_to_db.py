@@ -29,7 +29,7 @@ def domain_to_db_admin_update(domain_obj: DomainAdminUpdate, hashed_password: st
 
     """
 
-    update_data = {}
+    update_data: dict[str, Any] = {}
     
     if domain_obj.username is not None:
         update_data["username"] = domain_obj.username

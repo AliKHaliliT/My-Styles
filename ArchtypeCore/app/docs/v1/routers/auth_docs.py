@@ -1,10 +1,12 @@
+from typing import Any
+
 from fastapi import status
 
 from app.docs.logic import (build_standard_error_payload,
                             wrap_swagger_multi_examples)
 from app.docs.v1.routers.common_docs import COMMON_RESPONSES
 
-LOGIN_RESPONSES = {
+LOGIN_RESPONSES: dict[int | str, dict[str, Any]] = {
     status.HTTP_401_UNAUTHORIZED: wrap_swagger_multi_examples(
         description="Unauthorized Error",
         examples_dict={

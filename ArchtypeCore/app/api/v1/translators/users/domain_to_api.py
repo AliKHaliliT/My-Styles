@@ -2,7 +2,6 @@ from app.api.v1.schemas.users import User as APIUser
 from app.api.v1.schemas.users import UserList as APIUserList
 from app.api.v1.schemas.users import UserStats as APIUserStats
 from app.domain.schemas.users import User as DomainUser
-from app.domain.schemas.users import UserList as DomainUserList
 from app.domain.schemas.users import UserStats as DomainUserStats
 
 
@@ -28,7 +27,7 @@ def domain_to_api_user_stats(domain: DomainUserStats) -> APIUserStats:
     return APIUserStats.model_validate(domain, from_attributes=True)
 
 
-def domain_to_api_user_list(domain_users: DomainUserList) -> APIUserList:
+def domain_to_api_user_list(domain_users: list[DomainUser]) -> APIUserList:
 
     """
 

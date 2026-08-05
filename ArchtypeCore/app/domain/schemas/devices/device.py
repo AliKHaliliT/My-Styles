@@ -51,5 +51,5 @@ class DeviceUpdate(DeviceBase):
     
     """
     
-    device_name: str | None = None
+    device_name: str | None = None  # type: ignore[assignment]  # an update variant widens a required base field on purpose
     status: str | None = None

@@ -39,7 +39,8 @@ Triggers are bidirectional: the file appears when its trigger appears and is rem
 | `LICENSE` | The repository is public. The license text (American spelling: LICENSE), owner-only and effectively immutable; agents never touch it. A private repository or codebase omits it, and should: with no license granted, default all-rights-reserved copyright applies, which is exactly the posture private code wants. |
 | `.env.example` | Anything reads a `.env`. Tracked and secret-free, it mirrors every variable the project consumes; the real `.env` stays ignored. |
 | `.dockerignore` | A `Dockerfile` exists. |
-| `requirements.txt` / `pyproject.toml` | The project's dependency manifest, per project type. |
+| `requirements.txt` / `pyproject.toml` | The project's dependency manifest, per project type. A deployed application declares its runtime dependencies in `requirements.txt`; an installable package declares everything in `pyproject.toml`. A project that runs tooling also needs a `pyproject.toml` to configure it, since ruff and mypy read their settings from nowhere else, and that file carries `[tool.*]` sections with no `[project]` table when the project is not a package. |
+| `requirements-dev.txt` | Runtime dependencies come from a `requirements.txt` that a container image installs, so the tooling needs a manifest of its own that includes it and adds the test runner, the linter, and the type checker. A project whose `pyproject.toml` already declares a dev dependency group uses that instead. |
 | `CHANGELOG.md` | The project is a versioned package that consumers upgrade through (see CONVENTIONS.md). |
 | `util_resources/` | The repository carries tracked assets. `readme/` holds every image the repository embeds (a logo, screenshots, README figures), and nothing references an image from anywhere else. Further purpose-named subfolders may be added as new asset kinds arise, each under the same trigger logic: it exists only while something uses it. |
 

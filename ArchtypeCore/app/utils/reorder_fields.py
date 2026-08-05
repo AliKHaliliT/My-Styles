@@ -1,4 +1,4 @@
-from functools import lru_cache
+from functools import cache
 import warnings
 
 from pydantic import BaseModel, create_model
@@ -103,7 +103,7 @@ def reorder_fields(
             fields_to_move_last_norm[key_name] = v
 
 
-    @lru_cache(maxsize=None)
+    @cache
     def _collect_fields_recursively(base_cls: type) -> dict[str, tuple[type, object]]:
 
         """
@@ -207,7 +207,7 @@ def reorder_fields(
 
             invalid_fields = move_fields - set(all_fields.keys())
             if invalid_fields:
-                warnings.warn(f"fields_to_move_last for class {class_name} contains invalid fields: {invalid_fields}")
+                warnings.warn(f"fields_to_move_last for class {class_name} contains invalid fields: {invalid_fields}", stacklevel=2)
 
             for fname in move_fields & set(all_fields.keys()):
                 if _field_allowed(fname):
@@ -233,7 +233,7 @@ def reorder_fields(
         new_model_name = cls.__name__
         new_model_bases = (BaseModel,)
         new_model_dict = dict(ordered_fields)
-        new_model = create_model(
+        new_model = create_model(  # type: ignore[call-overload]  # create_model takes fields as keywords, not a mapping
             new_model_name,
             **new_model_dict,
             __base__=new_model_bases[0]

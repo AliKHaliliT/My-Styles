@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from pydantic import ConfigDict, Field, field_validator
-from pydantic_settings import BaseSettings
+from pydantic import Field, field_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from app.docs.fragments.headers_content import HEADERS_CONTENT
 
@@ -32,7 +32,7 @@ class Settings(BaseSettings):
 
     # --- Project / API ---
     PROJECT_NAME: str = Field(default="ArchetypeCore", description="Name of the project")
-    PROJECT_DESCRIPTION: str = Field(default=None, description="Detailed description of the project APIs")
+    PROJECT_DESCRIPTION: str = Field(default="", description="Detailed description of the project APIs")
     VERSION: str = Field(default="1.0.0", description="Current version of the application")
     API_V1_PREFIX: str = Field(default="/api/v1", description="Prefix routing path for API v1")
     DOCS_URL: str = Field(default="/docs", description="Path for the Swagger UI documentation")
@@ -78,7 +78,7 @@ class Settings(BaseSettings):
 
 
     # --- Config ---
-    model_config = ConfigDict(
+    model_config = SettingsConfigDict(
         case_sensitive=True,
         env_file=str(ENV_FILE_PATH),
         env_file_encoding="utf-8",

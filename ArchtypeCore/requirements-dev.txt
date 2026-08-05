@@ -1,0 +1,8 @@
+# Development and CI tooling, kept out of requirements.txt so the runtime image the
+# Dockerfile builds never carries a linter, a type checker, or a test runner.
+-r requirements.txt
+
+pytest
+pytest-asyncio
+ruff
+mypy

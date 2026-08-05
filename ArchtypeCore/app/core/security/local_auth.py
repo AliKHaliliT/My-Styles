@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 import logging
 from typing import Any
 
@@ -197,7 +197,7 @@ class LocalAuthAdapter(IAuthManager):
         if "sub" not in to_encode:
             raise ValueError("JWT payload must contain 'sub' field")
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         expire = now + (expires_delta or timedelta(minutes=self.access_token_expire_minutes))
         to_encode.update({"exp": expire, "iat": now})
 

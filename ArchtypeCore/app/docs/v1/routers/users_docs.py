@@ -1,3 +1,5 @@
+from typing import Any
+
 from fastapi import status
 
 from app.docs.logic import (build_standard_error_payload,
@@ -5,7 +7,7 @@ from app.docs.logic import (build_standard_error_payload,
                             wrap_swagger_single_example)
 from app.docs.v1.routers.common_docs import STANDARD_ROUTER_RESPONSES
 
-ADD_USER_RESPONSES = {
+ADD_USER_RESPONSES: dict[int | str, dict[str, Any]] = {
     status.HTTP_409_CONFLICT: wrap_swagger_single_example(
         description="Conflict",
         example_payload=build_standard_error_payload(
@@ -19,7 +21,7 @@ ADD_USER_RESPONSES = {
 }
 
 
-USER_ACTION_RESPONSES = {
+USER_ACTION_RESPONSES: dict[int | str, dict[str, Any]] = {
     status.HTTP_404_NOT_FOUND: wrap_swagger_single_example(
         description="User Not Found",
         example_payload=build_standard_error_payload(
@@ -33,7 +35,7 @@ USER_ACTION_RESPONSES = {
 }
 
 
-GET_USER_CONFIG_RESPONSES = {
+GET_USER_CONFIG_RESPONSES: dict[int | str, dict[str, Any]] = {
     status.HTTP_404_NOT_FOUND: wrap_swagger_multi_examples(
         description="Not Found Error",
         examples_dict={
@@ -61,6 +63,6 @@ GET_USER_CONFIG_RESPONSES = {
 }
 
 
-LIST_USERS_RESPONSES = {
+LIST_USERS_RESPONSES: dict[int | str, dict[str, Any]] = {
     **STANDARD_ROUTER_RESPONSES
 }

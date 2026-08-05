@@ -1,0 +1,43 @@
+# ArchetypeCore is a deployed application rather than an installable package, so this file
+# carries tool configuration only and deliberately has no [project] table. The runtime
+# manifest stays requirements.txt, which is what the Dockerfile installs into the image;
+# the tooling lives in requirements-dev.txt so a linter never reaches production.
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "B", "UP"]
+# Line length is left to the reader, and a function call in an argument default is how
+# FastAPI's Depends() is meant to be written.
+ignore = ["E501", "B008"]
+
+[tool.ruff.lint.per-file-ignores]
+# An __init__.py exists here only where it re-exports, which reads as unused to a linter.
+"__init__.py" = ["F401"]
+# The operational scripts and the Alembic environment put the repository root on sys.path
+# before importing from it, and Alembic needs the models imported for their side effect.
+"scripts/*.py" = ["E402"]
+"db/migrations/env.py" = ["E402", "F401"]
+# The field filter is written as compact one-line guards on purpose.
+"app/utils/reorder_fields.py" = ["E701"]
+
+[tool.mypy]
+python_version = "3.13"
+plugins = ["pydantic.mypy"]
+# Every grouping directory is a bare namespace package, so the checker needs the repository
+# root named as the import base rather than inferring one per folder.
+explicit_package_bases = true
+mypy_path = "."
+implicit_reexport = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+
+[[tool.mypy.overrides]]
+module = "jose.*"
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

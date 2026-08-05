@@ -49,7 +49,7 @@ async def sync_peers(remove_disabled: bool = True, dry_run: bool = False) -> Non
                 else:
                     try:
                         await vpn_provider.provision_client(
-                            client_identifier=device.client_identifier, 
+                            client_identifier=device.client_identifier,  # type: ignore[arg-type]  # a provisioned device always carries an identifier
                             ip_address=device.ip_address, 
                             protocol_data=device.protocol_data
                         )

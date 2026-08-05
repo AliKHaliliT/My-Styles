@@ -1,3 +1,5 @@
+from typing import Any
+
 from fastapi import status
 from fastapi.exceptions import RequestValidationError
 
@@ -7,15 +9,15 @@ from app.docs.logic import (build_standard_error_payload,
                             wrap_swagger_single_example)
 
 # Standard Fallback Errors
-VALIDATION_ERROR_RESPONSE = {
+VALIDATION_ERROR_RESPONSE: dict[int | str, dict[str, Any]] = {
     status.HTTP_422_UNPROCESSABLE_ENTITY: wrap_swagger_single_example(
         description="Validation Error",
-        example_payload=generate_example_from_exception(RequestValidationError)
+        example_payload=generate_example_from_exception(RequestValidationError)  # type: ignore[arg-type]  # the example is built from the exception class, not an instance
     )
 }
 
 
-INTERNAL_SERVER_ERROR_RESPONSE = {
+INTERNAL_SERVER_ERROR_RESPONSE: dict[int | str, dict[str, Any]] = {
     status.HTTP_500_INTERNAL_SERVER_ERROR: wrap_swagger_single_example(
         description="Internal Server Error",
         example_payload=build_standard_error_payload(
@@ -28,14 +30,14 @@ INTERNAL_SERVER_ERROR_RESPONSE = {
 }
 
 
-COMMON_RESPONSES = {
+COMMON_RESPONSES: dict[int | str, dict[str, Any]] = {
     **VALIDATION_ERROR_RESPONSE,
     **INTERNAL_SERVER_ERROR_RESPONSE
 }
 
 
 # Security Errors (Applied to endpoints protected by dependencies)
-SECURITY_RESPONSES = {
+SECURITY_RESPONSES: dict[int | str, dict[str, Any]] = {
     status.HTTP_403_FORBIDDEN: wrap_swagger_multi_examples(
         description="Forbidden Error",
         examples_dict={
@@ -62,7 +64,7 @@ SECURITY_RESPONSES = {
 }
 
 
-STANDARD_ROUTER_RESPONSES = {
+STANDARD_ROUTER_RESPONSES: dict[int | str, dict[str, Any]] = {
     **COMMON_RESPONSES,
     **SECURITY_RESPONSES
 }
