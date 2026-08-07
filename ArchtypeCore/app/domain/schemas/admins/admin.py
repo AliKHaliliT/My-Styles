@@ -53,7 +53,7 @@ class Admin(AdminBase):
     ...
 
 
-class AdminUpdate(AdminBase):
+class AdminUpdate(BaseModel):
 
     """
     
@@ -61,7 +61,7 @@ class AdminUpdate(AdminBase):
     
     """
     
-    username: str | None = None  # type: ignore[assignment]  # an update variant widens a required base field on purpose
+    username: str | None = None
     password: str | None = None
     role: str | None = None
     status: str | None = None

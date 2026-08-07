@@ -2,6 +2,16 @@
 
 ## Now
 
+- Twelve of the fifteen pinned type-check findings are resolved rather than suppressed, and
+  the three that remain are limitations in Starlette and pydantic with nothing here to fix
+  (2026-08-06). The largest group was a real defect: the device column is `NOT NULL` while the
+  domain schema declared `client_identifier` optional, so the schema claimed a value the
+  database had already forbidden, and correcting one annotation cleared eight pins. The device
+  and admin update schemas now stand alone instead of inheriting and widening a required
+  field, which is the shape `UserUpdate` already used. Reading a user back after creating it
+  raises `EntityNotFoundError` instead of returning a value typed as though it could be
+  missing. And the documentation helper's signature now admits the exception class it has
+  always special-cased.
 - The test contract is specified rather than assumed. Suites mirror the source tree,
   collaborators are substituted only at the interfaces in `app/domain/interfaces`, no coverage
   threshold is imposed, and `tests/app/services/test_user_service.py` is the worked example
@@ -22,18 +32,15 @@
 
 - The WireGuard subprocess interactions (`wg` / `wg-quick`) are untested in a live routing
   environment; validate before any production networking use (2026-07-16).
-- Fifteen type-check findings are pinned with a `# type: ignore` and a stated reason instead
-  of being resolved, because each needs a design decision rather than an annotation
-  (2026-08-05). Eight of them are one unexpressed invariant, that a provisioned device
-  always carries a `client_identifier` while the schema still permits none, across
-  `user_service`, `device_service`, `quota_monitor`, and `peer_sync`; the open question is
-  what should happen when that invariant breaks. Two are update schemas widening a required
-  base field, which pydantic allows and the type system does not. Two are Starlette typing
-  an exception handler against `Exception` rather than the subclass it handles. One is
-  pydantic's `create_model` refusing a pre-built field mapping. One is a lookup immediately
-  after a create in the same transaction, which cannot miss but is typed as though it could.
-  One builds a documentation example from an exception class where the helper wants an
-  instance. `warn_unused_ignores` is enabled, so a pin cannot outlive its cause unnoticed.
+- Three type-check findings stay pinned with a stated reason, because each is a limitation in
+  a dependency rather than anything this project can correct (2026-08-06). Two are Starlette
+  typing an exception handler against `Exception` rather than the subclass it handles, and one
+  is pydantic's `create_model` refusing a pre-built field mapping. `warn_unused_ignores` is
+  enabled, so if either library tightens its annotations the pins will report themselves.
+- The Dependency Rule is enforced by review alone. `domain` and `services` are forbidden from
+  importing `api`, `models`, or any framework, and nothing checks it, unlike the equivalent
+  layer rule in the client style which ESLint carries (2026-08-06). Closing this needs a tool
+  ruff does not provide, so it is an open decision rather than a configuration change.
 
 ## Blocked
 

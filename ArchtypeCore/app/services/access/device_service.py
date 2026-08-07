@@ -222,7 +222,7 @@ class DeviceService:
                 raise EntityNotFoundError(f"Device with ID {device_id} not found")
 
             await self.vpn_provider.provision_client(
-                client_identifier=device.client_identifier,  # type: ignore[arg-type]  # a provisioned device always carries an identifier
+                client_identifier=device.client_identifier,
                 ip_address=device.ip_address, 
                 protocol_data=device.protocol_data
             )
@@ -275,7 +275,7 @@ class DeviceService:
                 raise EntityNotFoundError(f"Device with ID {device_id} not found")
 
             await self.vpn_provider.revoke_client(
-                client_identifier=device.client_identifier,  # type: ignore[arg-type]  # a provisioned device always carries an identifier
+                client_identifier=device.client_identifier,
                 protocol_data=device.protocol_data
             )
 
@@ -319,7 +319,7 @@ class DeviceService:
 
 
         config_str = await self.vpn_provider.get_client_config(
-            client_identifier=device.client_identifier,  # type: ignore[arg-type]  # a provisioned device always carries an identifier
+            client_identifier=device.client_identifier,
             ip_address=device.ip_address,
             protocol_data=device.protocol_data
         )

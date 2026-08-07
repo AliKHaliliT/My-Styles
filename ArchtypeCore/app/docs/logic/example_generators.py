@@ -4,21 +4,24 @@ from fastapi.exceptions import RequestValidationError
 from pydantic import BaseModel
 
 
-def generate_example_from_exception(exc: BaseException) -> dict[str, Any]:
+def generate_example_from_exception(exc: BaseException | type[BaseException]) -> dict[str, Any]:
 
     """
 
-    Generates a dictionary example from any exception instance.
+    Generates a dictionary example from an exception instance or a recognised class.
 
-    This utility dynamically extracts all public attributes of an exception 
-    that do not begin with an underscore and are JSON-serializable, making 
+    This utility dynamically extracts all public attributes of an exception
+    that do not begin with an underscore and are JSON-serializable, making
     it suitable for use in API documentation as a structured example.
 
-    
+
     Parameters
     ----------
-    exc : BaseException
-        Any exception instance to convert into an OpenAPI-compatible dictionary.
+    exc : BaseException | type[BaseException]
+        An exception instance to convert into an OpenAPI-compatible dictionary. The
+        `RequestValidationError` class is accepted in place of an instance, because FastAPI
+        builds it with a payload no caller can supply meaningfully here, so this function
+        returns a hand-written example for it instead.
 
         
     Returns

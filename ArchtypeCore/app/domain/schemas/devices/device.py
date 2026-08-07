@@ -37,13 +37,13 @@ class Device(IDMixin, UserIDMixin, DeviceBase, TimeStampMixin):
 
     """
 
-    client_identifier: str | None = None
+    client_identifier: str
     protocol_data: dict[str, Any] = Field(default_factory=dict)
     ip_address: str | None = None
     status: str
 
 
-class DeviceUpdate(DeviceBase):
+class DeviceUpdate(BaseModel):
 
     """
     
@@ -51,5 +51,5 @@ class DeviceUpdate(DeviceBase):
     
     """
     
-    device_name: str | None = None  # type: ignore[assignment]  # an update variant widens a required base field on purpose
+    device_name: str | None = None
     status: str | None = None

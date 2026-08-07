@@ -188,6 +188,9 @@ class UserService:
         DuplicateEntityError
             If a user with the same username already exists.
 
+        EntityNotFoundError
+            If the newly created user cannot be read back within the same transaction.
+
         """
 
         if not isinstance(user_in, UserCreate):
@@ -227,7 +230,12 @@ class UserService:
 
             await self.uow.commit()
 
-            return await self.uow.users.get(id=user_domain.id)  # type: ignore[return-value]  # the row was created in this transaction, so the lookup cannot miss
+            created = await self.uow.users.get(id=user_domain.id)
+            if created is None:
+                raise EntityNotFoundError(f"User '{user_domain.id}' could not be read back after being created")
+
+
+            return created
 
 
     async def _update_user_and_device_status(
@@ -279,13 +287,13 @@ class UserService:
                     
                     if status == "enabled":
                         vpn_tasks.append(self.vpn_provider.provision_client(
-                            client_identifier=device.client_identifier,  # type: ignore[arg-type]  # a provisioned device always carries an identifier
+                            client_identifier=device.client_identifier,
                             ip_address=device.ip_address, 
                             protocol_data=device.protocol_data
                         ))
                     else:
                         vpn_tasks.append(self.vpn_provider.revoke_client(
-                            client_identifier=device.client_identifier,  # type: ignore[arg-type]  # a provisioned device always carries an identifier
+                            client_identifier=device.client_identifier,
                             protocol_data=device.protocol_data
                         ))
             

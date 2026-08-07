@@ -26,7 +26,7 @@ async def fetch_all_devices_mapped(uow: IUnitOfWork) -> dict[str, Any]:
     """
 
     devices = await uow.devices.get_multi(limit=10000)
-    return {device.client_identifier: device for device in devices}  # type: ignore[misc]  # a provisioned device always carries an identifier
+    return {device.client_identifier: device for device in devices}
 
 
 async def update_user_usage(
@@ -95,7 +95,7 @@ async def enforce_quotas(
         try:
             for device in user.devices:
                 await vpn_provider.revoke_client(
-                    client_identifier=device.client_identifier,  # type: ignore[arg-type]  # a provisioned device always carries an identifier
+                    client_identifier=device.client_identifier,
                     protocol_data=device.protocol_data
                 )
                 await uow.devices.update(

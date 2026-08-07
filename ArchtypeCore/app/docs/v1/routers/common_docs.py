@@ -12,7 +12,7 @@ from app.docs.logic import (build_standard_error_payload,
 VALIDATION_ERROR_RESPONSE: dict[int | str, dict[str, Any]] = {
     status.HTTP_422_UNPROCESSABLE_ENTITY: wrap_swagger_single_example(
         description="Validation Error",
-        example_payload=generate_example_from_exception(RequestValidationError)  # type: ignore[arg-type]  # the example is built from the exception class, not an instance
+        example_payload=generate_example_from_exception(RequestValidationError)
     )
 }
 
