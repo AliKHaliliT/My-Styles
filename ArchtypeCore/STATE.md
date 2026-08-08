@@ -2,6 +2,11 @@
 
 ## Now
 
+- The Dependency Rule is checked rather than reviewed. Two import-linter contracts in
+  `pyproject.toml` keep the core free of frameworks, `api`, `models`, and `repositories`,
+  and keep imports pointing one way through `api -> services -> domain`. Both were proven
+  by planted violations before landing, and the Lint verb now runs
+  `ruff check . && lint-imports` (2026-08-08). Decision 0009 carries the reasoning.
 - Twelve of the fifteen pinned type-check findings are resolved rather than suppressed, and
   the three that remain are limitations in Starlette and pydantic with nothing here to fix
   (2026-08-06). The largest group was a real defect: the device column is `NOT NULL` while the
@@ -37,10 +42,6 @@
   typing an exception handler against `Exception` rather than the subclass it handles, and one
   is pydantic's `create_model` refusing a pre-built field mapping. `warn_unused_ignores` is
   enabled, so if either library tightens its annotations the pins will report themselves.
-- The Dependency Rule is enforced by review alone. `domain` and `services` are forbidden from
-  importing `api`, `models`, or any framework, and nothing checks it, unlike the equivalent
-  layer rule in the client style which ESLint carries (2026-08-06). Closing this needs a tool
-  ruff does not provide, so it is an open decision rather than a configuration change.
 
 ## Blocked
 

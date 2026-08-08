@@ -2,6 +2,11 @@
 
 ## Now
 
+- The Dependency Rule is checked rather than reviewed. Two import-linter contracts keep
+  `domain` and `services` free of `facade`, `adapters`, and the Anthropic SDK, and keep
+  imports pointing one way through `facade -> services -> domain`. The layer directories are
+  bare namespace packages, so the configuration lists them as portions, and the Lint verb now
+  runs `ruff check . && lint-imports` (2026-08-08). Decision 0011 carries the reasoning.
 - The test contract is specified rather than assumed. Suites mirror `src/`, collaborators are
   substituted only at the ports in `domain/interfaces`, no coverage threshold is imposed, and
   `tests/src/keel/services/execution/test_agent_runner.py` is the worked example holding ten

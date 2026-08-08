@@ -43,6 +43,7 @@ dev = [
     "pytest-asyncio",
     "ruff",
     "mypy",
+    "import-linter",
 ]
 
 [project.scripts]
@@ -68,6 +69,38 @@ ignore = ["E501"]
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]
+
+# import-linter machine-checks the Dependency Rule the same way ESLint carries the client
+# style's layer rule. Locating the portions imports the package root once, which the
+# library-citizenship rule (no import-time side effects) makes safe; everything after that
+# is parsed rather than executed.
+[tool.importlinter]
+# The layer directories are bare namespace packages by convention, so they are listed as
+# portions; a single "keel" root would make grimp skip every directory with no __init__.py.
+root_packages = [
+    "keel.adapters",
+    "keel.core",
+    "keel.domain",
+    "keel.facade",
+    "keel.services",
+]
+# External packages must be in the graph for a contract to forbid an SDK by name.
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+name = "The core stays inside the ports"
+type = "forbidden"
+source_modules = ["keel.domain", "keel.services"]
+forbidden_modules = [
+    "keel.facade",
+    "keel.adapters",
+    "anthropic",
+]
+
+[[tool.importlinter.contracts]]
+name = "The Dependency Rule points one way"
+type = "layers"
+layers = ["keel.facade", "keel.services", "keel.domain"]
 
 [tool.mypy]
 python_version = "3.13"

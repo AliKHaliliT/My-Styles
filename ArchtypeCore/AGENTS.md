@@ -7,7 +7,7 @@ ArchetypeCore is a strict, AI-ready Clean Architecture template for FastAPI serv
 - Install: `pip install -r requirements.txt` (Python 3.13+; add the tooling with `pip install -r requirements-dev.txt`)
 - Run: `uvicorn main:app --reload`
 - Test: `pytest`
-- Lint: `ruff check .`
+- Lint: `ruff check . && lint-imports` (ruff checks style; import-linter checks the Dependency Rule)
 - Type-check: `mypy app main.py db scripts tests`
 - Migrate: `alembic upgrade head`
 - Docker: `docker-compose up --build -d`

@@ -7,7 +7,7 @@ Keel is a strict, AI-ready Clean Architecture template for installable Python pa
 - Install (editable): `pip install -e .` (Python 3.13+; add the tooling with `pip install --group dev`, and the LLM adapter with `pip install -e ".[anthropic]"`)
 - Run the offline demo: `keel "calculate (2 + 3) * 4"` or `python -m keel "count words in the quick brown fox" --show-trace`
 - Test: `pytest`
-- Lint: `ruff check .`
+- Lint: `ruff check . && lint-imports` (ruff checks style; import-linter checks the Dependency Rule)
 - Type-check: `mypy src tests` (strict mode is configured in `pyproject.toml`)
 
 ## Hard rules

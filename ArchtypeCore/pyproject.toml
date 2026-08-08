@@ -23,6 +23,32 @@ ignore = ["E501", "B008"]
 # The field filter is written as compact one-line guards on purpose.
 "app/utils/reorder_fields.py" = ["E701"]
 
+# import-linter machine-checks the Dependency Rule the same way ESLint carries the client
+# style's layer rule. It parses rather than executes, so the check needs no environment.
+[tool.importlinter]
+root_packages = ["app"]
+# External packages must be in the graph for a contract to forbid a framework by name.
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+name = "The core is framework-free"
+type = "forbidden"
+source_modules = ["app.domain", "app.services"]
+forbidden_modules = [
+    "fastapi",
+    "starlette",
+    "sqlalchemy",
+    "alembic",
+    "app.api",
+    "app.models",
+    "app.repositories",
+]
+
+[[tool.importlinter.contracts]]
+name = "The Dependency Rule points one way"
+type = "layers"
+layers = ["app.api", "app.services", "app.domain"]
+
 [tool.mypy]
 python_version = "3.13"
 plugins = ["pydantic.mypy"]
