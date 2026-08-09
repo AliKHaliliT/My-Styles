@@ -10,6 +10,18 @@ on:
   pull_request:
 
 jobs:
+  prose:
+    name: Prose
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check every tracked byte for em dashes
+        run: |
+          if git grep -PIn "\x{2014}"; then
+            echo "Em dashes are banned in every tracked byte."
+            exit 1
+          fi
+
   archetypecore:
     name: ArchetypeCore
     runs-on: ubuntu-latest

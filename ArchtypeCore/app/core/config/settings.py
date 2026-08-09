@@ -122,16 +122,37 @@ class Settings(BaseSettings):
     # --- Helper properties ---
     @property
     def database_url_sync(self) -> str:
+
+        """
+
+        The database URL with the async driver marker stripped for synchronous tools.
+
+        """
+
         if self.DATABASE_URL.startswith("postgresql+asyncpg://"):
             return self.DATABASE_URL.replace("postgresql+asyncpg://", "postgresql://")
         return self.DATABASE_URL
 
     @property
     def is_sqlite(self) -> bool:
+
+        """
+
+        Whether the configured database is SQLite.
+
+        """
+
         return "sqlite" in self.DATABASE_URL
 
     @property
     def is_production(self) -> bool:
+
+        """
+
+        Whether the application is running with debugging off.
+
+        """
+
         return not self.DEBUG
 
 

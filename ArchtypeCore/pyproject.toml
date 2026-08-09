@@ -8,7 +8,9 @@ line-length = 100
 target-version = "py313"
 
 [tool.ruff.lint]
-select = ["E", "F", "B", "UP"]
+# The D codes check docstring presence only, never format, because the docstring rhythm is
+# the house's own; the shape rules live in the README's Conventions section.
+select = ["E", "F", "B", "UP", "D101", "D102", "D103", "D107"]
 # Line length is left to the reader, and a function call in an argument default is how
 # FastAPI's Depends() is meant to be written.
 ignore = ["E501", "B008"]
@@ -16,6 +18,10 @@ ignore = ["E501", "B008"]
 [tool.ruff.lint.per-file-ignores]
 # An __init__.py exists here only where it re-exports, which reads as unused to a linter.
 "__init__.py" = ["F401"]
+# A port's stub is a one-line signature; its documentation lives on each implementation.
+"app/domain/interfaces/*.py" = ["D102"]
+# Suites document themselves through case names and assertions (see docs/CONVENTIONS.md).
+"tests/**" = ["D101", "D102", "D103", "D107"]
 # The operational scripts and the Alembic environment put the repository root on sys.path
 # before importing from it, and Alembic needs the models imported for their side effect.
 "scripts/*.py" = ["E402"]

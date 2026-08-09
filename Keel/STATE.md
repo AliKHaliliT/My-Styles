@@ -2,6 +2,12 @@
 
 ## Now
 
+- Two more reviewed rules became checked rules (2026-08-08). CI greps every tracked byte for
+  an em dash, and ruff now verifies docstring presence on public classes, methods, functions,
+  and constructors, which surfaced two undocumented properties on `RunState` that are now
+  filled. The exemptions mirror the server template: suites, which document themselves
+  through case names, and the port stubs in `domain/interfaces`, whose documentation lives
+  on their implementations. Commit messages stay with review.
 - The Dependency Rule is checked rather than reviewed. Two import-linter contracts keep
   `domain` and `services` free of `facade`, `adapters`, and the Anthropic SDK, and keep
   imports pointing one way through `facade -> services -> domain`. The layer directories are

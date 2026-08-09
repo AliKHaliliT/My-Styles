@@ -2,6 +2,12 @@
 
 ## Now
 
+- Two more reviewed rules became checked rules (2026-08-08). CI greps every tracked byte for
+  an em dash, and ruff now verifies docstring presence on public classes, methods, functions,
+  and constructors, which surfaced ten missing docstrings that are now filled. Two exemptions
+  are calibrated to the convention rather than to convenience: suites, which document
+  themselves through case names, and the port stubs in `app/domain/interfaces`, whose
+  documentation lives on their implementations. Commit messages stay with review.
 - The Dependency Rule is checked rather than reviewed. Two import-linter contracts in
   `pyproject.toml` keep the core free of frameworks, `api`, `models`, and `repositories`,
   and keep imports pointing one way through `api -> services -> domain`. Both were proven

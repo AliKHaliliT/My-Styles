@@ -64,11 +64,17 @@ line-length = 100
 target-version = "py313"
 
 [tool.ruff.lint]
-select = ["E", "F", "B", "UP"]
+# The D codes check docstring presence only, never format, because the docstring rhythm is
+# the house's own; the shape rules live in the README's Conventions section.
+select = ["E", "F", "B", "UP", "D101", "D102", "D103", "D107"]
 ignore = ["E501"]
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]
+# A port's stub is a one-line signature; its documentation lives on each implementation.
+"src/keel/domain/interfaces/*.py" = ["D102"]
+# Suites document themselves through case names and assertions (see docs/CONVENTIONS.md).
+"tests/**" = ["D101", "D102", "D103", "D107"]
 
 # import-linter machine-checks the Dependency Rule the same way ESLint carries the client
 # style's layer rule. Locating the portions imports the package root once, which the

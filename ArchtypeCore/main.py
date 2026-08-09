@@ -36,6 +36,12 @@ from app.domain.exceptions import DomainException
 @asynccontextmanager
 async def lifespan(app: FastAPI):
 
+    """
+
+    Configure logging at startup; the shutdown side has no work.
+
+    """
+
     # Configure Logging
     setup_logging(handler_log_level=settings.HANDLER_LOG_LEVEL, 
                   root_log_level=settings.ROOT_LOG_LEVEL, 
@@ -144,9 +150,23 @@ app.include_router(v1, prefix=settings.API_V1_PREFIX)
 ## Root
 @app.get("/")
 async def root(request: Request):
+
+    """
+
+    Return a message identifying the root endpoint.
+
+    """
+
     return JSONResponse(status_code=200, content={"message": "This is the root endpoint."})
 
 ## Health Check
 @app.get("/health")
 async def health(request: Request):
+
+    """
+
+    Return the liveness message monitors probe for.
+
+    """
+
     return JSONResponse(status_code=200, content={"message": "Server is UP AND RUNNING!"})

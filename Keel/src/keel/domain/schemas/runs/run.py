@@ -35,10 +35,24 @@ class RunState(BaseModel):
 
     @property
     def steps_taken(self) -> int:
+
+        """
+
+        The number of steps recorded so far.
+
+        """
+
         return len(self.transcript)
 
     @property
     def remaining_steps(self) -> int:
+
+        """
+
+        The number of steps left in the budget.
+
+        """
+
         return self.max_steps - len(self.transcript)
 
 

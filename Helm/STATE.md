@@ -2,6 +2,8 @@
 
 ## Now
 
+- The em-dash ban is checked in CI, a grep over every tracked byte that runs before anything
+  installs; commit messages stay with review (2026-08-08).
 - The test contract is specified rather than left to the example. Suites mirror `src/`,
   collaborators are substituted only at the wire boundary or behind a hand-written fake, and
   no coverage threshold is imposed; the five existing suites already satisfy all of it, and a
@@ -26,7 +28,11 @@
 
 ## Deferred
 
-- Nothing deferred.
+- Doc-comment presence is verified by review here, while the Python styles machine-check
+  docstring presence through rules ruff already ships. An equivalent for TSDoc needs either
+  a plugin dependency or an audit script the template would have to carry, and decision 0008
+  set the bar against dependencies a built-in can replace, so the trade is an open call
+  (2026-08-08).
 
 ## Blocked
 

@@ -78,10 +78,24 @@ async def create_admin(username: str, password: str, role: str = "admin") -> boo
 
 
 def get_username(args: argparse.Namespace) -> str:
+
+    """
+
+    Resolve the username from arguments, the environment, or a prompt.
+
+    """
+
     return args.username or os.getenv("ADMIN_USERNAME") or input("Enter username: ").strip()
 
 
 def get_password(args: argparse.Namespace) -> str | None:
+
+    """
+
+    Resolve the password from arguments, the environment, or a confirmed prompt.
+
+    """
+
     if password := args.password or os.getenv("ADMIN_PASSWORD"):
         return password
 
@@ -93,6 +107,13 @@ def get_password(args: argparse.Namespace) -> str | None:
 
 
 def get_role(args: argparse.Namespace) -> str:
+
+    """
+
+    Resolve the role from arguments or the environment, defaulting to admin.
+
+    """
+
     return (args.role or os.getenv("ADMIN_ROLE", "admin")).lower()
 
 
