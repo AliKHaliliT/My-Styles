@@ -67,6 +67,26 @@ export default tseslint.config(
       // at which point the same two move to the @stylistic plugin.
       quotes: ["error", "double", { avoidEscape: true }],
       "jsx-quotes": ["error", "prefer-double"],
+      // The environment is read only through shared/config, and all HTTP goes through
+      // shared/api's request; both rules are checked here, with the two homes excepted below.
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "MemberExpression[object.meta.name='import'][object.property.name='meta'][property.name='env']",
+          message: "Read the environment through shared/config, never import.meta.env directly.",
+        },
+      ],
+      "no-restricted-globals": [
+        "error",
+        { name: "fetch", message: "All HTTP goes through shared/api's request." },
+      ],
+    },
+  },
+  {
+    files: ["src/shared/config/**", "src/shared/api/**", "vite.config.ts"],
+    rules: {
+      "no-restricted-syntax": "off",
+      "no-restricted-globals": "off",
     },
   },
   {

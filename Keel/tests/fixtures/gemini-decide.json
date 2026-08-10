@@ -1,0 +1,20 @@
+{
+  "prompt_feedback": null,
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "function_call": {
+              "name": "word_count",
+              "args": {
+                "text": "the quick brown fox"
+              }
+            },
+            "text": null
+          }
+        ]
+      }
+    }
+  ]
+}

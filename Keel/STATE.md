@@ -2,6 +2,16 @@
 
 ## Now
 
+- Document budgets are law with two classes: the manual and the map grow with the system,
+  everything else is bounded at 150 lines and the audit fails past it. The audit also
+  holds the index contract, the STATE schema, naming, folder purity, and door-only
+  `__init__` files; ruff's PGH bans blanket suppressions, and a citizenship suite pins
+  the NullHandler, env-free import, and the pinned version (2026-08-10). Decision 0016
+  carries the census.
+- The Gemini adapter is live-validated: the recording call captured a real function-call
+  response into the fixture the replay suite now pins, and one full engine run through
+  the facade completed against the live model, tool call, result, and conclusion
+  (2026-08-10). The demo is a working demo now.
 - The demo LLM adapter is Gemini rather than Anthropic, one provider by ruling, chosen
   because a free tier makes the demo provable; the translators are SDK-free on both
   directions so CI stays offline (2026-08-10). Decision 0015 carries the reasoning.
@@ -45,6 +55,4 @@
 
 ## Blocked
 
-- The `GeminiReasoner`'s one live validation call waits on the owner handing over a free
-  Gemini API key at runtime; `scripts/record_gemini_fixture.py` makes the call and records
-  the fixture the replay suite then pins (2026-08-10). Decision 0015 carries the swap.
+- Nothing blocked.

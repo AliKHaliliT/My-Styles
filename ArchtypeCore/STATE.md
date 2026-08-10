@@ -2,6 +2,11 @@
 
 ## Now
 
+- Document budgets are law with two classes: the manual and the map grow with the system,
+  everything else is bounded at 150 lines and the audit fails past it. The audit also
+  holds the index contract, the STATE schema, naming, folder purity, and door-only
+  `__init__` files, and ruff's PGH bans blanket suppressions (2026-08-10). Decision 0014
+  carries the census.
 - The WireGuard provider ran live for the first time: `scripts/wg_smoke.py` drove every
   subprocess path, credential generation through provision, stats, config render, and
   revocation, against a real interface inside a NET_ADMIN container, all passing, and on

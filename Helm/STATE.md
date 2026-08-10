@@ -2,6 +2,11 @@
 
 ## Now
 
+- Document budgets are law with two classes: the manual and the map grow with the system,
+  everything else is bounded at 150 lines and the audit fails past it. The audit also
+  holds the index contract, the STATE schema, naming, and the raw-palette ban, and
+  ESLint now enforces the env and fetch homes the hard rules always claimed
+  (2026-08-10). Decision 0017 carries the census.
 - Doc-comment presence is checked rather than reviewed: `jsdoc/require-jsdoc` fails the Lint
   verb on any undocumented export under `src/`, and its first run caught fifteen in this very
   tree, all now filled (2026-08-10). Decision 0016 carries the reasoning and the maintenance

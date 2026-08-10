@@ -21,7 +21,7 @@ from keel.domain.schemas.tools import ToolResult, ToolSpec
 # case replays a response recorded from one real API call, when that recording exists.
 
 STAMP = datetime(2026, 1, 1, tzinfo=UTC)
-FIXTURE = Path(__file__).resolve().parents[6] / "fixtures" / "gemini-decide.json"
+FIXTURE = Path(__file__).resolve().parents[5] / "fixtures" / "gemini-decide.json"
 
 
 def to_namespace(value: Any) -> Any:
