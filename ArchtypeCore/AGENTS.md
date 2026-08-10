@@ -1,6 +1,6 @@
 # ArchetypeCore Agent Guide
 
-ArchetypeCore is a strict, AI-ready Clean Architecture template for FastAPI servers, demonstrated on a VPN (WireGuard) control-plane domain. It is a style template and living blueprint rather than a production deployment, so some gaps are intentional and must not be "fixed" unprompted. Here those are the suites, which demonstrate the test shape rather than covering the surface, and the WireGuard interactions, which are never exercised against live routing. STATE.md holds the current list.
+ArchetypeCore is a strict, AI-ready Clean Architecture template for FastAPI servers, demonstrated on a VPN (WireGuard) control-plane domain. It is a style template and living blueprint rather than a production deployment, so some gaps are intentional and must not be "fixed" unprompted. Here that is the suites, which demonstrate the test shape rather than covering the surface. STATE.md holds the current list.
 
 ## Commands
 

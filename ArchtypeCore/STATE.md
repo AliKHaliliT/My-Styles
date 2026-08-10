@@ -2,6 +2,10 @@
 
 ## Now
 
+- The WireGuard provider ran live for the first time: `scripts/wg_smoke.py` drove every
+  subprocess path, credential generation through provision, stats, config render, and
+  revocation, against a real interface inside a NET_ADMIN container, all passing, and on
+  Python 3.14 for good measure (2026-08-10). The demo is a working demo now.
 - The type checker holds strict with the re-export doors kept implicit, matching the
   package style's bar; all thirty-two findings were ours and are fixed by annotation, and
   the three framework pins survive untouched (2026-08-10). Decision 0013 carries the
@@ -55,8 +59,8 @@
 
 ## Deferred
 
-- The WireGuard subprocess interactions (`wg` / `wg-quick`) are untested in a live routing
-  environment; validate before any production networking use (2026-07-16).
+- Production routing under real client traffic remains the deployment's own validation;
+  the smoke run proves the command paths, not the network (2026-08-10).
 - Three type-check findings stay pinned with a stated reason, because each is a limitation in
   a dependency rather than anything this project can correct (2026-08-06). Two are Starlette
   typing an exception handler against `Exception` rather than the subclass it handles, and one
