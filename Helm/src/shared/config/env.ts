@@ -39,6 +39,7 @@ function readApiBaseUrl(): string {
   return typeof raw === "string" && raw !== "" ? raw : "/api"
 }
 
+/** The typed, frozen environment every other module reads instead of import.meta.env. */
 export const env: Env = Object.freeze({
   apiMode: readApiMode(),
   apiBaseUrl: readApiBaseUrl(),

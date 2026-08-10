@@ -1,4 +1,6 @@
-from sqlalchemy.ext.asyncio import AsyncSession
+from types import TracebackType
+
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.domain.interfaces.security import IAuthManager
 from app.domain.interfaces.uow import IUnitOfWork
@@ -33,7 +35,7 @@ class SQLAlchemyUnitOfWork(IUnitOfWork):
 
     """
 
-    def __init__(self, auth_manager: IAuthManager, session_factory=async_session) -> None:
+    def __init__(self, auth_manager: IAuthManager, session_factory: async_sessionmaker[AsyncSession] = async_session) -> None:
 
         """
 
@@ -101,7 +103,7 @@ class SQLAlchemyUnitOfWork(IUnitOfWork):
         return self
 
 
-    async def __aexit__(self, exc_type, exc_val, traceback) -> None:
+    async def __aexit__(self, exc_type: type[BaseException] | None, exc_val: BaseException | None, traceback: TracebackType | None) -> None:
 
         """
 

@@ -63,7 +63,6 @@ keel/
 ├── tests/                      # Automated test suite mirroring the src structure
 ├── AGENTS.md                   # Agent entry point and the documentation index
 ├── STATE.md                    # Living project state
-├── CHANGELOG.md                # Curated per-release change summary
 └── pyproject.toml              # PEP 621 metadata, hatchling build backend, extras, entry points
 ```
 
@@ -152,11 +151,13 @@ Not everything is documented that heavily, by design. Purely internal helpers an
 
 The rest of the NumPy vocabulary is used where it fits and omitted where it does not: a caveat becomes a `Notes` section rather than a loose sentence, a generator would document `Yields`, a `warnings.warn` would document `Warns`, and `See Also`/`References` are there for cross-references. Sections you do not see are simply not called for by that code; generated code should add them as it introduces the behavior.
 
-Beyond docstrings, the project's technical documentation is governed by a fixed documentation system: a vendor-neutral [AGENTS.md](AGENTS.md) serves as the agent entry point and the single index of every document, [STATE.md](STATE.md) tracks the living project state, [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) holds the current map of the system, immutable decision records under [docs/decisions/](docs/decisions/) hold the reasoning behind every settled choice, and [CHANGELOG.md](CHANGELOG.md) carries the curated per-release summary for consumers of the package. The full rulebook, including the split between living documents and records and the writing rules for each species, lives in [docs/CONVENTIONS.md](docs/CONVENTIONS.md); that file is normative and must not be modified. The rationale behind the system itself is recorded in [its founding decision record](docs/decisions/0001-adopt-the-documentation-system.md).
+Beyond docstrings, the project's technical documentation is governed by a fixed documentation system: a vendor-neutral [AGENTS.md](AGENTS.md) serves as the agent entry point and the single index of every document, [STATE.md](STATE.md) tracks the living project state, [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) holds the current map of the system, and immutable decision records under [docs/decisions/](docs/decisions/) hold the reasoning behind every settled choice. The full rulebook, including the split between living documents and records and the writing rules for each species, lives in [docs/CONVENTIONS.md](docs/CONVENTIONS.md); that file is normative and must not be modified. The rationale behind the system itself is recorded in [its founding decision record](docs/decisions/0001-adopt-the-documentation-system.md).
 
 Both the rulebook and the conventions above are owned at the style level. A project built from this template never changes them locally, and an improvement discovered while refactoring against the template is not kept as a private advantage; [AGENTS.md](AGENTS.md) describes the upstream report that carries it back to the template, where it is verified and, if it holds, adopted for every project that follows the style.
 
 One further rule applies to every piece of prose in the project, from this README through docstrings to commit messages. Everything must read as if a person wrote it. The clearest machine tell is the clause-colon splice, a sentence shaped as claim, colon, elaboration; no human writes that way outside a slide deck, so in prose a colon may only introduce a list, a quote, or a label. Softer tells, such as a balanced semicolon antithesis or a neat triadic list, are each fine on their own but give the text away when stacked, because a paragraph of polished epigrams reads as machine writing even when every sentence would pass alone. Allow at most one such flourish per paragraph and write the rest as plain declarative sentences.
+
+One rule governs string delimiters in code, and it is general on purpose. Where a language offers a free choice of delimiter with identical semantics, use double quotes, switching only where it avoids escapes; where the delimiters differ in meaning, as they do in SQL or a shell, the meaning decides. The rule binds only where the choice is actually free, which is what lets it hold in every language the family touches without ever fighting a syntax, and where a checker for it exists, the Lint verb carries it.
 
 ---
 

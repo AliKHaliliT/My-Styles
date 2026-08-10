@@ -9,19 +9,20 @@ ArchetypeCore is a strict, AI-ready Clean Architecture template for FastAPI serv
 - Test: `pytest`
 - Lint: `ruff check . && lint-imports` (ruff checks style and docstring presence; import-linter checks the Dependency Rule)
 - Type-check: `mypy app main.py db scripts tests`
+- Docs: `python scripts/audit_docs.py` (the living documents against the tree and the calendar)
 - Migrate: `alembic upgrade head`
 - Docker: `docker-compose up --build -d`
 
 ## Hard rules
 
-- The Dependency Rule is absolute: `domain` and `services` never import from `api`, `models`, or any framework; data crosses layer boundaries only through translators. Engines never import from `app/`.
+- The Dependency Rule is absolute: `domain` and `services` never import from `api`, `models`, or any framework; data crosses layer boundaries only through translators, a clause no import graph can see, so it is carried in review by the agent writing a change and the human reading it alike. Engines never import from `app/`.
 - Test suites live in `tests/`, mirroring the source tree, one suite named after the unit it covers. A collaborator is replaced only at an architectural seam, by a hand-written fake satisfying the interface in `app/domain/interfaces` that it stands in for; never patch or monkey-patch a module's internals, because a test bound to an implementation voids the substitutability the Dependency Rule exists to provide. No coverage threshold is imposed, so breadth stays a judgment call while the placement and substitution rules do not. The shape is mapped in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#testing).
 - Follow the docstring convention in the [README's Conventions section](README.md#conventions) and the documentation rules in [docs/CONVENTIONS.md](docs/CONVENTIONS.md); the latter is frozen and must not be edited.
 - The documentation rulebook is owned by the style. [docs/CONVENTIONS.md](docs/CONVENTIONS.md) changes only inside the template itself, in the My-Styles repository and by its owner; a project derived from this template never edits its copy and never diverges from it. A derived project that believes a rule is wrong or missing sends the case upstream instead (see [The upstream report](#the-upstream-report)).
 - No em dashes anywhere: code, docstrings, comments, documentation, commit messages. CI greps every tracked byte for the character; commit messages stay with review.
-- All prose must read as if a person wrote it. Never write the clause-colon splice, a sentence shaped as claim, colon, elaboration; in prose a colon may only introduce a list, a quote, or a label. The softer language-model tells (balanced semicolon antitheses, triadic lists, not-X-but-Y reversals) are fine one at a time and forbidden stacked, so allow at most one flourish per paragraph and keep the rest plain declarative sentences.
+- All prose must read as if a person wrote it. Never write the clause-colon splice, a sentence shaped as claim, colon, elaboration; in prose a colon may only introduce a list, a quote, or a label. The softer language-model tells (balanced semicolon antitheses, triadic lists, not-X-but-Y reversals) are fine one at a time and forbidden stacked, so allow at most one flourish per paragraph and keep the rest plain declarative sentences. No tool can judge these, so they are held in review, agent and human alike.
 - Every tracked byte is public prose. Confidential facts, private repository names, deployment details, and the description of what was withheld and why never enter a tracked file or a commit message, even in a private repository, because visibility can flip and history is permanent. Such context goes to the untracked `LOCAL.md` at the root (see [docs/BASELINE.md](docs/BASELINE.md)); read it when it exists, create it when first needed, and when unsure whether a fact is sensitive, ask the owner instead of recording it.
-- Read [STATE.md](STATE.md) before starting work; update it when the state changes.
+- Read [STATE.md](STATE.md) before starting work; its entries are claims to verify, not facts. Update it when the state changes, and end every change by sweeping it for entries the change completed or invalidated.
 
 ## The upstream report
 

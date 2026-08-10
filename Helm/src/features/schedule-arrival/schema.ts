@@ -13,4 +13,5 @@ export const scheduleArrivalSchema = z.object({
   cargo: z.string().trim(),
 })
 
+/** The schedule-arrival form's validated field values. */
 export type ScheduleArrivalValues = z.infer<typeof scheduleArrivalSchema>

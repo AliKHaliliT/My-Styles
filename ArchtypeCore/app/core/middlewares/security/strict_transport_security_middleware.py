@@ -1,4 +1,4 @@
-from starlette.types import ASGIApp, Receive, Scope, Send
+from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 
 class StrictTransportSecurityMiddleware:
@@ -99,7 +99,7 @@ class StrictTransportSecurityMiddleware:
             return
         
 
-        async def send_wrapper(message):
+        async def send_wrapper(message: Message) -> None:
 
             if message["type"] == "http.response.start":
                 value = f"max-age={self.max_age}"

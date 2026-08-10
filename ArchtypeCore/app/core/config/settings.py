@@ -33,7 +33,7 @@ class Settings(BaseSettings):
     # --- Project / API ---
     PROJECT_NAME: str = Field(default="ArchetypeCore", description="Name of the project")
     PROJECT_DESCRIPTION: str = Field(default="", description="Detailed description of the project APIs")
-    VERSION: str = Field(default="1.0.0", description="Current version of the application")
+    VERSION: str = Field(default="0.0.1", description="Current version of the application")
     API_V1_PREFIX: str = Field(default="/api/v1", description="Prefix routing path for API v1")
     DOCS_URL: str = Field(default="/docs", description="Path for the Swagger UI documentation")
     REDOC_URL: str = Field(default="/redoc", description="Path for the ReDoc documentation")
@@ -89,7 +89,7 @@ class Settings(BaseSettings):
     # --- Validators ---
     @field_validator("PROJECT_DESCRIPTION", mode="before")
     @classmethod
-    def append_env_description(cls, v):
+    def append_env_description(cls, v: str | None) -> str:
 
         """
         

@@ -1,7 +1,7 @@
 from logging import getLogger
 import time
 
-from starlette.types import ASGIApp, Receive, Scope, Send
+from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from app.core.config.settings import settings
 
@@ -115,7 +115,7 @@ class AccessLogMiddleware:
             return
 
 
-        async def send_wrapper(message):
+        async def send_wrapper(message: Message) -> None:
             if message["type"] == "http.response.start":
                 process_time = (time.time() - start_time) * 1000
 

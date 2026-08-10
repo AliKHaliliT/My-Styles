@@ -2,6 +2,19 @@
 
 ## Now
 
+- Doc-comment presence is checked rather than reviewed: `jsdoc/require-jsdoc` fails the Lint
+  verb on any undocumented export under `src/`, and its first run caught fifteen in this very
+  tree, all now filled (2026-08-10). Decision 0016 carries the reasoning and the maintenance
+  criterion that picked the plugin.
+- String delimiters are law where the choice is free: double quotes, switching only to
+  avoid escapes, checked by ESLint's quotes rules (2026-08-10). Decision 0015 carries the
+  rule's generality test and the ESLint 10 migration note.
+- The style is pinned at 0.0.1 in the manifest, the family-wide marker that a style is not
+  a product (2026-08-10). Decision 0014 carries the reasoning.
+- Living documents carry an anti-rot contract (2026-08-10). A STATE date is now a
+  last-verified stamp with a 90-day expiry the docs audit enforces in CI, living documents
+  record intent rather than tree-derivable inventory, and their sentences are claims to
+  verify before relying on, agent and human alike. Decision 0013 carries the reasoning.
 - The em-dash ban is checked in CI, a grep over every tracked byte that runs before anything
   installs; commit messages stay with review (2026-08-08).
 - The test contract is specified rather than left to the example. Suites mirror `src/`,
@@ -28,11 +41,7 @@
 
 ## Deferred
 
-- Doc-comment presence is verified by review here, while the Python styles machine-check
-  docstring presence through rules ruff already ships. An equivalent for TSDoc needs either
-  a plugin dependency or an audit script the template would have to carry, and decision 0008
-  set the bar against dependencies a built-in can replace, so the trade is an open call
-  (2026-08-08).
+- Nothing deferred.
 
 ## Blocked
 

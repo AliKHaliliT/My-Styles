@@ -2,6 +2,17 @@
 
 ## Now
 
+- String delimiters are law where the choice is free: double quotes, switching only to
+  avoid escapes, checked by ruff's Q rules, whose first run caught one real site in the CLI
+  (2026-08-10). Decision 0014 carries the rule's generality test.
+- The style is pinned at 0.0.1: the package version dropped from 1.0.0, the maturity
+  classifier went with it, and the changelog is deleted with its trigger permanently unmet,
+  so its pending Unreleased entries dissolve into commit history (2026-08-10). Decision 0013
+  carries the reasoning.
+- Living documents carry an anti-rot contract (2026-08-10). A STATE date is now a
+  last-verified stamp with a 90-day expiry the docs audit enforces in CI, living documents
+  record intent rather than tree-derivable inventory, and their sentences are claims to
+  verify before relying on, agent and human alike. Decision 0012 carries the reasoning.
 - Two more reviewed rules became checked rules (2026-08-08). CI greps every tracked byte for
   an em dash, and ruff now verifies docstring presence on public classes, methods, functions,
   and constructors, which surfaced two undocumented properties on `RunState` that are now

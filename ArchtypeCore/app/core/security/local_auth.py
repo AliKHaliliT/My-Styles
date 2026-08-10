@@ -202,7 +202,8 @@ class LocalAuthAdapter(IAuthManager):
         to_encode.update({"exp": expire, "iat": now})
 
         try:
-            return jwt.encode(to_encode, self.secret_key, algorithm=self.algorithm)
+            encoded: str = jwt.encode(to_encode, self.secret_key, algorithm=self.algorithm)
+            return encoded
         except Exception as e:
             logging.error(f"Token creation error: {e}")
             raise ValueError("Failed to create access token") from e
@@ -239,7 +240,8 @@ class LocalAuthAdapter(IAuthManager):
 
 
         try:
-            return jwt.decode(token, self.secret_key, algorithms=[self.algorithm])
+            payload: dict[str, Any] = jwt.decode(token, self.secret_key, algorithms=[self.algorithm])
+            return payload
         except JWTError as e:
             logging.debug(f"JWT decode error: {e}")
             return None

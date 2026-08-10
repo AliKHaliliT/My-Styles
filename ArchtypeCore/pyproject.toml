@@ -10,7 +10,7 @@ target-version = "py313"
 [tool.ruff.lint]
 # The D codes check docstring presence only, never format, because the docstring rhythm is
 # the house's own; the shape rules live in the README's Conventions section.
-select = ["E", "F", "B", "UP", "D101", "D102", "D103", "D107"]
+select = ["E", "F", "B", "UP", "Q", "D101", "D102", "D103", "D107"]
 # Line length is left to the reader, and a function call in an argument default is how
 # FastAPI's Depends() is meant to be written.
 ignore = ["E501", "B008"]
@@ -57,6 +57,9 @@ layers = ["app.api", "app.services", "app.domain"]
 
 [tool.mypy]
 python_version = "3.13"
+# Strict, with the re-export doors kept implicit because an __init__.py here is a door by
+# convention and the checker's explicit-door dialect is not the house's.
+strict = true
 plugins = ["pydantic.mypy"]
 # Every grouping directory is a bare namespace package, so the checker needs the repository
 # root named as the import base rather than inferring one per folder.

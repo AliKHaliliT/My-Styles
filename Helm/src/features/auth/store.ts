@@ -20,6 +20,7 @@ interface AuthState {
   signOut: () => void
 }
 
+/** Client store holding the session token and sign-in state, persisted across reloads. */
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({

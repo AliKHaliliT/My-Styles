@@ -1,7 +1,7 @@
 from uuid import uuid4
 
 from starlette.requests import Request
-from starlette.types import ASGIApp, Receive, Scope, Send
+from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from app.core.logging.log_context import request_id_var
 
@@ -99,7 +99,7 @@ class RequestIDMiddleware:
         request_id = request.headers.get("x-request-id", str(uuid4()))
         token = request_id_var.set(request_id)
 
-        async def send_wrapper(message):
+        async def send_wrapper(message: Message) -> None:
             if scope["type"] == "http" and message["type"] == "http.response.start":
                 headers = dict(message.get("headers", []))
                 headers[b"x-request-id"] = request_id.encode()

@@ -27,6 +27,7 @@ function unauthorized(): Response {
   return HttpResponse.json({ message: "Sign in to reach the harbor office." }, { status: 401 })
 }
 
+/** The MSW request handlers answering the same HTTP a real backend would. */
 export const handlers = [
   http.post("/api/auth/session", async ({ request }) => {
     await delay(LATENCY_MS)

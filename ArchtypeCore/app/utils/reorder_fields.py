@@ -1,3 +1,4 @@
+from collections.abc import Callable
 from functools import cache
 import warnings
 
@@ -12,7 +13,7 @@ def reorder_fields(
     interleave_last: list[str] | None = None,
     debug: bool = False,
     verbose: bool = False
-):
+) -> Callable[[type], type]:
     
     """
 
@@ -142,7 +143,7 @@ def reorder_fields(
 
 
         seen: set[str] = set()
-        ordered_fields: list[tuple[str, tuple[type, object]]] = []
+        ordered_fields: list[tuple[str, tuple[object, object]]] = []
 
 
         def _field_allowed(fname: str) -> bool:
@@ -162,7 +163,7 @@ def reorder_fields(
             return True
 
 
-        def _add_field(fname, annotation, default):
+        def _add_field(fname: str, annotation: object, default: object) -> None:
 
             """
             

@@ -38,7 +38,7 @@ def build_parser() -> argparse.ArgumentParser:
         prog="keel",
         description="Run the offline demo engine toward a natural-language goal.",
     )
-    parser.add_argument("goal", help="The goal to run, e.g. \"calculate (2 + 3) * 4\"")
+    parser.add_argument("goal", help='The goal to run, e.g. "calculate (2 + 3) * 4"')
     parser.add_argument("--max-steps", type=int, default=None, help="Override the configured step budget for this run")
     parser.add_argument("--show-trace", action="store_true", help="Print the step trace after the output")
 

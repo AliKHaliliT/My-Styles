@@ -1,3 +1,4 @@
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
@@ -34,7 +35,7 @@ from app.domain.exceptions import DomainException
 
 # Startup Events
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
     """
 
@@ -149,7 +150,7 @@ app.include_router(v1, prefix=settings.API_V1_PREFIX)
 
 ## Root
 @app.get("/")
-async def root(request: Request):
+async def root(request: Request) -> JSONResponse:
 
     """
 
@@ -161,7 +162,7 @@ async def root(request: Request):
 
 ## Health Check
 @app.get("/health")
-async def health(request: Request):
+async def health(request: Request) -> JSONResponse:
 
     """
 

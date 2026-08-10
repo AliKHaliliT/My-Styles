@@ -1,4 +1,5 @@
 import js from "@eslint/js"
+import jsdoc from "eslint-plugin-jsdoc"
 import reactHooks from "eslint-plugin-react-hooks"
 import reactRefresh from "eslint-plugin-react-refresh"
 import globals from "globals"
@@ -59,6 +60,38 @@ export default tseslint.config(
     languageOptions: {
       ecmaVersion: 2022,
       globals: globals.browser,
+    },
+    rules: {
+      // Where the choice of string delimiter is free, it is double quotes; switching is
+      // only for avoiding escapes. Core rules carry this until ESLint 10 retires them,
+      // at which point the same two move to the @stylistic plugin.
+      quotes: ["error", "double", { avoidEscape: true }],
+      "jsx-quotes": ["error", "prefer-double"],
+    },
+  },
+  {
+    // Every export carries a doc comment; the one-sentence minimum is the convention in
+    // the README. Suites are exempt by the same rule that keeps them outside the
+    // every-export requirement, and they live outside src anyway.
+    files: ["src/**/*.{ts,tsx}"],
+    plugins: { jsdoc },
+    rules: {
+      "jsdoc/require-jsdoc": [
+        "error",
+        {
+          publicOnly: true,
+          require: {
+            ClassDeclaration: true,
+            FunctionDeclaration: true,
+          },
+          contexts: [
+            "ExportNamedDeclaration > VariableDeclaration",
+            "ExportDefaultDeclaration > ArrowFunctionExpression",
+            "ExportNamedDeclaration > TSInterfaceDeclaration",
+            "ExportNamedDeclaration > TSTypeAliasDeclaration",
+          ],
+        },
+      ],
     },
   },
   ...layerRules,

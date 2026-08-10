@@ -7,6 +7,7 @@
  */
 import { create } from "zustand"
 
+/** The two visual themes the console can render. */
 export type Theme = "light" | "dark"
 
 interface ThemeState {
@@ -46,6 +47,7 @@ function preferredTheme(): Theme {
   return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
 }
 
+/** Client store holding the active theme and its toggle. */
 export const useTheme = create<ThemeState>()((set, get) => ({
   theme: "light",
   toggleTheme: () => {

@@ -9,6 +9,7 @@ Helm is a strict, AI-ready template for client-side web applications (React, Vit
 - Test: `npm test`
 - Lint: `npm run lint`
 - Type-check: `npm run typecheck` (it runs `tsc -b`, because the root tsconfig is solution-style and a plain `tsc --noEmit` would check nothing)
+- Docs: `npm run docs` (the living documents against the tree and the calendar)
 - Build: `npm run build`
 - Preview the build: `npm run preview`
 
@@ -23,9 +24,9 @@ Helm is a strict, AI-ready template for client-side web applications (React, Vit
 - Follow the doc-comment convention in the [README's Conventions section](README.md#conventions) and the documentation rules in [docs/CONVENTIONS.md](docs/CONVENTIONS.md); the latter is frozen and must not be edited.
 - The documentation rulebook is owned by the style. [docs/CONVENTIONS.md](docs/CONVENTIONS.md) changes only inside the template itself, in the My-Styles repository and by its owner; a project derived from this template never edits its copy and never diverges from it. A derived project that believes a rule is wrong or missing sends the case upstream instead (see [The upstream report](#the-upstream-report)).
 - No em dashes anywhere: code, doc comments, documentation, commit messages, UI copy. CI greps every tracked byte for the character; commit messages stay with review.
-- All prose must read as if a person wrote it. Never write the clause-colon splice, a sentence shaped as claim, colon, elaboration; in prose a colon may only introduce a list, a quote, or a label. The softer language-model tells (balanced semicolon antitheses, triadic lists, not-X-but-Y reversals) are fine one at a time and forbidden stacked, so allow at most one flourish per paragraph and keep the rest plain declarative sentences.
+- All prose must read as if a person wrote it. Never write the clause-colon splice, a sentence shaped as claim, colon, elaboration; in prose a colon may only introduce a list, a quote, or a label. The softer language-model tells (balanced semicolon antitheses, triadic lists, not-X-but-Y reversals) are fine one at a time and forbidden stacked, so allow at most one flourish per paragraph and keep the rest plain declarative sentences. No tool can judge these, so they are held in review, agent and human alike.
 - Every tracked byte is public prose. Confidential facts, private repository names, deployment details, and the description of what was withheld and why never enter a tracked file or a commit message, even in a private repository, because visibility can flip and history is permanent. Such context goes to the untracked `LOCAL.md` at the root (see [docs/BASELINE.md](docs/BASELINE.md)); read it when it exists, create it when first needed, and when unsure whether a fact is sensitive, ask the owner instead of recording it.
-- Read [STATE.md](STATE.md) before starting work; update it when the state changes.
+- Read [STATE.md](STATE.md) before starting work; its entries are claims to verify, not facts. Update it when the state changes, and end every change by sweeping it for entries the change completed or invalidated.
 
 ## The upstream report
 

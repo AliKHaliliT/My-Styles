@@ -7,6 +7,7 @@
  */
 import { z } from "zod"
 
+/** Wire shape of one vessel as the backend sends it. */
 export const vesselDtoSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -17,8 +18,10 @@ export const vesselDtoSchema = z.object({
   cargo: z.string().nullable(),
 })
 
+/** Wire shape of the vessel collection. */
 export const vesselListDtoSchema = z.array(vesselDtoSchema)
 
+/** One vessel exactly as it crosses the wire. */
 export type VesselDto = z.infer<typeof vesselDtoSchema>
 
 /** Outbound body for scheduling an arrival; built by the translator. */

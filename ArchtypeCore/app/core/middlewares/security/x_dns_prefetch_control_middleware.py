@@ -1,4 +1,4 @@
-from starlette.types import ASGIApp, Receive, Scope, Send
+from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 
 class XDNSPrefetchControlMiddleware:
@@ -101,7 +101,7 @@ class XDNSPrefetchControlMiddleware:
             return
         
 
-        async def send_wrapper(message):
+        async def send_wrapper(message: Message) -> None:
             if message["type"] == "http.response.start":
                 headers = dict(message.get("headers", []))
                 headers[b"x-dns-prefetch-control"] = self.policy.encode("latin-1")

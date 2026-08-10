@@ -1,4 +1,4 @@
-from starlette.types import ASGIApp, Receive, Scope, Send
+from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 
 class NoCacheMiddleware:
@@ -91,7 +91,7 @@ class NoCacheMiddleware:
             return
         
 
-        async def send_wrapper(message):
+        async def send_wrapper(message: Message) -> None:
             if message["type"] == "http.response.start":
                 headers = dict(message.get("headers", []))
                 headers[b"cache-control"] = b"no-store, no-cache, must-revalidate, max-age=0"

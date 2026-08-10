@@ -2,6 +2,20 @@
 
 ## Now
 
+- The type checker holds strict with the re-export doors kept implicit, matching the
+  package style's bar; all thirty-two findings were ours and are fixed by annotation, and
+  the three framework pins survive untouched (2026-08-10). Decision 0013 carries the
+  reasoning. `engines/` is stated for what it is, an empty seat for Keel-shaped cores that
+  real projects grow, never the style (2026-08-10).
+- String delimiters are law where the choice is free: double quotes, switching only to
+  avoid escapes, checked by ruff's Q rules (2026-08-10). Decision 0012 carries the rule's
+  generality test.
+- The style is pinned at 0.0.1: the demo API's displayed version default dropped its 1.0.0
+  claim, since a style is not a product (2026-08-10). Decision 0011 carries the reasoning.
+- Living documents carry an anti-rot contract (2026-08-10). A STATE date is now a
+  last-verified stamp with a 90-day expiry the docs audit enforces in CI, living documents
+  record intent rather than tree-derivable inventory, and their sentences are claims to
+  verify before relying on, agent and human alike. Decision 0010 carries the reasoning.
 - Two more reviewed rules became checked rules (2026-08-08). CI greps every tracked byte for
   an em dash, and ruff now verifies docstring presence on public classes, methods, functions,
   and constructors, which surfaced ten missing docstrings that are now filled. Two exemptions
@@ -37,7 +51,7 @@
 
 ## Next
 
-- Populate `engines/` with a first engine when a portable business core emerges (2026-07-16).
+- Nothing queued.
 
 ## Deferred
 

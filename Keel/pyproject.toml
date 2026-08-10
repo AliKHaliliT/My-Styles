@@ -4,7 +4,8 @@ build-backend = "hatchling.build"
 
 [project]
 name = "keel"
-version = "1.0.0"
+# A style is not a product: it versions no releases, so the number never moves.
+version = "0.0.1"
 description = "A strict, AI-ready Clean Architecture template for Python packages."
 readme = "README.md"
 requires-python = ">=3.13"
@@ -21,7 +22,6 @@ keywords = [
     "pydantic",
 ]
 classifiers = [
-    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
@@ -66,7 +66,7 @@ target-version = "py313"
 [tool.ruff.lint]
 # The D codes check docstring presence only, never format, because the docstring rhythm is
 # the house's own; the shape rules live in the README's Conventions section.
-select = ["E", "F", "B", "UP", "D101", "D102", "D103", "D107"]
+select = ["E", "F", "B", "UP", "Q", "D101", "D102", "D103", "D107"]
 ignore = ["E501"]
 
 [tool.ruff.lint.per-file-ignores]

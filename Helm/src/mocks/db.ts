@@ -113,14 +113,17 @@ export function isValidToken(token: string | null): boolean {
   return token !== null && tokens.has(token)
 }
 
+/** Returns every vessel in the pretend database. */
 export function listVessels(): VesselRow[] {
   return vessels
 }
 
+/** Finds one vessel by id, or undefined when the id is unknown. */
 export function getVessel(id: string): VesselRow | undefined {
   return vessels.find((vessel) => vessel.id === id)
 }
 
+/** Returns every berth in the pretend database. */
 export function listBerths(): BerthRow[] {
   return berths
 }
