@@ -1,10 +1,10 @@
 # Keel Agent Guide
 
-Keel is a strict, AI-ready Clean Architecture template for installable Python packages, demonstrated on a fully offline agent-engine domain. It is a style template and living blueprint rather than a production library, so some gaps are intentional and must not be "fixed" unprompted. Here those are the suites, which demonstrate the test shape rather than covering the surface, and the Anthropic adapter, which stays unexercised because reaching a live model would end the offline guarantee. STATE.md holds the current list.
+Keel is a strict, AI-ready Clean Architecture template for installable Python packages, demonstrated on a fully offline agent-engine domain. It is a style template and living blueprint rather than a production library, so some gaps are intentional and must not be "fixed" unprompted. Here those are the suites, which demonstrate the test shape rather than covering the surface, and the Gemini adapter, whose one live validation is recorded as a fixture the suite replays so the offline guarantee holds. STATE.md holds the current list.
 
 ## Commands
 
-- Install (editable): `pip install -e .` (Python 3.13+; add the tooling with `pip install --group dev`, and the LLM adapter with `pip install -e ".[anthropic]"`)
+- Install (editable): `pip install -e .` (Python 3.13+; add the tooling with `pip install --group dev`, and the LLM adapter with `pip install -e ".[gemini]"`)
 - Run the offline demo: `keel "calculate (2 + 3) * 4"` or `python -m keel "count words in the quick brown fox" --show-trace`
 - Test: `pytest`
 - Lint: `ruff check . && lint-imports` (ruff checks style and docstring presence; import-linter checks the Dependency Rule)

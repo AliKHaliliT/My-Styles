@@ -1,6 +1,6 @@
-from keel.adapters.reasoners.anthropic.domain_to_provider import (
-    domain_to_provider_messages, domain_to_provider_tools)
-from keel.adapters.reasoners.anthropic.provider_to_domain import \
+from keel.adapters.reasoners.gemini.domain_to_provider import (
+    domain_to_provider_contents, domain_to_provider_tools)
+from keel.adapters.reasoners.gemini.provider_to_domain import \
     provider_to_domain_action
 from keel.domain.exceptions import EngineConfigurationError, ReasoningError
 from keel.domain.schemas.actions import Action
@@ -15,25 +15,25 @@ _SYSTEM_PROMPT = (
 )
 
 
-class AnthropicReasoner:
+class GeminiReasoner:
 
     """
 
-    An IReasoner adapter delegating decisions to the Anthropic Messages API.
+    An IReasoner adapter delegating decisions to the Gemini API.
 
 
     Usage
     -----
     This adapter is the seam where a frontier model plugs into the engine. It
-    requires the 'anthropic' extra; the SDK is imported lazily so the package
+    requires the 'gemini' extra; the SDK is imported lazily so the package
     stays importable without it. Authentication follows the SDK's standard
-    resolution (the ANTHROPIC_API_KEY environment variable, or an explicit
-    key passed by the embedding application, never read by this package).
+    resolution (the GEMINI_API_KEY environment variable, or an explicit key
+    passed by the embedding application, never read by this package).
     ```python
     from keel import EngineBuilder
-    from keel.adapters.reasoners.anthropic import AnthropicReasoner
+    from keel.adapters.reasoners.gemini import GeminiReasoner
 
-    engine = EngineBuilder().with_reasoner(AnthropicReasoner()).build()
+    engine = EngineBuilder().with_reasoner(GeminiReasoner()).build()
     ```
 
     """
@@ -41,13 +41,12 @@ class AnthropicReasoner:
     def __init__(
         self,
         api_key: str | None = None,
-        model: str = "claude-opus-4-8",
-        max_tokens: int = 16000,
+        model: str = "gemini-2.5-flash",
     ) -> None:
 
         """
 
-        Constructor for the AnthropicReasoner class.
+        Constructor for the GeminiReasoner class.
 
 
         Parameters
@@ -58,9 +57,6 @@ class AnthropicReasoner:
         model : str, optional
             The model identifier used for decisions.
 
-        max_tokens : int, optional
-            The output token ceiling per decision request.
-
 
         Returns
         -------
@@ -70,10 +66,10 @@ class AnthropicReasoner:
         Raises
         ------
         ValueError
-            If `api_key` is not a non-empty string or None, `model` is not a non-empty string, or `max_tokens` is not a positive integer.
+            If `api_key` is not a non-empty string or None, or `model` is not a non-empty string.
 
         EngineConfigurationError
-            If the optional 'anthropic' dependency is not installed.
+            If the optional 'gemini' dependency is not installed.
 
         """
 
@@ -81,21 +77,18 @@ class AnthropicReasoner:
             raise ValueError(f"api_key must be a non-empty string or None. Received: {api_key} with type {type(api_key)}")
         if not isinstance(model, str) or not model.strip():
             raise ValueError(f"model must be a non-empty string. Received: {model} with type {type(model)}")
-        if not isinstance(max_tokens, int) or max_tokens <= 0:
-            raise ValueError(f"max_tokens must be a positive integer. Received: {max_tokens} with type {type(max_tokens)}")
 
 
         try:
-            from anthropic import AsyncAnthropic
+            from google import genai
         except ImportError as error:
             raise EngineConfigurationError(
-                "The AnthropicReasoner requires the optional 'anthropic' dependency. "
-                "Install it with: pip install keel[anthropic]"
+                "The GeminiReasoner requires the optional 'gemini' dependency. "
+                "Install it with: pip install keel[gemini]"
             ) from error
 
-        self._client = AsyncAnthropic(api_key=api_key) if api_key else AsyncAnthropic()
+        self._client = genai.Client(api_key=api_key) if api_key else genai.Client()
         self.model = model
-        self.max_tokens = max_tokens
 
 
     async def decide(self, state: RunState, tools: list[ToolSpec]) -> Action:
@@ -137,13 +130,13 @@ class AnthropicReasoner:
 
 
         try:
-            response = await self._client.messages.create(
+            response = await self._client.aio.models.generate_content(
                 model=self.model,
-                max_tokens=self.max_tokens,
-                system=_SYSTEM_PROMPT,
-                thinking={"type": "adaptive"},
-                tools=domain_to_provider_tools(tools),
-                messages=domain_to_provider_messages(state),
+                contents=domain_to_provider_contents(state),
+                config={
+                    "system_instruction": _SYSTEM_PROMPT,
+                    "tools": domain_to_provider_tools(tools),
+                },
             )
         except ReasoningError:
             raise

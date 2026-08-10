@@ -4,12 +4,11 @@ This project follows a strict Hexagonal Architecture (Ports and Adapters), adapt
 
 Two layout conventions hold throughout the package. First, every directory contains **either** subpackages **or** modules, never a mix; the package root is the sole exception, because Python requires `__init__.py`, `__main__.py`, and the PEP 561 `py.typed` marker to live there beside the layer packages. Second, an `__init__.py` appears **only** where it does real work (re-exporting a subpackage's public names), so the grouping directories are bare [namespace packages](https://peps.python.org/pep-0420/) with no `__init__.py` at all.
 
-A `translators/` package marks a layer boundary. In `facade/` it holds the outbound bridge that flattens domain results into the public report schemas; there is no inbound counterpart, because the facade builds domain schemas directly from the primitives its callers pass (see [decision 0005](decisions/0005-translate-only-outward-at-the-facade-boundary.md)). A leaf adapter's own translation (for example the Anthropic provider's domain-to-wire mapping) instead lives as plain modules beside it, never in a nested `translators/` folder.
+A `translators/` package marks a layer boundary. In `facade/` it holds the outbound bridge that flattens domain results into the public report schemas; there is no inbound counterpart, because the facade builds domain schemas directly from the primitives its callers pass (see [decision 0005](decisions/0005-translate-only-outward-at-the-facade-boundary.md)). A leaf adapter's own translation (for example the Gemini provider's domain-to-wire mapping) instead lives as plain modules beside it, never in a nested `translators/` folder.
 
 ```text
 my_package/
 ├── AGENTS.md                   # Agent entry point and the single documentation index
-├── CHANGELOG.md                # Curated per-release change summary for consumers
 ├── pyproject.toml              # PEP 621 metadata, build backend, extras, entry points, tool config
 ├── README.md                   # Project documentation and setup guide
 ├── STATE.md                    # Living project state (Now / Next / Deferred / Blocked)
@@ -49,7 +48,7 @@ my_package/
 │       │   ├── memory/         # Memory stores (in-memory)
 │       │   ├── reasoners/      # One subpackage per reasoner implementation
 │       │   │   ├── rule_based/ # Deterministic, fully offline default reasoner
-│       │   │   └── anthropic/  # LLM adapter (behind the `anthropic` extra) + translators
+│       │   │   └── gemini/     # LLM adapter (behind the `gemini` extra) + translators
 │       │   ├── registry/       # ToolRegistry; duplicate-safe registration and lookup
 │       │   └── tools/          # Built-in demo tools (calculator, word_count, clock)
 │       │

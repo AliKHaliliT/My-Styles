@@ -2,6 +2,9 @@
 
 ## Now
 
+- The demo LLM adapter is Gemini rather than Anthropic, one provider by ruling, chosen
+  because a free tier makes the demo provable; the translators are SDK-free on both
+  directions so CI stays offline (2026-08-10). Decision 0015 carries the reasoning.
 - String delimiters are law where the choice is free: double quotes, switching only to
   avoid escapes, checked by ruff's Q rules, whose first run caught one real site in the CLI
   (2026-08-10). Decision 0014 carries the rule's generality test.
@@ -20,7 +23,7 @@
   through case names, and the port stubs in `domain/interfaces`, whose documentation lives
   on their implementations. Commit messages stay with review.
 - The Dependency Rule is checked rather than reviewed. Two import-linter contracts keep
-  `domain` and `services` free of `facade`, `adapters`, and the Anthropic SDK, and keep
+  `domain` and `services` free of `facade`, `adapters`, and the provider SDK, and keep
   imports pointing one way through `facade -> services -> domain`. The layer directories are
   bare namespace packages, so the configuration lists them as portions, and the Lint verb now
   runs `ruff check . && lint-imports` (2026-08-08). Decision 0011 carries the reasoning.
@@ -38,8 +41,10 @@
 
 ## Deferred
 
-- The `AnthropicReasoner` adapter is untested against live API traffic; validate it against a real account and workload before production use (2026-07-16).
+- Nothing deferred.
 
 ## Blocked
 
-- Nothing blocked.
+- The `GeminiReasoner`'s one live validation call waits on the owner handing over a free
+  Gemini API key at runtime; `scripts/record_gemini_fixture.py` makes the call and records
+  the fixture the replay suite then pins (2026-08-10). Decision 0015 carries the swap.

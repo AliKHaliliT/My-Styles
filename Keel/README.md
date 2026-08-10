@@ -22,13 +22,12 @@ To demonstrate the utility of Dependency Inversion in the age of AI, Keel implem
 
 Managing an agent runtime forces the architecture to handle practical, complex problems:
 
-- **Pluggable Intelligence:** The loop coordinates decisions through an abstract `IReasoner` interface. The default `RuleBasedReasoner` is deterministic and fully offline; an `AnthropicReasoner` adapter (behind the `anthropic` extra) shows exactly where a real LLM plugs in without the domain ever knowing.
+- **Pluggable Intelligence:** The loop coordinates decisions through an abstract `IReasoner` interface. The default `RuleBasedReasoner` is deterministic and fully offline; a `GeminiReasoner` adapter (behind the `gemini` extra) shows exactly where a real LLM plugs in without the domain ever knowing.
 - **Untrusted Execution:** Tools are looked up through a registry, executed under a per-step timeout, and their failures are captured as data (fed back to the reasoner) rather than crashing the run.
 - **Bounded Autonomy:** Every run is capped by `max_steps`; exhaustion is a first-class outcome with a full trace, not an exception that loses the work.
 - **Extensibility:** Third parties can ship tools via the `keel.tools` entry-point group, discovered at build time by the `EngineBuilder`: opt-in, and a broken plugin is logged and skipped, never fatal.
 
-> ⚠️ **Disclaimer on the Anthropic Implementation:**
-> While this template acts as a logically complete agent engine, it serves primarily as an **architectural demonstration**. The `AnthropicReasoner` adapter is a theoretical example of the `IReasoner` interface and is **untested against live API traffic**. The default engine is fully offline and deterministic; validate the LLM adapter against your own account and workloads before production use.
+> **On the Gemini implementation:** the default engine is fully offline and deterministic, and the `GeminiReasoner` adapter is the worked example of the `IReasoner` seam. Its wire behavior is pinned by a fixture recorded from one real API call, replayed by the suite so the offline guarantee holds; validate against your own account and workloads before production use.
 
 ---
 
@@ -37,9 +36,9 @@ Managing an agent runtime forces the architecture to handle practical, complex p
 Keel enforces the **Dependency Rule**: inner layers (Business Logic) must not depend on outer layers (Public Surface, Providers, IO).
 
 1. **Ports & Adapters (Dependency Inversion)**
-   The orchestration service (`AgentRunner`) depends only on pure Python `Protocols` (`IReasoner`, `IToolRegistry`, `IMemory`, `IEventSink`). The `EngineBuilder` injects concrete implementations (like `RuleBasedReasoner` or `AnthropicReasoner`) at construction time.
+   The orchestration service (`AgentRunner`) depends only on pure Python `Protocols` (`IReasoner`, `IToolRegistry`, `IMemory`, `IEventSink`). The `EngineBuilder` injects concrete implementations (like `RuleBasedReasoner` or `GeminiReasoner`) at construction time.
 2. **Strict Translators**
-   Domain objects never leak through the public surface; run results are translated into the facade's report schemas before a caller sees them. Provider payloads are strictly for the provider SDK, and the Anthropic adapter carries its own `domain <-> provider` translator pair. There is no inbound mirror schema, because the facade builds domain schemas directly from the primitives its callers pass (see [the boundary decision record](docs/decisions/0005-translate-only-outward-at-the-facade-boundary.md)).
+   Domain objects never leak through the public surface; run results are translated into the facade's report schemas before a caller sees them. Provider payloads are strictly for the provider SDK, and the Gemini adapter carries its own `domain <-> provider` translator pair. There is no inbound mirror schema, because the facade builds domain schemas directly from the primitives its callers pass (see [the boundary decision record](docs/decisions/0005-translate-only-outward-at-the-facade-boundary.md)).
 3. **Decoupled Exceptions**
    Business logic raises pure Python exceptions (e.g., `ToolNotFoundError`, `StepLimitExceededError`). Nothing in the domain imports a framework or an SDK.
 4. **Library Citizenship**
@@ -118,14 +117,14 @@ print(report.output)
 ### 3. The LLM Adapter (Optional)
 
 ```bash
-pip install -e ".[anthropic]"
+pip install -e ".[gemini]"
 ```
 
 ```python
 from keel import EngineBuilder
-from keel.adapters.reasoners.anthropic import AnthropicReasoner
+from keel.adapters.reasoners.gemini import GeminiReasoner
 
-engine = EngineBuilder().with_reasoner(AnthropicReasoner()).build()
+engine = EngineBuilder().with_reasoner(GeminiReasoner()).build()
 ```
 
 ### 4. Shipping a Third-Party Tool
