@@ -25,3 +25,11 @@ Happy coding!
   - Topics: Client-Side SPA, One-Way Sliced Layers (after Feature-Sliced Design), Guarded Wire Boundary, React 19, TypeScript, Vite, TanStack Query, Zustand, zod, MSW
   - Description: A strict, AI-ready template for client-side web applications, splitting the server cache from client state behind a schema-checked wire boundary, demonstrated on a harbormaster-console domain.
   - Date: August 3, 2026
+
+## Treasury
+
+The [treasury](treasury/) holds research findings that no single style owns,
+recorded so each new style is designed from evidence rather than from memory.
+One study per folder, the research record before the findings. Its first study
+reduces 14,765 named software engineering concepts to the 125 primitive
+operations underneath them.
