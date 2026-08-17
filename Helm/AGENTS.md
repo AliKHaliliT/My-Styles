@@ -1,13 +1,13 @@
 # Helm Agent Guide
 
-Helm is a strict, AI-ready template for client-side web applications (React, Vite, TypeScript), demonstrated on a harbormaster console for the fictional Port of Saltmere. It is a style template and living blueprint rather than a production deployment, so some gaps are intentional and must not be "fixed" unprompted. Here those are the suites, which pin the seams rather than covering the surface, and the backend, which is answered by an in-browser mock instead of a server. STATE.md holds the current list.
+Helm is a strict, AI-ready template for client-side web applications (React, Vite, TypeScript), demonstrated on a harbormaster console for the fictional Port of Saltmere. It is a style template and living blueprint rather than a production deployment, so some gaps are intentional and must not be "fixed" unprompted. Here those are the suites, which pin the seams rather than covering the surface, and the backend, which is answered by an in-browser mock instead of a server. The permanent gaps are the ones named here; anything temporary appears in STATE.md.
 
 ## Commands
 
 - Install: `npm install` (Node 20.19+; also regenerates the untracked msw worker in `public/`)
 - Run the offline demo: `npm run dev` (sign in with username "harbormaster", password "saltmere")
 - Test: `npm test`
-- Lint: `npm run lint`
+- Lint: `npm run lint` (never auto-fix `jsdoc/require-jsdoc`; its generated stubs come out mangled, so doc comments are written by hand)
 - Type-check: `npm run typecheck` (it runs `tsc -b`, because the root tsconfig is solution-style and a plain `tsc --noEmit` would check nothing)
 - Docs: `npm run docs` (the living documents against the tree and the calendar)
 - Build: `npm run build`
@@ -24,9 +24,33 @@ Helm is a strict, AI-ready template for client-side web applications (React, Vit
 - Follow the doc-comment convention in the [README's Conventions section](README.md#conventions) and the documentation rules in [docs/CONVENTIONS.md](docs/CONVENTIONS.md); the latter is frozen and must not be edited.
 - The documentation rulebook is owned by the style. [docs/CONVENTIONS.md](docs/CONVENTIONS.md) changes only inside the template itself, in the My-Styles repository and by its owner; a project derived from this template never edits its copy and never diverges from it. A derived project that believes a rule is wrong or missing sends the case upstream instead (see [The upstream report](#the-upstream-report)).
 - No em dashes anywhere: code, doc comments, documentation, commit messages, UI copy. CI greps every tracked byte for the character; commit messages stay with review.
+- Commit history speaks in the owner's voice alone: no attribution trailers, no Co-Authored-By lines, nothing naming a tool or an assistant in a commit message. Held in review, like every commit-message rule.
 - All prose must read as if a person wrote it. Never write the clause-colon splice, a sentence shaped as claim, colon, elaboration; in prose a colon may only introduce a list, a quote, or a label. The softer language-model tells (balanced semicolon antitheses, triadic lists, not-X-but-Y reversals) are fine one at a time and forbidden stacked, so allow at most one flourish per paragraph and keep the rest plain declarative sentences. No tool can judge these, so they are held in review, agent and human alike.
 - Every tracked byte is public prose. Confidential facts, private repository names, deployment details, and the description of what was withheld and why never enter a tracked file or a commit message, even in a private repository, because visibility can flip and history is permanent. Such context goes to the untracked `LOCAL.md` at the root (see [docs/BASELINE.md](docs/BASELINE.md)); read it when it exists, create it when first needed, and when unsure whether a fact is sensitive, ask the owner instead of recording it.
-- Read [STATE.md](STATE.md) before starting work; its entries are claims to verify, not facts. Update it when the state changes, and end every change by sweeping it for entries the change completed or invalidated.
+- Read [STATE.md](STATE.md) before starting work, and sweep it before starting anything new, deleting every entry that describes finished work and re-verifying or deleting any entry the tree no longer confirms. Its entries are claims to verify, not facts. Completing work deletes its entry in the same change, never adds a narration of the landing, and every change ends with a sweep for entries it completed or invalidated.
+
+## The delivery gate
+
+A task is not delivered while the gate below has findings. Carry these items from the first line written, because they are cheapest to satisfy while the code is still forming and most expensive as after-the-fact repairs; the closing pass exists to confirm, not to redo.
+
+Closing a task follows one loop: run the checking commands above, weigh the change against every item below, fix what an item names, and repeat. One pass with no findings ends the loop. A finding is a concrete disagreement with a listed item, never general unease; the list is closed, and nothing outside it may generate rework. If the same finding survives three honest fix attempts, stop looping, record the finding and the attempts in STATE.md, and say so plainly when delivering. The names below index a wider literature; where a name's common usage and the rule beside it differ, the rule governs.
+
+- **Cognitive load**: nothing in the change is harder to hold in mind than the task requires.
+- **Granularity**: the size of every new unit (function, file, document, the change itself) is a choice, not an accident.
+- **Ubiquitous language**: new names use the vocabulary the tree already speaks.
+- **Single source of truth**: the change introduces no second copy of any fact, and anything derived points at its source.
+- **Least privilege and surface**: nothing gains more access, exports, or dependencies than the task needs.
+- **Boundary honesty**: no data crosses a boundary unchecked, and checking happens at the door, once.
+- **Loud failure**: every new failure path raises a typed error; nothing is swallowed or silently defaulted.
+- **Two hats**: shape changes and behavior changes are separate steps, and no incidental reformatting rides along.
+- **Waste**: nothing speculative and nothing the change orphaned is left behind.
+- **Test honesty**: substitutes stand in only at the declared seams, and time, randomness, and order are controlled.
+- **Point-of-use truth**: the doc comment or docstring each export carries is true, not merely present.
+- **Intent-split placement**: every documentation change lands in the document whose reader it serves, per the rulebook's species.
+- **Decision records**: any choice made here that would be re-litigated without a record gets one now.
+- **Debt**: every shortcut taken is written in STATE.md before delivery, never carried in memory.
+- **The commands**: every checking command above has passed against the final state of the tree.
+- **The hard rules**: the change disagrees with no review-held clause of this guide's Hard rules, re-read now, not recalled.
 
 ## The upstream report
 
