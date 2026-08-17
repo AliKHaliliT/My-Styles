@@ -3,7 +3,9 @@ name: CI
 # The three styles live in one repository, and GitHub only reads workflows from a repository
 # root. Each template therefore carries its own workflow file, which sits inert here and
 # activates once that template becomes the root of a project. This file is what checks the
-# styles inside this repository, running the same five commands each of them documents.
+# styles inside this repository, running the same five commands each of them documents,
+# plus the family checks that hold the styles' shared law identical. Actions are pinned by
+# commit for the same reason the rulebook is pinned by hash: a tag can move, a digest cannot.
 
 on:
   push:
@@ -14,13 +16,32 @@ jobs:
     name: Prose
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Check every tracked byte for em dashes
         run: |
           if git grep -PIn "\x{2014}"; then
             echo "Em dashes are banned in every tracked byte."
             exit 1
           fi
+
+  family:
+    name: Family law
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Shared blocks are one text
+        run: python3 scripts/audit_family.py
+
+  secrets:
+    name: Secrets
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   archetypecore:
     name: ArchetypeCore
@@ -29,12 +50,18 @@ jobs:
       run:
         working-directory: ArchtypeCore
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
         with:
           python-version: "3.14"
       - name: Docs
         run: python scripts/audit_docs.py
+      - name: Seams
+        run: |
+          if git grep -nE "monkeypatch|unittest\.mock|mock\.patch|MonkeyPatch" -- tests; then
+            echo "Module mocking is banned; substitute only at a declared seam."
+            exit 1
+          fi
       - name: Install
         run: |
           python -m pip install --upgrade pip
@@ -53,12 +80,18 @@ jobs:
       run:
         working-directory: Keel
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
         with:
           python-version: "3.14"
       - name: Docs
         run: python scripts/audit_docs.py
+      - name: Seams
+        run: |
+          if git grep -nE "monkeypatch|unittest\.mock|mock\.patch|MonkeyPatch" -- tests; then
+            echo "Module mocking is banned; substitute only at a declared seam."
+            exit 1
+          fi
       - name: Install
         run: |
           python -m pip install --upgrade pip
@@ -78,14 +111,20 @@ jobs:
       run:
         working-directory: Helm
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: "24"
           cache: npm
           cache-dependency-path: Helm/package-lock.json
       - name: Docs
         run: node scripts/audit-docs.mjs
+      - name: Seams
+        run: |
+          if git grep -nE "vi\.mock\(" -- tests; then
+            echo "Module mocking is banned; substitute only at a declared seam."
+            exit 1
+          fi
       - name: Install
         run: npm ci
       - name: Lint

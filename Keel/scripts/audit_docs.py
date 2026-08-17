@@ -26,6 +26,8 @@ LIVING = [
 
 # An entry older than this is expired and must be re-verified before anything relies on it.
 HORIZON_DAYS = 90
+# Now is for in-flight work only; past this many entries the section is accreting, not tracking.
+NOW_CAP = 5
 # Bounded documents fail past this; AGENTS.md, docs/ARCHITECTURE.md, and README.md are the
 # documents that grow with the system instead.
 BUDGET_LINES = 150
@@ -35,6 +37,10 @@ BACKTICK = re.compile(r"`([^`\n]+)`")
 LINK = re.compile(r"\[[^\]]*\]\(([^)\s]+)\)")
 STATE_DATE = re.compile(r"\((\d{4}-\d{2}-\d{2})\)")
 RECORD_NAME = re.compile(r"^\d{4}-[a-z0-9-]+\.md$")
+FENCE = re.compile(r"```[^\n]*\n(.*?)```", re.DOTALL)
+DOTTED_MODULE = re.compile(r"[a-z_][a-z0-9_]*(?:\.[a-z_][a-z0-9_]*)+")
+TREE_FILE = re.compile(r"[A-Za-z0-9_\-]+(?:\.[A-Za-z0-9_\-]+)+")
+SKIP_DIRS = {".git", "node_modules", "__pycache__", ".ruff_cache", ".venv", "dist", "build"}
 
 
 def looks_like_path(token: str) -> bool:
@@ -51,6 +57,17 @@ def looks_like_path(token: str) -> bool:
     return (ROOT / first).exists()
 
 
+def repo_basenames() -> set[str]:
+    """Every file basename in the tree, for verifying names drawn in tree diagrams."""
+    names: set[str] = set()
+    for p in ROOT.rglob("*"):
+        if any(part in SKIP_DIRS for part in p.parts):
+            continue
+        if p.is_file():
+            names.add(p.name)
+    return names
+
+
 def python_roots() -> list[Path]:
     """The package trees whose layout conventions the audit holds, found by shape."""
     if (ROOT / "app").is_dir():
@@ -64,6 +81,14 @@ def python_roots() -> list[Path]:
 def check_documents(problems: list[str]) -> None:
     """Paths, links, budgets, and the STATE horizon across the living documents."""
     today = date.today()
+    basenames = repo_basenames()
+    # Dotted names declared in pyproject.toml or in the code itself (entry-point groups,
+    # contract layers) are not module claims, and their own readers verify the real ones.
+    pyproject = ROOT / "pyproject.toml"
+    declared = pyproject.read_text(encoding="utf-8") if pyproject.exists() else ""
+    for source in ROOT.rglob("*.py"):
+        if not any(part in SKIP_DIRS for part in source.parts):
+            declared += source.read_text(encoding="utf-8", errors="ignore")
     for rel in LIVING:
         doc = ROOT / rel
         if not doc.exists():
@@ -80,6 +105,27 @@ def check_documents(problems: list[str]) -> None:
             if looks_like_path(token) and not (ROOT / token.lstrip("./").rstrip("/")).exists():
                 line = text.count("\n", 0, match.start()) + 1
                 problems.append(f"{rel}:{line}: names `{token}`, which does not exist")
+            elif DOTTED_MODULE.fullmatch(token) and token not in declared:
+                for root in python_roots():
+                    if token.split(".")[0] != root.name:
+                        continue
+                    module_path = root.parent.joinpath(*token.split("."))
+                    if not (module_path.is_dir() or module_path.with_suffix(".py").exists()):
+                        line = text.count("\n", 0, match.start()) + 1
+                        problems.append(f"{rel}:{line}: names the module `{token}`, which does not exist")
+
+        for fence in FENCE.finditer(text):
+            block = fence.group(1)
+            if "──" not in block:
+                continue
+            block_line = text.count("\n", 0, fence.start()) + 1
+            for offset, raw in enumerate(block.splitlines()):
+                entry = raw.split("#", 1)[0].strip(" │├└─\t").rstrip("/")
+                if entry and TREE_FILE.fullmatch(entry) and entry not in basenames:
+                    problems.append(
+                        f"{rel}:{block_line + offset + 1}: the tree names {entry}, "
+                        f"which exists nowhere in this repository"
+                    )
 
         # Links inside inline code spans are schema examples, not claims; blank the spans
         # with same-length padding so reported line numbers stay true.
@@ -108,6 +154,14 @@ def check_documents(problems: list[str]) -> None:
                     f"STATE.md:{line}: entry last verified {match.group(1)}, {age} days ago; "
                     f"re-verify it against reality, then re-date or remove it"
                 )
+        now_section = re.search(r"^## Now\n(.*?)(?=^## )", text, re.MULTILINE | re.DOTALL)
+        if now_section:
+            entries = len(re.findall(r"^- ", now_section.group(1), re.MULTILINE))
+            if entries > NOW_CAP:
+                problems.append(
+                    f"STATE.md: Now holds {entries} entries against the cap of {NOW_CAP}; "
+                    f"sweep finished work into git's memory"
+                )
 
 
 def check_docs_zone(problems: list[str]) -> None:
@@ -127,9 +181,17 @@ def check_docs_zone(problems: list[str]) -> None:
                 problems.append(f"docs/{f.name}: {lines} lines against the {BUDGET_LINES}-line budget; split by fission")
     decisions = docs / "decisions"
     if decisions.is_dir():
+        numbers: dict[str, str] = {}
         for f in sorted(decisions.glob("*.md")):
             if not RECORD_NAME.match(f.name):
                 problems.append(f"docs/decisions/{f.name}: records are named NNNN-short-kebab-title.md")
+                continue
+            num = f.name[:4]
+            if num in numbers:
+                problems.append(
+                    f"docs/decisions/: {numbers[num]} and {f.name} share the number {num}; renumber the newer record"
+                )
+            numbers[num] = f.name
 
 
 def check_layout(problems: list[str]) -> None:
