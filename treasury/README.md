@@ -20,6 +20,11 @@ the conflicts.
 the optimization families hold decisions at all, and the order to move
 through them.
 
+Before running a new study, read [the method](HOW-TO-RUN-A-STUDY.md). It
+carries the five stages, the checks to write between them, and what the
+studies already run paid to learn, so a third study starts from a written
+method rather than from anyone's recollection of the last one.
+
 ## Ledger
 
 | Study | Date | What it holds |
@@ -36,6 +41,11 @@ through them.
   records: living guidance for consuming that study's findings, bounded,
   rewritten in place, and never part of the record. Numbered files are the
   immutable records; an uppercase file is living and sorts after them.
+- Guidance on consuming a study belongs to that study. Guidance on producing
+  one belongs to the folder, and HOW-TO-RUN-A-STUDY.md is the single
+  treasury-level guide: bounded, living, and rewritten in place as the method
+  sharpens. The two are different species, which is why one sits beside the
+  records and the other above them.
 - Studies are records in the family's document taxonomy. They are exempt
   from the line budget, immutable once merged, and corrected only by a later
   study that names what it supersedes.
