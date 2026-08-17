@@ -2,6 +2,7 @@ import js from "@eslint/js"
 import jsdoc from "eslint-plugin-jsdoc"
 import reactHooks from "eslint-plugin-react-hooks"
 import reactRefresh from "eslint-plugin-react-refresh"
+import sonarjs from "eslint-plugin-sonarjs"
 import globals from "globals"
 import tseslint from "typescript-eslint"
 
@@ -112,6 +113,16 @@ export default tseslint.config(
           ],
         },
       ],
+    },
+  },
+  {
+    // A local assigned and then immediately returned is a name that says nothing the
+    // function's own name did not; inline it. Names that explain an expression stay
+    // legal and welcome. Decision 0022 carries the line between the two.
+    files: ["src/**/*.{ts,tsx}", "tests/**/*.{ts,tsx}"],
+    plugins: { sonarjs },
+    rules: {
+      "sonarjs/prefer-immediate-return": "error",
     },
   },
   ...layerRules,

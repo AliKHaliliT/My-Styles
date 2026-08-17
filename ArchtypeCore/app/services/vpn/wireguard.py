@@ -364,5 +364,4 @@ class WireGuardProvider(IVPNProvider):
         command =[self.wg_show_path, "show", self.interface, "peers"]
         output = await self._run_command(command)
         
-        peers =[line.strip() for line in output.splitlines() if line.strip()]
-        return peers
+        return [line.strip() for line in output.splitlines() if line.strip()]

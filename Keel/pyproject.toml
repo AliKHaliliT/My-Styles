@@ -67,7 +67,7 @@ target-version = "py313"
 # The D codes check docstring presence only, never format, because the docstring rhythm is
 # the house's own; the shape rules live in the README's Conventions section. PGH keeps every
 # ignore honest: a suppression names the exact code it silences, never a blanket.
-select = ["E", "F", "B", "UP", "Q", "PGH", "D101", "D102", "D103", "D107"]
+select = ["E", "F", "B", "UP", "Q", "PGH", "RET504", "D101", "D102", "D103", "D107"]
 ignore = ["E501"]
 
 [tool.ruff.lint.per-file-ignores]
