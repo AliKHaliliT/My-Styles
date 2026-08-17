@@ -12,16 +12,20 @@ Before drafting a new style, read the newest findings end to end and treat
 every entry as an option to weigh, never an obligation to satisfy. The point
 of the treasury is that an omission becomes a decision instead of an
 accident. A study whose findings need more guidance than this carries its own
-uppercase guide beside its records;
-[study 0001's](0001-primitive-reduction/HOW-TO-USE.md) covers what a
+uppercase guide beside its records.
+[Study 0001's](0001-primitive-reduction/HOW-TO-USE.md) covers what a
 primitive is, why primitives oppose one another, and how a project settles
 the conflicts.
+[Study 0002's](0002-optimization-vocabulary/HOW-TO-USE.md) covers which of
+the optimization families hold decisions at all, and the order to move
+through them.
 
 ## Ledger
 
 | Study | Date | What it holds |
 | --- | --- | --- |
 | [0001-primitive-reduction](0001-primitive-reduction/) | 2026-08-11 | 14,765 named software engineering concepts reduced to 125 primitive operations |
+| [0002-optimization-vocabulary](0002-optimization-vocabulary/) | 2026-08-17 | 9,188 named optimization concepts folded to a 1,272 entry vocabulary in six families |
 
 ## Rules of the folder
 
