@@ -11,7 +11,11 @@ always comes before the findings it produced.
 Before drafting a new style, read the newest findings end to end and treat
 every entry as an option to weigh, never an obligation to satisfy. The point
 of the treasury is that an omission becomes a decision instead of an
-accident.
+accident. A study whose findings need more guidance than this carries its own
+uppercase guide beside its records;
+[study 0001's](0001-primitive-reduction/HOW-TO-USE.md) covers what a
+primitive is, why primitives oppose one another, and how a project settles
+the conflicts.
 
 ## Ledger
 
@@ -24,6 +28,10 @@ accident.
 - One study, one folder, numbered in order of completion. The research
   record carries the question, the method, and the numbers; the findings
   carry what is meant to be reread; the ledger above indexes every study.
+- A study folder may carry one uppercase HOW-TO-USE.md beside its numbered
+  records: living guidance for consuming that study's findings, bounded,
+  rewritten in place, and never part of the record. Numbered files are the
+  immutable records; an uppercase file is living and sorts after them.
 - Studies are records in the family's document taxonomy. They are exempt
   from the line budget, immutable once merged, and corrected only by a later
   study that names what it supersedes.
