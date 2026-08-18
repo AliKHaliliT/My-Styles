@@ -8,7 +8,7 @@ Date: 2026-08-14
 The owner's old hand-coding rule inlined any value used only once, including
 the temporary that is assigned and immediately returned, on a performance
 intuition. Measured honestly, the performance case is empty in every
-optimized runtime: ahead-of-time compilers and warm just-in-time compilers
+optimized runtime. Ahead-of-time compilers and warm just-in-time compilers
 rewrite both forms into static single assignment, where every intermediate
 value is an anonymous register whether the source named it or not, so the
 machine code is identical. Only a pure interpreter such as CPython keeps the

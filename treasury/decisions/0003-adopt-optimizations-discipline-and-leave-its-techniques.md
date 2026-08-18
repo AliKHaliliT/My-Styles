@@ -16,7 +16,7 @@ conditional, a technique that wins in one context and loses in the next. A
 style is a table of unconditional rulings, so mandating any priced
 technique would be study 0001's definition of an anti-pattern, a primitive
 winning a conflict it should have lost. What is general is the discipline
-that governs the techniques, and it splits on one further fact: a
+that governs the techniques, and it splits on one further fact. A
 measurement sees code on today's data, so it cannot catch a growth-rate
 mistake at write time, while growth is the one performance property
 readable from the code alone.
@@ -30,8 +30,8 @@ exists. The measured line: nothing is made faster without a measurement
 that demanded it, and every optimization that lands records its measurement
 and its price. The pair is the treaty between the two schools the study
 catalogs as opposed entries, constant attention governing growth and the
-staged approach governing everything priced. The checkable half, at zero
-new dependency: the Python styles select PERF and C4 in ruff, and the
+staged approach governing everything priced. The checkable half comes at
+zero new dependency. The Python styles select PERF and C4 in ruff, and the
 client style enables slow-regex from the Sonar plugin it already carries,
 catastrophic backtracking being a growth accident inside a regular
 expression.
@@ -55,6 +55,6 @@ expression.
 The vocabulary's four technique families stay design-time reading, reached
 through the treasury by pointer and never copied into a style. The two
 gate items and three lint selections are the study's entire footprint in
-the family's law, which is itself a finding: of 1,272 entries, the general
+the family's law, which is itself a finding. Of 1,272 entries, the general
 residue is two sentences of judgment and a handful of free-win checks, and
 everything else is a decision some project makes against its own terrain.

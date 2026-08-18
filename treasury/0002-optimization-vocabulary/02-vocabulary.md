@@ -1554,7 +1554,7 @@ metaheuristics are not catalogued here.
 - **Heavy tailed latency and the normality assumption**: latency is bounded below and skewed right with frequent extremes, so tests and summaries assuming a normal distribution misreport it.
 - **Nonparametric comparison**, also **Mann Whitney U test** and **Kolmogorov Smirnov test**: comparing measured samples without assuming a distribution, at the price of lower power and of silence about which region of the distribution moved.
 - **Ratio averaging fallacy**: averaging speedup ratios arithmetically rather than geometrically, which weights the results wrongly and can invert the conclusion.
-- **Multiple comparisons problem**: false positives inflating when every benchmark in a large suite is tested for regression at once, corrected by dividing the threshold at the cost of missing small true regressions.
+- **Multiple comparisons problem**: false positives inflating when every benchmark in a large suite is tested for regression at once, corrected by dividing the threshold at the price of missing small true regressions.
 
 ### What a measurement gets wrong
 
@@ -1607,7 +1607,7 @@ metaheuristics are not catalogued here.
 - **Keep the naive implementation and test against it**: retaining the simple version as reference, fallback, and documentation, and treating any divergence on identical inputs as a defect, at the price of two implementations kept in step forever.
 - **Guard the invariant the trick assumes**: asserting or type encoding the precondition a fast path depends on, at the price of the check's own runtime and code weight.
 - **Document the measurement**, also **comment the trick**: recording beside the code the numbers, conditions, and reasoning that justified an optimization, at the price of records that must be refreshed as hardware changes.
-- **Software aging and rejuvenation**: the performance decay of a long running process from leaks, fragmentation, and accumulated state, answered by scheduled restarts at the cost of downtime and cold caches.
+- **Software aging and rejuvenation**: the performance decay of a long running process from leaks, fragmentation, and accumulated state, answered by scheduled restarts at the price of downtime and cold caches.
 
 ### Failure modes of optimization practice
 

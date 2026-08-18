@@ -64,7 +64,7 @@ one tool.
 
 The guide's repository-side half stays enforced under the family's existing
 names, and its operator-side half stays out of the law. One observation is
-kept because it strengthens the treasury's premise: token efficiency is not
+kept because it strengthens the treasury's premise. Token efficiency is not
 a new discipline but the optimization vocabulary applied to a new scarce
 resource, delegation as offloading, verification shifted left as the cheap
 filter before the expensive judge, session hygiene as working-set

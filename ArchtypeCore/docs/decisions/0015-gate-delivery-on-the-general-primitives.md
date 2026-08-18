@@ -40,7 +40,7 @@ after-the-fact repairs rather than as properties carried while writing.
 
 AGENTS.md gains a delivery gate: sixteen named items, each a one-line rule,
 weighed against every change before it may be called delivered. Fifteen carry
-the general primitives. The sixteenth points rather than copies: it sweeps
+the general primitives. The sixteenth points rather than copies. It sweeps
 the review-held clauses of the guide's own Hard rules at every close, so
 style law receives the same end-of-change reflection without a second copy
 that could drift. The items are carried from the first line written rather

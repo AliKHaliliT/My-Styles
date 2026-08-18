@@ -17,7 +17,7 @@ The owner also asked for the general version of the question: a census of every 
 
 ## Decision
 
-`AGENTS.md` and `docs/ARCHITECTURE.md` grow with the system rather than against a number. The freedom is not license: they say everything as briefly as it can be said, and an agent guide that keeps growing usually means the project's boundary was drawn too wide, which is a scoping problem no budget fixes. Every other living document is bounded at 150 lines, the audit fails one that exceeds its bound, and fission stays the remedy. `README.md` stands outside both classes, governed by its schema.
+`AGENTS.md` and `docs/ARCHITECTURE.md` grow with the system rather than against a number. The freedom is not license. They say everything as briefly as it can be said, and an agent guide that keeps growing usually means the project's boundary was drawn too wide, which is a scoping problem no budget fixes. Every other living document is bounded at 150 lines, the audit fails one that exceeds its bound, and fission stays the remedy. `README.md` stands outside both classes, governed by its schema.
 
 The audit also gains the census's checkable findings: every document under `docs/` must be registered in the index, organic names stay UPPERCASE and records keep their `NNNN-kebab` shape, and `STATE.md` must hold exactly its four sections. For this template the audit further scans the source for raw palette classes, which the token rule bans, and ESLint gains the two restrictions the hard rules always claimed: `import.meta.env` is unreadable outside `shared/config`, and `fetch` is uncallable outside `shared/api`.
 

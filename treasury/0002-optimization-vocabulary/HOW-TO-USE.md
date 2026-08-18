@@ -70,7 +70,7 @@ project settles that kind of conflict and writes the ruling down.
 ## How this sits beside study 0001
 
 Study 0001 reduced the discipline's named concepts to the operations
-underneath them. This study did the opposite on one subject: it kept the names.
+underneath them. This study did the opposite on one subject. It kept the names.
 Much of what appears here is one of those primitive operations applied in a
 single setting and named locally, which is why a reader who knows the
 primitives will recognize the mechanism behind a name they have never seen.
@@ -91,5 +91,5 @@ its practitioners have learned it costs.
    the price that was accepted. An optimization without a recorded price
    becomes a mystery constraint to whoever meets it next.
 5. When tempted by a technique from the fourth or fifth family before the
-   second family has been read, treat that as the signal it is: work is about
-   to be made faster instead of smaller.
+   second family has been read, treat that as the signal it is, that work is
+   about to be made faster instead of smaller.

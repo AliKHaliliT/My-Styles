@@ -72,6 +72,6 @@ machine-checked template family is weakest.
 
 The general subset needs no per-project thought and every other primitive
 does, which is why the findings list prices instead of prescriptions. The
-refusals are context-bound rulings, not verdicts: a team, real production
+refusals are context-bound rulings, not verdicts. A team, real production
 traffic, or a genuinely published package reopens the one whose condition
 it meets.

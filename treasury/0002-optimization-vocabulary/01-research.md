@@ -96,7 +96,7 @@ and machine learning performance 789.
 
 The entries that name no price are the measurements, models, laws, and classes
 of problem, which cost nothing to know. Their share, one entry in four, is the
-study's plainest finding: a quarter of what the industry calls optimization
+study's plainest finding. A quarter of what the industry calls optimization
 vocabulary describes cost rather than changing it.
 
 ## The filters
@@ -134,12 +134,12 @@ Six filters were applied in order, and each is why the counts fall.
 
 Every stage was machine checked, and the checker ran outside the passes it
 judged. That is why the review's error rate is a measured number rather than a
-self report: 32 of the 2,131 additions restated a name their own author had
+self report. Of the 2,131 additions, 32 restated a name their own author had
 been shown, and 151 more duplicated a name held in a territory that author
 could not see, which is the unavoidable price of splitting the index so each
 reviewer could hold all of it. The fold was audited the same way, by measuring
 how much of each source group survived, and the audit's own blind spot was
-found before it was trusted: it counted a name as lost when the fold had kept
+found before it was trusted. It counted a name as lost when the fold had kept
 it inside another entry, so its findings were probed by hand before any repair
 was commissioned, and roughly a dozen reported losses proved to be present.
 The two narrowed checks from the second stage were proved against planted

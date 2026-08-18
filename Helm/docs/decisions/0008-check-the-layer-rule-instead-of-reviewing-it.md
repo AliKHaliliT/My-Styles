@@ -7,7 +7,7 @@ Date: 2026-08-04
 
 [Decision 0003](0003-build-the-client-as-one-way-sliced-layers.md) made one-way sliced layers the shape of this template, and the rule that makes them worth anything is that imports point downward only. That rule was left to review, and STATE.md deferred a linter until the rules had proven themselves in practice.
 
-They have now proven themselves, in this template and in three derived projects that adopted the same shape. Review turned out to be the weak link exactly where expected: an import line looks identical whether it points down or up, so catching a violation depends entirely on the reviewer holding the layer order in mind.
+They have now proven themselves, in this template and in three derived projects that adopted the same shape. Review turned out to be the weak link exactly where expected. An import line looks identical whether it points down or up, so catching a violation depends entirely on the reviewer holding the layer order in mind.
 
 ## Options considered
 

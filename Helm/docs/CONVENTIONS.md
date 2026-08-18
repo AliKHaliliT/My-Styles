@@ -25,13 +25,13 @@ Every project carries this fixed spine:
 | `docs/CONVENTIONS.md` | Living, frozen | This rulebook. |
 | `docs/decisions/` | Records | The decision log; the durable home of rationale. |
 
-Assistant-specific instruction files (a `CLAUDE.md`, a `GEMINI.md`, tool rule files) do not exist in this project: every assistant reads `AGENTS.md` directly. If a tool ever genuinely cannot read `AGENTS.md`, it gets a one-line shim that does nothing but import or point to `AGENTS.md` in whatever include syntax the tool understands. A shim is not a document: it is not indexed, it carries no content of its own, and it never grows a second line.
+Assistant-specific instruction files (a `CLAUDE.md`, a `GEMINI.md`, tool rule files) do not exist in this project. Every assistant reads `AGENTS.md` directly. If a tool ever genuinely cannot read `AGENTS.md`, it gets a one-line shim that does nothing but import or point to `AGENTS.md` in whatever include syntax the tool understands. A shim is not a document: it is not indexed, it carries no content of its own, and it never grows a second line.
 
-Beyond the spine, documentation grows organically: any further document the project needs is added under `docs/` (UPPERCASE markdown, one subject per file, one species per file) and registered in the index. Growth changes the number of documents, never the species rules of an existing one.
+Beyond the spine, documentation grows organically. Any further document the project needs is added under `docs/` (UPPERCASE markdown, one subject per file, one species per file) and registered in the index. Growth changes the number of documents, never the species rules of an existing one.
 
 ## The index contract
 
-`AGENTS.md` holds the single index of all technical documents, each with a one-line description of what it contains and when to read it. A document that is not listed there does not exist: no reader can be expected to find it, and no agent will. Creating a document and registering it in the index happen in the same change, as does delisting on removal.
+`AGENTS.md` holds the single index of all technical documents, each with a one-line description of what it contains and when to read it. A document that is not listed there does not exist. No reader can be expected to find it, and no agent will. Creating a document and registering it in the index happen in the same change, as does delisting on removal.
 
 ## Rules for living documents
 
@@ -63,7 +63,7 @@ The situation that forced a decision, and the constraints that shaped it.
 
 ## Options considered
 
-Each realistic option with the one-or-two-line reason it lost. This section is the highest-value part of the record: it is what stops the same alternative from being re-proposed a year later.
+Each realistic option with the one-or-two-line reason it lost. This section is the highest-value part of the record, because it is what stops the same alternative from being re-proposed a year later.
 
 ## Decision
 
@@ -85,7 +85,7 @@ Rationale has exactly two homes here, chosen by reach:
 
 A changelog exists only where consumers upgrade through releases, so a project that versions none maintains none (the trigger lives in BASELINE.md). A versioned artifact, such as a packaged library, adds `CHANGELOG.md` as a third home, carrying the curated per-release summary for its consumers; it summarizes impact, not reasoning.
 
-Chronology itself is never documented: git already is the complete log, and any document that re-narrates it degenerates into a worse git log.
+Chronology itself is never documented. Git already is the complete log, and any document that re-narrates it degenerates into a worse git log.
 
 ## Naming
 

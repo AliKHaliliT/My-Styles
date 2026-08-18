@@ -17,7 +17,7 @@ The owner also asked for the general version of the question: a census of every 
 
 ## Decision
 
-`AGENTS.md` and `docs/ARCHITECTURE.md` grow with the system rather than against a number. The freedom is not license: they say everything as briefly as it can be said, and an agent guide that keeps growing usually means the project's boundary was drawn too wide, which is a scoping problem no budget fixes. Every other living document is bounded at 150 lines, the audit fails one that exceeds its bound, and fission stays the remedy. `README.md` stands outside both classes, governed by its schema.
+`AGENTS.md` and `docs/ARCHITECTURE.md` grow with the system rather than against a number. The freedom is not license. They say everything as briefly as it can be said, and an agent guide that keeps growing usually means the project's boundary was drawn too wide, which is a scoping problem no budget fixes. Every other living document is bounded at 150 lines, the audit fails one that exceeds its bound, and fission stays the remedy. `README.md` stands outside both classes, governed by its schema.
 
 The audit also gains the census's checkable findings: every document under `docs/` must be registered in the index, organic names stay UPPERCASE and records keep their `NNNN-kebab` shape, and `STATE.md` must hold exactly its four sections. For this template the audit further holds the Python layout conventions, a directory holds either subpackages or modules and an `__init__.py` is a door that only re-exports, ruff's PGH rules ban blanket suppressions, and a citizenship suite now pins what the library-citizenship rule claims: the NullHandler is present, importing the package reads no environment, and the version stays pinned.
 

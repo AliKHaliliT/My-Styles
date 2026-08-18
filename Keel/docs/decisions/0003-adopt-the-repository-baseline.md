@@ -19,4 +19,4 @@ Adopt the repository baseline specified in [BASELINE.md](../BASELINE.md): an alw
 
 ## Consequences
 
-Clones behave identically regardless of the contributor's editor, operating system, or git configuration, and no personal settings ship with the template. The cost is that shared editor behavior can no longer ride along in `.vscode/`: anything worth standardizing must be expressed through `.editorconfig` or tool configuration, a stricter but more honest channel.
+Clones behave identically regardless of the contributor's editor, operating system, or git configuration, and no personal settings ship with the template. The cost is that shared editor behavior can no longer ride along in `.vscode/`, so anything worth standardizing must be expressed through `.editorconfig` or tool configuration, a stricter but more honest channel.

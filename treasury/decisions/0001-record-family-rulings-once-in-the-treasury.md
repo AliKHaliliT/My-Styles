@@ -7,11 +7,11 @@ Date: 2026-08-18
 
 Rulings that concern the whole family were being recorded as identical
 decision records in every style, one body under three numbers. For rulings
-that change each style's bytes this is right: a record explains the
+that change each style's bytes this is right, because a record explains the
 repository it lives in, and a style cloned alone must carry the reasons for
 its own visible law. But a rejection changes no bytes, so a per-style copy
 of it explains nothing in that repository, and the practice puts one fact in
-three homes. Worse, it hides the family's memory: an author drafting a
+three homes. Worse, it hides the family's memory. An author drafting a
 fourth style, or anyone re-analyzing an old question, would need to dig
 through every style's records to learn that the question was already
 settled, and the digging cost grows with every style added, which is the
@@ -39,11 +39,11 @@ review. A ruling that changes no style's bytes, an analysis that adopts
 nothing, or a disposition that concerns the family as a whole, is recorded
 once, in `treasury/decisions/`, immutable and numbered in its own sequence,
 in the same record format the styles write. Discovery rides the existing
-law: whoever designs a new style already reads the treasury end to end, and
+law. Whoever designs a new style already reads the treasury end to end, and
 now that walk passes the family's refusals as well as its findings.
 
-The owner accepted the one cost by name: family records do not travel with
-a style cloned alone. A style's bytes already incorporate or omit every
+The owner accepted the one cost by name, that family records do not travel
+with a style cloned alone. A style's bytes already incorporate or omit every
 outcome, and a project wanting newer reasoning takes the latest style and
 refactors.
 

@@ -6,7 +6,7 @@ Date: 2026-08-18
 ## Context
 
 The treasury's second study catalogued the discipline's optimization
-vocabulary, and most of what it holds cannot become style law: a technique
+vocabulary, and most of what it holds cannot become style law. A technique
 whose entry names a price wins in one context and loses in the next, and
 mandating a conditional winner unconditionally is the first study's
 definition of an anti-pattern. What survives as general is the discipline's
@@ -43,7 +43,7 @@ change buys a worse growth rate where a construction of equal effort exists.
 The measured line: nothing is made faster without a measurement that
 demanded it, and every optimization that lands records its measurement and
 its price. The checkable half follows the immediate-return precedent at zero
-new dependency: the Python styles select PERF and C4 in ruff, which catch
+new dependency. The Python styles select PERF and C4 in ruff, which catch
 the mechanical growth accidents, and the client style enables slow-regex
 from the Sonar plugin it already carries, catastrophic backtracking being a
 growth accident inside a regular expression. The technique families stay in
