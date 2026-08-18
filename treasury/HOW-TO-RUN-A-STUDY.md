@@ -97,7 +97,10 @@ findings it produced. The record carries the question, the method, the funnel
 counts at every stage, the filters that explain why the counts fall, and how
 verification was done. The findings carry what is meant to be reread. A study
 whose findings need more guidance carries one uppercase guide beside its
-records, and the ledger in the README gains its row.
+records, and the ledger in the README gains its row. Once the family decides
+what to do with the findings, that disposition, the adoptions, the refusals,
+and the reasons, becomes a record in the treasury's decisions folder, so the
+next analysis starts from the settled answer instead of re-deriving it.
 
 The raw catalog is not kept. It is scaffolding, it is too large to reread, and
 an unfolded catalog decays into a list nobody opens. What the record keeps is

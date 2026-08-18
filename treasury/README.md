@@ -32,6 +32,22 @@ method rather than from anyone's recollection of the last one.
 | [0001-primitive-reduction](0001-primitive-reduction/) | 2026-08-11 | 14,765 named software engineering concepts reduced to 125 primitive operations |
 | [0002-optimization-vocabulary](0002-optimization-vocabulary/) | 2026-08-17 | 9,188 named optimization concepts folded to a 1,272 entry vocabulary in six families |
 
+## Family rulings
+
+Rulings no single style owns live in [decisions/](decisions/), one immutable
+record each, numbered in their own sequence. A ruling is recorded where its
+bytes land: one that changes the styles keeps a record in every style it
+changed, and one that changes no style's bytes, a refusal or a study's
+disposition, is recorded here once. Before analyzing anything family-wide,
+check this folder; the question may already be settled.
+
+| Ruling | What it settles |
+| --- | --- |
+| [0001](decisions/0001-record-family-rulings-once-in-the-treasury.md) | Where family rulings are recorded, and why refusals never sit in style records |
+| [0002](decisions/0002-adopt-thirty-six-primitives-and-refuse-six.md) | Study 0001's disposition: the general thirty-six, the terrain-bound, and the six refusals |
+| [0003](decisions/0003-adopt-optimizations-discipline-and-leave-its-techniques.md) | Study 0002's disposition: two gate items and free-win lints in, every priced technique out |
+| [0004](decisions/0004-let-the-index-do-what-skill-files-do.md) | Skill files refused; the agent guide and the index already form the two loading tiers |
+
 ## Rules of the folder
 
 - One study, one folder, numbered in order of completion. The research
@@ -41,6 +57,10 @@ method rather than from anyone's recollection of the last one.
   records: living guidance for consuming that study's findings, bounded,
   rewritten in place, and never part of the record. Numbered files are the
   immutable records; an uppercase file is living and sorts after them.
+- The decisions folder holds family rulings: immutable records of what the
+  family adopted, refused, or settled where no single style's bytes carry
+  the answer. Every study leaves its disposition there, and every refusal
+  names the condition that would reopen it.
 - Guidance on consuming a study belongs to that study. Guidance on producing
   one belongs to the folder, and HOW-TO-RUN-A-STUDY.md is the single
   treasury-level guide: bounded, living, and rewritten in place as the method
