@@ -33,6 +33,7 @@ Closing a task follows one loop: run the checking commands above, weigh the chan
 
 - **Cognitive load**: nothing in the change is harder to hold in mind than the task requires.
 - **Granularity**: the size of every new unit (function, file, document, the change itself) is a choice, not an accident.
+- **Growth honesty**: what each loop's or query's cost grows with is a choice, not an accident, and no change buys a worse growth rate where a construction of equal effort exists.
 - **Ubiquitous language**: new names use the vocabulary the tree already speaks.
 - **Single source of truth**: the change introduces no second copy of any fact, and anything derived points at its source.
 - **Least privilege and surface**: nothing gains more access, exports, or dependencies than the task needs.
@@ -40,6 +41,7 @@ Closing a task follows one loop: run the checking commands above, weigh the chan
 - **Loud failure**: every new failure path raises a typed error; nothing is swallowed or silently defaulted.
 - **Two hats**: shape changes and behavior changes are separate steps, and no incidental reformatting rides along.
 - **Waste**: nothing speculative and nothing the change orphaned is left behind.
+- **The measured line**: nothing is made faster without a measurement that demanded it, and every optimization that lands records its measurement and its price.
 - **Test honesty**: substitutes stand in only at the declared seams, and time, randomness, and order are controlled.
 - **Point-of-use truth**: the doc comment or docstring each export carries is true, not merely present.
 - **Intent-split placement**: every documentation change lands in the document whose reader it serves, per the rulebook's species.

@@ -123,6 +123,7 @@ export default tseslint.config(
     plugins: { sonarjs },
     rules: {
       "sonarjs/prefer-immediate-return": "error",
+      "sonarjs/slow-regex": "error",
     },
   },
   ...layerRules,
