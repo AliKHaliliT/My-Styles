@@ -1,6 +1,6 @@
 # Repository Baseline
 
-This file is the living rulebook for the repository's always-present files: which files must exist, which must never be tracked, and how each may be modified. Unlike [CONVENTIONS.md](CONVENTIONS.md), this document is not frozen: the baseline evolves with tooling, and changes that reshape it are recorded as decision records (its adoption is [0003](decisions/0003-adopt-the-repository-baseline.md)).
+This file is the living rulebook for the repository's always-present files: which files must exist, which must never be tracked, and how each may be modified. Unlike [CONVENTIONS.md](CONVENTIONS.md), this document is not frozen. The baseline evolves with tooling, and changes that reshape it are recorded as decision records (its adoption is [0003](decisions/0003-adopt-the-repository-baseline.md)).
 
 ## Always present
 
