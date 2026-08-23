@@ -19,10 +19,13 @@ the conflicts.
 [Study 0002's](0002-optimization-vocabulary/HOW-TO-USE.md) covers which of
 the optimization families hold decisions at all, and the order to move
 through them.
+[Study 0003's](0003-security-vocabulary/HOW-TO-USE.md) covers why the threat
+model has to be settled before any of its priced entries can be weighed, and
+the order to move through its families.
 
 Before running a new study, read [the method](HOW-TO-RUN-A-STUDY.md). It
-carries the five stages, the checks to write between them, and what the
-studies already run paid to learn, so a third study starts from a written
+carries the six stages, the checks to write between them, and what the
+studies already run paid to learn, so the next study starts from a written
 method rather than from anyone's recollection of the last one.
 
 ## Ledger
@@ -31,6 +34,7 @@ method rather than from anyone's recollection of the last one.
 | --- | --- | --- |
 | [0001-primitive-reduction](0001-primitive-reduction/) | 2026-08-11 | 14,765 named software engineering concepts reduced to 125 primitive operations |
 | [0002-optimization-vocabulary](0002-optimization-vocabulary/) | 2026-08-17 | 9,188 named optimization concepts folded to a 1,272 entry vocabulary in six families |
+| [0003-security-vocabulary](0003-security-vocabulary/) | 2026-08-22 | 13,764 named security concepts folded to a 1,996 entry vocabulary in eight families |
 
 ## Family rulings
 
