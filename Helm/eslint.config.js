@@ -126,5 +126,29 @@ export default tseslint.config(
       "sonarjs/slow-regex": "error",
     },
   },
+  {
+    // The mechanical half of security, the part that needs no threat model to judge.
+    // Every rule here fires on a construct that is wrong whoever the attacker is, so
+    // none of them asks this template to guess at a threat model it does not have.
+    // Decision 0024 carries why the rest of the security vocabulary stays out.
+    files: ["src/**/*.{ts,tsx}", "tests/**/*.{ts,tsx}"],
+    plugins: { sonarjs },
+    rules: {
+      "no-eval": "error",
+      "no-implied-eval": "error",
+      "no-new-func": "error",
+      "no-script-url": "error",
+      "sonarjs/code-eval": "error",
+      "sonarjs/no-hardcoded-passwords": "error",
+      "sonarjs/no-hardcoded-secrets": "error",
+      "sonarjs/no-clear-text-protocols": "error",
+      "sonarjs/pseudo-random": "error",
+      "sonarjs/no-weak-cipher": "error",
+      "sonarjs/no-weak-keys": "error",
+      "sonarjs/hashing": "error",
+      "sonarjs/insecure-cookie": "error",
+      "sonarjs/no-intrusive-permissions": "error",
+    },
+  },
   ...layerRules,
 )

@@ -37,6 +37,7 @@ Closing a task follows one loop: run the checking commands above, weigh the chan
 - **Ubiquitous language**: new names use the vocabulary the tree already speaks.
 - **Single source of truth**: the change introduces no second copy of any fact, and anything derived points at its source.
 - **Least privilege and surface**: nothing gains more access, exports, or dependencies than the task needs.
+- **Adversary honesty**: every change that creates or moves a trust boundary names who it is meant to withstand, and deciding that nobody is attacking it is a decision to write down rather than an assumption to leave implicit.
 - **Boundary honesty**: no data crosses a boundary unchecked, and checking happens at the door, once.
 - **Loud failure**: every new failure path raises a typed error; nothing is swallowed or silently defaulted.
 - **Two hats**: shape changes and behavior changes are separate steps, and no incidental reformatting rides along.

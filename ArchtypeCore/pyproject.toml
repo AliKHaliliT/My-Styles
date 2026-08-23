@@ -11,7 +11,7 @@ target-version = "py313"
 # The D codes check docstring presence only, never format, because the docstring rhythm is
 # the house's own; the shape rules live in the README's Conventions section. PGH keeps every
 # ignore honest: a suppression names the exact code it silences, never a blanket.
-select = ["E", "F", "B", "UP", "Q", "PGH", "PERF", "C4", "RET504", "D101", "D102", "D103", "D107"]
+select = ["E", "F", "B", "UP", "Q", "PGH", "PERF", "C4", "S", "RET504", "D101", "D102", "D103", "D107"]
 # Line length is left to the reader, and a function call in an argument default is how
 # FastAPI's Depends() is meant to be written.
 ignore = ["E501", "B008"]
@@ -22,13 +22,18 @@ ignore = ["E501", "B008"]
 # A port's stub is a one-line signature; its documentation lives on each implementation.
 "app/domain/interfaces/*.py" = ["D102"]
 # Suites document themselves through case names and assertions (see docs/CONVENTIONS.md).
-"tests/**" = ["D101", "D102", "D103", "D107"]
+# A suite asserts for a living, and its fixtures carry throwaway credentials by design.
+"tests/**" = ["D101", "D102", "D103", "D107", "S101", "S105", "S106"]
 # The operational scripts and the Alembic environment put the repository root on sys.path
 # before importing from it, and Alembic needs the models imported for their side effect.
-"scripts/*.py" = ["E402"]
+"scripts/*.py" = ["E402", "S101"]
 "db/migrations/env.py" = ["E402", "F401"]
 # The field filter is written as compact one-line guards on purpose.
 "app/utils/reorder_fields.py" = ["E701"]
+# A container publishes on every interface and the runtime decides what reaches it.
+"app/core/config/settings.py" = ["S104"]
+# The bearer scheme's name is a protocol constant, which the credential heuristic misreads.
+"app/services/access/auth_service.py" = ["S106"]
 
 # import-linter machine-checks the Dependency Rule the same way ESLint carries the client
 # style's layer rule. It parses rather than executes, so the check needs no environment.

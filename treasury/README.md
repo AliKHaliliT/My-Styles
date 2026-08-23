@@ -51,6 +51,7 @@ check this folder; the question may already be settled.
 | [0002](decisions/0002-adopt-thirty-six-primitives-and-refuse-six.md) | Study 0001's disposition: the general thirty-six, the terrain-bound, and the six refusals |
 | [0003](decisions/0003-adopt-optimizations-discipline-and-leave-its-techniques.md) | Study 0002's disposition: two gate items and free-win lints in, every priced technique out |
 | [0004](decisions/0004-let-the-index-do-what-skill-files-do.md) | Skill files refused; the agent guide and the index already form the two loading tiers |
+| [0005](decisions/0005-take-security-s-unconditional-core-and-refuse-its-priced-bulk.md) | Study 0003's disposition: one gate item and the mechanical lints in, every priced mechanism out |
 
 ## Rules of the folder
 
