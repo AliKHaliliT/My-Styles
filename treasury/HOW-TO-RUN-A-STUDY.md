@@ -19,20 +19,28 @@ and belongs to a STATE file. Do not run one to settle a rule for a single
 style, since that is a decision record. Do not run one for a question a single
 search answers.
 
-## The five stages
+## The six stages
 
-1. Enumeration. Split the subject into territories, one pass per territory,
-   sized so a pass can be exhaustive inside its own borders. Fix the rules of
+1. Scouting. Before any territory is assigned, one cheap pass walks the
+   field's canonical catalogs, textbook shelves, and taxonomy indexes and
+   returns a territory map with a density estimate per territory. The
+   territory count is this map's output, never an input: a narrow subject
+   may yield one territory and a vast one may yield twenty, and the research
+   record states how the count was derived. A previous study's shape is not
+   a default, because a count carried forward by momentum is the map drawn
+   from memory instead of from the terrain.
+2. Enumeration. One pass per territory from the scouted map, each sized so
+   a pass can be exhaustive inside its own borders. Fix the rules of
    entry in one contract file that every pass reads, rather than restating
    them per pass, so the entries come back in one shape and can be checked
    mechanically. Seed each territory with a floor of names showing the
    expected granularity, and say plainly that the floor is not a ceiling.
    Every pass writes its section straight to its own file. Nothing of value
    returns through a summary.
-2. Mechanical checks. Run between every stage, never only at the end. The
+3. Mechanical checks. Run between every stage, never only at the end. The
    checker is written before the work it judges and runs outside the pass that
    produced it, because a pass grading itself reports what it intended.
-3. Completeness review. Independent passes whose only task is finding
+4. Completeness review. Independent passes whose only task is finding
    omissions, each holding the complete name index of its own territories, so
    an addition cannot restate what is already there. Give each reviewer a list
    of canonical catalogs to work through by name. An instruction to look for
@@ -40,13 +48,13 @@ search answers.
    catalog produces findings. A book that numbers its rules is itself a
    completeness test, and so is any published index that claims to be
    complete.
-4. The fold. One pass per family, each holding a hard entry budget. The budget
+5. The fold. One pass per family, each holding a hard entry budget. The budget
    is the instrument, because a fold without one becomes a copy. Two names for
    one thing are one entry with the alternates riding along, a thing named
    separately by several cultures is one entry, and a taxonomy nobody needs
    item by item becomes one entry naming its members. Drop an entry for being
    unhelpful to a reader who is deciding something, never for being obscure.
-5. Resolution. Where two families claim one name, it goes to the family that
+6. Resolution. Where two families claim one name, it goes to the family that
    owns the subject, and the genuine synonyms of the discarded copy are
    carried across. Where one word names two different things, it becomes two
    entries.
