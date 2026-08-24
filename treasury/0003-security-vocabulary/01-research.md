@@ -59,7 +59,7 @@ checks between them.
    but gloss length. The one structural finding was a false positive in the
    checker rather than a defect in the work, since the checker accepted only a
    single alias and reported a correct two-alias entry as malformed.
-4. Completeness review. Six independent passes, each holding the complete name
+4. Completeness review. Five independent passes, each holding the complete name
    index of its own territories and a list of canonical catalogs to work
    through by name, with the sole task of finding omissions. They added 3,760
    entries. An independent measurement of whether their additions restated what
@@ -124,7 +124,7 @@ commissioned, which is the only reason those four did not become busywork.
 | --- | --- |
 | Scouting, territories derived from nineteen raw regions | 14 |
 | Enumeration, fourteen passes | 10,004 |
-| Completeness review, six passes, restatement rate zero | 3,760 |
+| Completeness review, five passes, restatement rate zero | 3,760 |
 | Catalogued in total | 13,764 |
 | The fold, eight passes against a budget of 1,890 | 1,880 |
 | After the loss audit's repairs | 2,028 |
