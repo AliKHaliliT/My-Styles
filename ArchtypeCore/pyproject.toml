@@ -14,7 +14,11 @@ target-version = "py313"
 select = ["E", "F", "B", "UP", "Q", "PGH", "PERF", "C4", "S", "RET504", "D101", "D102", "D103", "D107"]
 # Line length is left to the reader, and a function call in an argument default is how
 # FastAPI's Depends() is meant to be written.
-ignore = ["E501", "B008"]
+# The credential heuristics read any suggestive string as a possible secret, so they
+# cannot decide their own question and may not gate. They leave the gating selection and
+# run as advice instead, through `ruff check --select S105,S106 .`; decision 0023 carries
+# the principle and AGENTS.md states what a warning obliges.
+ignore = ["E501", "B008", "S105", "S106"]
 
 [tool.ruff.lint.per-file-ignores]
 # An __init__.py exists here only where it re-exports, which reads as unused to a linter.
@@ -23,7 +27,7 @@ ignore = ["E501", "B008"]
 "app/domain/interfaces/*.py" = ["D102"]
 # Suites document themselves through case names and assertions (see docs/CONVENTIONS.md).
 # A suite asserts for a living, and its fixtures carry throwaway credentials by design.
-"tests/**" = ["D101", "D102", "D103", "D107", "S101", "S105", "S106"]
+"tests/**" = ["D101", "D102", "D103", "D107", "S101"]
 # The operational scripts and the Alembic environment put the repository root on sys.path
 # before importing from it, and Alembic needs the models imported for their side effect.
 "scripts/*.py" = ["E402", "S101"]
@@ -32,8 +36,6 @@ ignore = ["E501", "B008"]
 "app/utils/reorder_fields.py" = ["E701"]
 # A container publishes on every interface and the runtime decides what reaches it.
 "app/core/config/settings.py" = ["S104"]
-# The bearer scheme's name is a protocol constant, which the credential heuristic misreads.
-"app/services/access/auth_service.py" = ["S106"]
 
 # import-linter machine-checks the Dependency Rule the same way ESLint carries the client
 # style's layer rule. It parses rather than executes, so the check needs no environment.

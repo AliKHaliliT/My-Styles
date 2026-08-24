@@ -13,7 +13,7 @@ on:
 
 jobs:
   prose:
-    name: Prose
+    name: Em dashes
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -32,8 +32,11 @@ jobs:
       - name: Shared blocks are one text
         run: python3 scripts/audit_family.py
 
+  # The scan gates on the question it settles, whether anything matches its pattern
+  # set. Whether a confidential fact reached a tracked byte is the hard rule's
+  # question, which no scanner decides, and review carries it.
   secrets:
-    name: Secrets
+    name: Secret scan
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -68,6 +71,9 @@ jobs:
           python -m pip install -r requirements-dev.txt
       - name: Lint
         run: ruff check . && lint-imports
+      - name: Credential heuristics, advisory
+        continue-on-error: true
+        run: ruff check --select S105,S106 .
       - name: Type-check
         run: mypy app main.py db scripts tests
       - name: Test
@@ -99,6 +105,9 @@ jobs:
           python -m pip install --group dev
       - name: Lint
         run: ruff check . && lint-imports
+      - name: Credential heuristics, advisory
+        continue-on-error: true
+        run: ruff check --select S105,S106 .
       - name: Type-check
         run: mypy src tests
       - name: Test

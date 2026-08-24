@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - name: Prose
+      - name: Em dashes
         run: |
           if git grep -PIn "\x{2014}"; then
             echo "Em dashes are banned in every tracked byte."
@@ -29,6 +29,9 @@ jobs:
           python -m pip install -r requirements-dev.txt
       - name: Lint
         run: ruff check . && lint-imports
+      - name: Credential heuristics, advisory
+        continue-on-error: true
+        run: ruff check --select S105,S106 .
       - name: Type-check
         run: mypy app main.py db scripts tests
       - name: Test

@@ -68,7 +68,11 @@ target-version = "py313"
 # the house's own; the shape rules live in the README's Conventions section. PGH keeps every
 # ignore honest: a suppression names the exact code it silences, never a blanket.
 select = ["E", "F", "B", "UP", "Q", "PGH", "PERF", "C4", "S", "RET504", "D101", "D102", "D103", "D107"]
-ignore = ["E501"]
+# The credential heuristics read any suggestive string as a possible secret, so they
+# cannot decide their own question and may not gate. They leave the gating selection and
+# run as advice instead, through `ruff check --select S105,S106 .`; decision 0025 carries
+# the principle and AGENTS.md states what a warning obliges.
+ignore = ["E501", "S105", "S106"]
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]
@@ -76,7 +80,7 @@ ignore = ["E501"]
 "src/keel/domain/interfaces/*.py" = ["D102"]
 # Suites document themselves through case names and assertions (see docs/CONVENTIONS.md).
 # A suite asserts for a living, and its fixtures carry throwaway credentials by design.
-"tests/**" = ["D101", "D102", "D103", "D107", "S101", "S105", "S106"]
+"tests/**" = ["D101", "D102", "D103", "D107", "S101"]
 
 # import-linter machine-checks the Dependency Rule the same way ESLint carries the client
 # style's layer rule. Locating the portions imports the package root once, which the

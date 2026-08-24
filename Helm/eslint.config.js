@@ -123,7 +123,6 @@ export default tseslint.config(
     plugins: { sonarjs },
     rules: {
       "sonarjs/prefer-immediate-return": "error",
-      "sonarjs/slow-regex": "error",
     },
   },
   {
@@ -131,6 +130,12 @@ export default tseslint.config(
     // Every rule here fires on a construct that is wrong whoever the attacker is, so
     // none of them asks this template to guess at a threat model it does not have.
     // Decision 0024 carries why the rest of the security vocabulary stays out.
+    //
+    // The three warnings are advice rather than law. Each guesses from the shape of a
+    // string or a pattern and cannot decide its own question, so it may not gate; it
+    // hands review a candidate instead. Decision 0025 carries the principle, and the
+    // agent guide states what a warning obliges. Warnings are read and answered, never
+    // suppressed to make a run look clean.
     files: ["src/**/*.{ts,tsx}", "tests/**/*.{ts,tsx}"],
     plugins: { sonarjs },
     rules: {
@@ -139,8 +144,9 @@ export default tseslint.config(
       "no-new-func": "error",
       "no-script-url": "error",
       "sonarjs/code-eval": "error",
-      "sonarjs/no-hardcoded-passwords": "error",
-      "sonarjs/no-hardcoded-secrets": "error",
+      "sonarjs/no-hardcoded-passwords": "warn",
+      "sonarjs/no-hardcoded-secrets": "warn",
+      "sonarjs/slow-regex": "warn",
       "sonarjs/no-clear-text-protocols": "error",
       "sonarjs/pseudo-random": "error",
       "sonarjs/no-weak-cipher": "error",

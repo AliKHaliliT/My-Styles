@@ -13,6 +13,14 @@ ArchetypeCore is a strict, AI-ready Clean Architecture template for FastAPI serv
 - Migrate: `alembic upgrade head`
 - Docker: `docker-compose up --build -d`
 
+Two of these commands report at two levels. A failure is a verdict, it stops the
+command, and it means a rule the tool fully decides has been broken. A warning is
+advice, it leaves the exit status clean, and it comes from a check that cannot
+decide its own question and so is not allowed to gate. Advice is not noise and
+not optional reading. Every warning is looked at and then either fixed or
+dismissed in writing, in the change that produced it, and a warning is never
+silenced with a suppression comment to make a run look clean. The advisory checks here are the credential heuristics, run as `ruff check --select S105,S106 .`, which read any suggestive string as a possible secret and are wrong often enough that they cannot be a gate.
+
 ## Hard rules
 
 - The Dependency Rule is absolute: `domain` and `services` never import from `api`, `models`, or any framework; data crosses layer boundaries only through translators, a clause no import graph can see, so it is carried in review by the agent writing a change and the human reading it alike. Engines never import from `app/`.
@@ -21,6 +29,7 @@ ArchetypeCore is a strict, AI-ready Clean Architecture template for FastAPI serv
 - The documentation rulebook is owned by the style. [docs/CONVENTIONS.md](docs/CONVENTIONS.md) changes only inside the template itself, in the My-Styles repository and by its owner; a project derived from this template never edits its copy and never diverges from it. A derived project that believes a rule is wrong or missing sends the case upstream instead (see [The upstream report](#the-upstream-report)).
 - No em dashes anywhere: code, docstrings, comments, documentation, commit messages. CI greps every tracked byte for the character; commit messages stay with review.
 - Commit history speaks in the owner's voice alone: no attribution trailers, no Co-Authored-By lines, nothing naming a tool or an assistant in a commit message. Held in review, like every commit-message rule.
+- A check may never imply more than it decides. A green run is a claim, so a check is named for the question it actually settles, and a check that cannot settle its question advises rather than gates. Whatever it leaves undecided is stated beside the rule as review's work, never left to look automated, because the half no tool reaches is the half that rots and it rots faster behind a passing signal. This is why the family carries no coverage threshold, no maturity score, and no metric standing in for a rule it cannot decide.
 - All prose must read as if a person wrote it. Never write the clause-colon splice, a sentence shaped as claim, colon, elaboration; in prose a colon may only introduce a list, a quote, or a label. The softer language-model tells (balanced semicolon antitheses, triadic lists, not-X-but-Y reversals) are fine one at a time and forbidden stacked, so allow at most one flourish per paragraph and keep the rest plain declarative sentences. No tool can judge these, so they are held in review, agent and human alike.
 - Every tracked byte is public prose. Confidential facts, private repository names, deployment details, and the description of what was withheld and why never enter a tracked file or a commit message, even in a private repository, because visibility can flip and history is permanent. Such context goes to the untracked `LOCAL.md` at the root (see [docs/BASELINE.md](docs/BASELINE.md)); read it when it exists, create it when first needed, and when unsure whether a fact is sensitive, ask the owner instead of recording it.
 - Read [STATE.md](STATE.md) before starting work, and sweep it before starting anything new, deleting every entry that describes finished work and re-verifying or deleting any entry the tree no longer confirms. Its entries are claims to verify, not facts. Completing work deletes its entry in the same change, never adds a narration of the landing, and every change ends with a sweep for entries it completed or invalidated.
@@ -48,7 +57,7 @@ Closing a task follows one loop: run the checking commands above, weigh the chan
 - **Intent-split placement**: every documentation change lands in the document whose reader it serves, per the rulebook's species.
 - **Decision records**: any choice made here that would be re-litigated without a record gets one now.
 - **Debt**: every shortcut taken is written in STATE.md before delivery, never carried in memory.
-- **The commands**: every checking command above has passed against the final state of the tree.
+- **The commands**: every checking command above has passed against the final state of the tree, and every advisory finding printed along the way has been read and then fixed or dismissed in writing.
 - **The hard rules**: the change disagrees with no review-held clause of this guide's Hard rules, re-read now, not recalled.
 
 ## The upstream report
