@@ -51,7 +51,7 @@ class WordCountTool:
 
         Returns
         -------
-        str
+        rendered_count : str
             The word count rendered as a string.
 
 

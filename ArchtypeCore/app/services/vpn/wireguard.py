@@ -95,7 +95,7 @@ class WireGuardProvider(IVPNProvider):
 
         Returns
         -------
-        str
+        command_output : str
             The stripped stdout from the command.
 
 
@@ -270,7 +270,7 @@ class WireGuardProvider(IVPNProvider):
 
         Returns
         -------
-        str
+        client_config : str
             The configuration file content.
 
 
@@ -351,7 +351,7 @@ class WireGuardProvider(IVPNProvider):
 
         Returns
         -------
-        list[str]
+        peer_public_keys : list[str]
             A list of peer public keys.
 
 

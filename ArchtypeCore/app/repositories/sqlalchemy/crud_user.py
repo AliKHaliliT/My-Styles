@@ -229,7 +229,7 @@ class CRUDUser(IUserRepository):
             
         Returns
         -------
-        int
+        user_count : int
             The total count of users.
 
 
@@ -257,7 +257,7 @@ class CRUDUser(IUserRepository):
             
         Returns
         -------
-        int
+        near_quota_count : int
             The count of users near their quota.
 
 

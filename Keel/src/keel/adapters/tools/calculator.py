@@ -74,7 +74,7 @@ class CalculatorTool:
 
         Returns
         -------
-        str
+        rendered_result : str
             The numeric result rendered as a string.
 
 
@@ -127,7 +127,7 @@ class CalculatorTool:
 
         Returns
         -------
-        float
+        node_value : float
             The numeric value of the node.
 
 

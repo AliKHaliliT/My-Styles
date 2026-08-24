@@ -60,7 +60,7 @@ def main(argv: list[str] | None = None) -> int:
 
     Returns
     -------
-    int
+    exit_code : int
         0 on completion, 1 on failure, 2 on step-budget exhaustion.
 
 

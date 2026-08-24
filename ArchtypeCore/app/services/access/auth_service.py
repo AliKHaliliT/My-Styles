@@ -103,7 +103,7 @@ class AuthService:
 
         Returns
         -------
-        token : AuthToken
+        AuthToken
             A domain-level schema containing the access token.
 
 

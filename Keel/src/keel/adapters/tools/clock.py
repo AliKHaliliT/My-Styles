@@ -47,7 +47,7 @@ class ClockTool:
 
         Returns
         -------
-        str
+        rendered_time : str
             The current UTC time in ISO 8601 format.
 
 

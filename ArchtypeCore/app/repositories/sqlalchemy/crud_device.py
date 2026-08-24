@@ -238,7 +238,7 @@ class CRUDDevice(IDeviceRepository):
             
         Returns
         -------
-        str
+        next_ip : str
             The next available IP string.
 
 

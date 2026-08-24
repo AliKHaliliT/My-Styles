@@ -90,7 +90,7 @@ class LocalAuthAdapter(IAuthManager):
 
         Returns
         -------
-        bool
+        password_matches : bool
             True if the password is correct, False otherwise.
 
 
@@ -132,7 +132,7 @@ class LocalAuthAdapter(IAuthManager):
             
         Returns
         -------
-        str
+        password_hash : str
             The hashed password string.
 
 
@@ -175,7 +175,7 @@ class LocalAuthAdapter(IAuthManager):
 
         Returns
         -------
-        str
+        access_token : str
             The encoded JWT access token.
 
 
@@ -224,7 +224,7 @@ class LocalAuthAdapter(IAuthManager):
             
         Returns
         -------
-        dict[str, Any] | None
+        payload : dict[str, Any] | None
             The decoded payload data if the token is valid, otherwise None.
 
 
