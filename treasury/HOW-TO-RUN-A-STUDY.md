@@ -2,7 +2,7 @@
 
 The treasury exists so the next design starts from evidence rather than from
 memory, and the method that produces the evidence has to meet the same
-standard. This file is that method, written from the two studies that have run
+standard. This file is that method, written from the three studies that have run
 under it. It is living guidance, rewritten in place as the practice sharpens,
 and it is the only treasury-level guide; guidance on consuming a particular
 study's findings stays beside that study.
@@ -29,14 +29,20 @@ search answers.
    record states how the count was derived. A previous study's shape is not
    a default, because a count carried forward by momentum is the map drawn
    from memory instead of from the terrain.
-2. Enumeration. One pass per territory from the scouted map, each sized so
-   a pass can be exhaustive inside its own borders. Fix the rules of
-   entry in one contract file that every pass reads, rather than restating
-   them per pass, so the entries come back in one shape and can be checked
-   mechanically. Seed each territory with a floor of names showing the
-   expected granularity, and say plainly that the floor is not a ceiling.
-   Every pass writes its section straight to its own file. Nothing of value
-   returns through a summary.
+2. Enumeration. One pass per territory from the scouted map, each sized so a
+   pass can be exhaustive inside its own borders and small enough that its
+   output fits one response. Fix the rules of entry in one contract file that
+   every pass reads, rather than restating them per pass, so the entries come
+   back in one shape and can be checked mechanically. A pass emits names, not
+   finished entries: the name with its aliases, a flag for whether the thing
+   is something a person applies, and a short disambiguator only where a name
+   is obscure or carries a second sense. The gloss is not written here,
+   because a sweep folds away most of what it gathers and the fold rewrites
+   what survives, so a gloss written now is paid for twice. Seed each territory
+   with ten or fifteen names showing the grain rather than a long floor the
+   pass must read and echo back, and say plainly that the seed is not a
+   ceiling. Every pass writes its section straight to its own file, and nothing
+   of value returns through a summary.
 3. Mechanical checks. Run between every stage, never only at the end. The
    checker is written before the work it judges and runs outside the pass that
    produced it, because a pass grading itself reports what it intended.
@@ -49,11 +55,15 @@ search answers.
    completeness test, and so is any published index that claims to be
    complete.
 5. The fold. One pass per family, each holding a hard entry budget. The budget
-   is the instrument, because a fold without one becomes a copy. Two names for
-   one thing are one entry with the alternates riding along, a thing named
-   separately by several cultures is one entry, and a taxonomy nobody needs
-   item by item becomes one entry naming its members. Drop an entry for being
-   unhelpful to a reader who is deciding something, never for being obscure.
+   is the instrument, because a fold without one becomes a copy. This is where
+   the gloss is first written, once, at the final cap and in the final
+   convention, so no definition is ever restyled after the fact. A merged entry
+   names its members rather than describing them, because a described member is
+   a name the reader can no longer find. Two names for one thing are one entry
+   with the alternates riding along, a thing named separately by several
+   cultures is one entry, and a taxonomy nobody needs item by item becomes one
+   entry naming its members. Drop an entry for being unhelpful to a reader who
+   is deciding something, never for being obscure.
 6. Resolution. Where two families claim one name, it goes to the family that
    owns the subject, and the genuine synonyms of the discarded copy are
    carried across. Where one word names two different things, it becomes two
@@ -63,7 +73,8 @@ search answers.
 
 - Banned characters and hedge phrases, since both spread once one pass uses
   them.
-- Entry shape, so every entry opens with its name and defines itself.
+- Entry shape, so every line opens with its name in the form its stage uses,
+  a bare name at the sweep and a full entry at the fold.
 - A gloss cap, enforced at the stage it belongs to rather than globally.
 - Repeated names, scoped to the group rather than the file, so one idea priced
   differently in two contexts is not reported as a duplicate.
@@ -82,7 +93,29 @@ check that cannot fire look identical. And expect the loss audit to be blind
 where the fold kept a name inside another entry's gloss rather than as a
 title, so probe its findings by hand before commissioning any repair.
 
-## What the two studies paid to learn
+## What binds the scaffolding and what binds the record
+
+A study writes two kinds of file, and the family's law reaches them
+differently. The scaffolding is the per-pass sweep, review, and fold working
+files, all untracked and all discarded when the study ends. It is bound only
+by the contract that keeps it machine-readable, the entry shape, the ban on a
+colon inside a gloss, the hedge ban that guards against a pass stopping early,
+and the checks that catch a duplicate or a self-referential entry. It is not
+bound by the house prose style, the dash rules, a case convention, or any
+length budget. A checker may count lines and caps on this material for the
+funnel, but such a count is a measurement rather than a finding, and no pass is
+ever sent to trim or restyle a file that will never ship.
+
+The deliverable is bound in full. From the fold onward, the stage that first
+shapes what the treasury keeps, every byte follows the house prose law and the
+treasury's own rules, because those are the bytes a later reader rereads. What
+governs the split is jurisdiction. A length budget binds the document whose
+budget it is, the prose law binds a tracked byte, and a stage's cap binds the
+stage that declared it, so outside its reach a rule does not apply at all.
+Forgetting that is how a convention written for a living document ends up
+spending tokens on a scratch file nobody will open.
+
+## What the studies paid to learn
 
 - Write to disk first. Interruption at this scale is normal rather than
   exceptional, and a pass that holds its work until the end loses all of it. A
@@ -90,6 +123,16 @@ title, so probe its findings by hand before commissioning any repair.
   already flushed survived.
 - Give a reviewer everything already found, or its additions will restate it.
 - A budget is what makes a fold happen. Instructions to be concise are not.
+- Write the names first and the glosses last. A gloss written at the sweep is
+  paid for twice, once to write and once to discard or reword at the fold, and
+  a study folds away most of what it gathers.
+- Enforce a rule only where it binds. A pass sent to trim glosses in an
+  untracked sweep file does work the fold will throw away, which is a
+  convention reaching past the material it was written for.
+- Size a pass by what it will write, not by what it will read. A repair pass
+  once died against an output limit having written nothing, because its work
+  was larger than one response could hold; split by output, the same work
+  finished.
 - Measure the reviewers instead of believing them. Self-reported error rates
   come back lower than measured ones.
 - A rule written for one stage can be wrong at the next, and the honest fix is
