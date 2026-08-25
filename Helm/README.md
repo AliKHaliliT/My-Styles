@@ -135,6 +135,8 @@ One further rule applies to every piece of prose in the project, from this READM
 
 One rule governs string delimiters in code, and it is general on purpose. Where a language offers a free choice of delimiter with identical semantics, use double quotes, switching only where it avoids escapes; where the delimiters differ in meaning, as they do in SQL or a shell, the meaning decides. The rule binds only where the choice is actually free, which is what lets it hold in every language the family touches without ever fighting a syntax, and where a checker for it exists, the Lint verb carries it.
 
+One rule governs the shape of a code file, and it is judgment rather than a gate. A file holds one idea. A file grown past easy reading is a prompt to ask whether it still does; when its sections have earned names, it is a folder wearing a file's name, and the split follows those names rather than any count, with the segment's `index.ts` keeping the public surface unchanged so no caller pays for the move. Size is the symptom and never the verdict, so no line limit exists for code and none may be added, because a cap would decide by count what only structure can decide and would breed wrapper files written to duck under it. A file with no nameable sections, a generated table or one long linear procedure, is one idea at its honest size and stays whole.
+
 ---
 
 ## License
