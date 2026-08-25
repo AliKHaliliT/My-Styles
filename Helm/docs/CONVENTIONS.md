@@ -49,7 +49,7 @@ Beyond the spine, documentation grows organically. Any further document the proj
 
 ## Rules for records (decision records)
 
-Write a decision record when a choice shapes future work and its reasoning would otherwise be lost: an architectural boundary, a convention, a rejected-but-tempting alternative, a reversal of an earlier decision. Records live in `docs/decisions/`, named `NNNN-short-kebab-title.md` with a zero-padded sequence number, and follow this template:
+Write a decision record when a choice shapes future work and its reasoning would otherwise be lost: an architectural boundary, a convention, a rejected-but-tempting alternative, a reversal of an earlier decision, a dead end. Records live in `docs/decisions/`, named `NNNN-short-kebab-title.md` with a zero-padded sequence number, and follow this template:
 
 ```markdown
 # NNNN. Title stating the decision
@@ -60,6 +60,14 @@ Date: YYYY-MM-DD
 ## Context
 
 The situation that forced a decision, and the constraints that shaped it.
+
+## Evidence
+
+What was run or measured and what came back. This section appears only where
+the decision rests on something measured or run; a record resting on reasoning
+alone omits it. The results the decision rested on are quoted here in full,
+never pointed at, because a record must stay accurate after the tree it
+measured moves on.
 
 ## Options considered
 
@@ -75,6 +83,8 @@ What becomes easier, what becomes harder, and what future work this implies.
 ```
 
 An accepted record is immutable. When a decision changes, write a new record explaining why, and flip the old record's `Status:` line to `Superseded by [NNNN](NNNN-the-new-record.md)`; that status line is the only edit an accepted record may ever receive.
+
+A dead end is written when its evidence arrives, not when work completes. A reverted approach leaves no bytes in the tree, so nothing else will remember it, and the finding is lost exactly when it is most worth keeping. Where the attempt cost real effort or could plausibly be retried, its record names the evidence that killed it, the condition that would reopen it, and the commit that held the attempt, which after the revert is the only surviving proof the attempt existed. Ordinary iteration earns no record; the test is whether someone might plausibly walk back in a month later.
 
 ## Where a "why" belongs
 
