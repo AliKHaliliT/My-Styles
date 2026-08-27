@@ -10,14 +10,16 @@ import-linter.
 
 Like every demo in this family, it is deliberately incomplete in named ways. As
 an arrow it carries only what the inquiry needs, so there is no documentation
-spine, no CI of its own, no command-line entry point, and no packaging metadata
-beyond what the tooling reads; those belong to a real Keel project rather than
-to a demonstration arrow. The permanent gaps are the ones named
-here.
+spine, no CI of its own, no command-line entry point, no packaging metadata
+beyond what the tooling reads, and no baseline dotfiles, since the host's
+copies at the Quiver root govern this tree. This README is a working note
+rather than an instance of Keel's README schema. The gaps above are permanent,
+and the list was drawn by reading Keel's baseline and README schema against
+this tree file by file.
 
 ## Commands
 
-- Install (editable): `pip install -e .` (Python 3.13+; add the tooling with `pip install --group dev`)
+- Install (editable): `pip install -e .` (Python 3.14+; add the tooling with `pip install --group dev`)
 - Test: `pytest`
 - Lint: `ruff check . && lint-imports`
 - Type-check: `mypy src tests`

@@ -1,5 +1,3 @@
-"""The drift experiment the inquiry's claims cite, runnable in one call."""
-
 from dataclasses import dataclass
 from decimal import Decimal
 
@@ -9,23 +7,24 @@ from coinwise.services.accumulation import DriftResult, accumulate
 
 @dataclass(frozen=True)
 class ExperimentReport:
-    """Both strategies' results over one deterministic grid of amounts.
+
+    """
+
+    Both strategies' results over one deterministic grid of amounts.
+
 
     Usage
     -----
-    >>> from coinwise.facade.experiment import run_drift_experiment
-    >>> report = run_drift_experiment(1000)
-    >>> (report.half_up.drift, report.half_even.drift)
-    (Decimal('0.500'), Decimal('0.000'))
+    One call runs the whole experiment; the count fixes the grid, the
+    grid fixes the ties, and the report carries one DriftResult per
+    strategy over the identical amounts.
+    ```python
+    from coinwise.facade.experiment import run_drift_experiment
 
-    Attributes
-    ----------
-    count : int
-        How many grid amounts were accumulated.
-    half_up : DriftResult
-        The accumulation under round-half-up.
-    half_even : DriftResult
-        The accumulation under round-half-even.
+    report = run_drift_experiment(1000)
+    print((report.half_up.drift, report.half_even.drift))
+    ```
+
     """
 
     count: int
@@ -34,51 +33,69 @@ class ExperimentReport:
 
 
 def grid_amounts(count: int) -> list[Decimal]:
-    """Build the deterministic three-decimal amount grid.
+
+    """
+
+    Builds the deterministic three-decimal amount grid.
 
     The grid is every multiple of a tenth of a cent from one count
     upward, so its tie density is fixed by construction at one in ten
     and every run is exactly reproducible with no seed.
+
 
     Parameters
     ----------
     count : int
         How many amounts to generate.
 
+
     Returns
     -------
     list[Decimal]
-        amounts: the values i divided by one thousand for i from 1 to
-        count, each carrying exactly three decimal places.
+        The values i divided by one thousand for i from 1 to `count`,
+        each carrying exactly three decimal places.
+
 
     Raises
     ------
     ValueError
-        If count is smaller than one.
+        If `count` is smaller than one.
+
     """
+
     if count < 1:
-        raise ValueError("count must be at least 1")
+        raise ValueError(f"count must be at least 1. Received: {count} with type {type(count)}")
+
+
     return [Decimal(i) / 1000 for i in range(1, count + 1)]
 
 
 def run_drift_experiment(count: int) -> ExperimentReport:
-    """Accumulate one grid under both strategies and report the drifts.
+
+    """
+
+    Accumulates one grid under both strategies and reports the drifts.
+
 
     Parameters
     ----------
     count : int
         How many grid amounts to accumulate.
 
+
     Returns
     -------
     ExperimentReport
         Both strategies' totals, drifts, and the shared tie count.
 
+
     Raises
     ------
     ValueError
-        If count is smaller than one.
+        If `count` is smaller than one.
+
     """
+
     amounts = grid_amounts(count)
     return ExperimentReport(
         count=count,

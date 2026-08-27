@@ -81,7 +81,7 @@ keel/
 
 ### 1. Local Development (Python)
 
-Ensure you have Python 3.13+ installed.
+Ensure you have Python 3.14+ installed.
 
 ```bash
 # Clone the repository
@@ -160,7 +160,7 @@ One rule governs string delimiters in code, and it is general on purpose. Where 
 
 One rule governs the shape of a code file, and it is judgment rather than a gate. A file holds one idea. A file grown past easy reading is a prompt to ask whether it still does; when its sections have earned names, it is a folder wearing a file's name, and the split follows those names rather than any count, with a re-exporting `__init__.py` keeping the import surface unchanged so no caller pays for the move. Size is the symptom and never the verdict, so no line limit exists for code and none may be added, because a cap would decide by count what only structure can decide and would breed wrapper files written to duck under it. A file with no nameable sections, a generated table or one long linear procedure, is one idea at its honest size and stays whole.
 
-One rule governs the Python version story. The floor in `pyproject.toml`, the classifiers, the linter and type-checker targets, and the CI pin all tell one story, and the story claims only the interpreter CI actually executes. A real package widens the floor for its users by adding that floor to the CI matrix, so the claim grows exactly as far as the proof does. In the same spirit the test suite treats every warning as an error, because a deprecation warning is a removal notice at least two releases early, and hearing it today buys an unhurried fix instead of a broken upgrade.
+One rule governs the Python version story. The floor in `pyproject.toml`, the classifiers, the linter and type-checker targets, and the CI pin all tell one story, the docs audit holds every floor claim in living prose to that same number, and the story claims only the interpreter CI actually executes. A real package widens the floor for its users by adding that floor to the CI matrix, so the claim grows exactly as far as the proof does. In the same spirit the test suite treats every warning as an error, because a deprecation warning is a removal notice at least two releases early, and hearing it today buys an unhurried fix instead of a broken upgrade.
 
 ---
 

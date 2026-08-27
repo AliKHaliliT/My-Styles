@@ -1,5 +1,3 @@
-"""Accumulate rounded amounts and measure the drift a strategy leaves behind."""
-
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from decimal import Decimal
@@ -9,29 +7,29 @@ from coinwise.domain.rounding import is_tie
 
 @dataclass(frozen=True)
 class DriftResult:
-    """What one strategy did to one stream of amounts.
+
+    """
+
+    What one strategy did to one stream of amounts.
+
 
     Usage
     -----
-    >>> from decimal import Decimal
-    >>> from coinwise.domain.rounding import round_half_up
-    >>> from coinwise.services.accumulation import accumulate
-    >>> result = accumulate([Decimal("0.005"), Decimal("0.015")], round_half_up)
-    >>> (result.drift, result.tie_count)
-    (Decimal('0.010'), 2)
+    The totals come from `accumulate`, which sums a stream twice, once
+    rounding each amount with the strategy under test and once exactly.
+    Drift is the rounded total minus the exact total, so a positive
+    drift means the strategy overstated the ledger, and the tie count
+    says how many amounts could have gone either way.
+    ```python
+    from decimal import Decimal
 
-    Attributes
-    ----------
-    rounded_total : Decimal
-        The sum of the amounts after each was rounded to cents.
-    exact_total : Decimal
-        The sum of the amounts with no rounding at all.
-    drift : Decimal
-        The rounded total minus the exact total, the error the
-        strategy accumulated.
-    tie_count : int
-        How many amounts sat exactly halfway between two cents, the
-        only inputs on which strategies can differ.
+    from coinwise.domain.rounding import round_half_up
+    from coinwise.services.accumulation import accumulate
+
+    result = accumulate([Decimal("0.005"), Decimal("0.015")], round_half_up)
+    print((result.drift, result.tie_count))
+    ```
+
     """
 
     rounded_total: Decimal
@@ -44,7 +42,11 @@ def accumulate(
     amounts: Iterable[Decimal],
     strategy: Callable[[Decimal], Decimal],
 ) -> DriftResult:
-    """Sum a stream of amounts twice, rounded per item and exactly.
+
+    """
+
+    Sums a stream of amounts twice, rounded per item and exactly.
+
 
     Parameters
     ----------
@@ -53,15 +55,19 @@ def accumulate(
     strategy : Callable[[Decimal], Decimal]
         The rounding applied to each amount before the rounded sum.
 
+
     Returns
     -------
     DriftResult
         Both totals, their difference, and the tie count.
 
+
     Raises
     ------
     None.
+
     """
+
     rounded_total = Decimal("0")
     exact_total = Decimal("0")
     tie_count = 0
@@ -70,6 +76,8 @@ def accumulate(
         exact_total += amount
         if is_tie(amount):
             tie_count += 1
+
+
     return DriftResult(
         rounded_total=rounded_total,
         exact_total=exact_total,

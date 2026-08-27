@@ -4,7 +4,7 @@ Keel is a strict, AI-ready Clean Architecture template for installable Python pa
 
 ## Commands
 
-- Install (editable): `pip install -e .` (Python 3.13+; add the tooling with `pip install --group dev`, and the LLM adapter with `pip install -e ".[gemini]"`; if an import fails after the tree moves, check where the editable install points with `pip list` before debugging code)
+- Install (editable): `pip install -e .` (Python 3.14+; add the tooling with `pip install --group dev`, and the LLM adapter with `pip install -e ".[gemini]"`; if an import fails after the tree moves, check where the editable install points with `pip list` before debugging code)
 - Run the offline demo: `keel "calculate (2 + 3) * 4"` or `python -m keel "count words in the quick brown fox" --show-trace`
 - Test: `pytest`
 - Lint: `ruff check . && lint-imports` (ruff checks style and docstring presence; import-linter checks the Dependency Rule)

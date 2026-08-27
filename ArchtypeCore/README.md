@@ -88,7 +88,7 @@ archetype-core/
 
 ### 1. Local Development (Python)
 
-Ensure you have Python 3.13+ installed.
+Ensure you have Python 3.14+ installed.
 
 ```bash
 # Clone the repository

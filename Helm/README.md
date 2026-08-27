@@ -81,7 +81,7 @@ helm/
 
 ### 1. Local Development
 
-Ensure you have Node.js 20.19+ installed.
+Ensure you have Node.js 24+ installed.
 
 ```bash
 # Clone the repository

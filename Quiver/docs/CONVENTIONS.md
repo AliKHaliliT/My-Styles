@@ -57,7 +57,7 @@ A claim is the inquiry's unit of knowledge: one assertion, its evidence, and the
 
 - `Status:` one of `Conjecture`, `Supported`, `Refuted`, `Stale`, or `Superseded by NNNN`, then `Date:`.
 - **Claim.** The assertion in plain words, and who it must convince.
-- **Evidence.** What ran, in which arrow at which pinned commit, and the results quoted in full, never pointed at; `None.` for a conjecture. A pin is written as `arrows/<name> at <commit-hash>` and names the host commit whose tree produced the results.
+- **Evidence.** What ran, in which arrow at which pinned commit, and the results quoted in full, never pointed at; `None.` for a conjecture. A pin is written as `arrows/<name> at <commit-hash>` and names the host commit whose tree produced the results. Evidence gathered by reading rather than running quotes the source's numbers or words in full and cites its bibliography key, and it carries no pin, since no tree produced it.
 - **Threats.** The named threats and biases most endangering this claim, each with what was done about it or the concession that nothing was.
 
 A claim record is immutable and the `Status:` line is its only legal edit. The trigger for writing or flipping one is evidence arriving or a claim moving, never work completing. A refuted claim names the evidence that killed it, the condition that would reopen it, and the pin that held the attempt. `Stale` means an arrow moved past a claim's pin, so the claim is no longer backed rather than wrong; a person flips it, prompted by the audit's advisory, and the way back is a re-run at a new pin or a superseding claim. Any completeness assertion inside a claim names the enumerable boundary it exhausted or presents itself as judgment.
@@ -84,4 +84,4 @@ Spine and organic documents use UPPERCASE basenames at predictable locations. De
 
 ## Code inside arrows
 
-This project's inquiry layer carries no code beyond `scripts/audit_inquiry.py`. Code lives in arrows, and each arrow's docstring, testing, and layout rules are its own style's, stated in that style's README and rulebook.
+This project's inquiry layer carries no code beyond `scripts/audit_inquiry.py`. Code lives in arrows, and each arrow's docstring, testing, and layout rules are its own style's, stated in that style's README and rulebook. An arrow is begun by transplanting the nearest exemplar files from its style and rewriting their words, never by writing fresh from a rule summary. A rulebook names what must exist; only the style's own bytes carry its dialect, so review of a new arrow reads it beside the exemplars it was cut from.

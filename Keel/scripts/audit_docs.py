@@ -3,7 +3,7 @@
 A living document rots when a sentence that was true at writing stops being true after
 reality moves through a path that never touches the file. The mechanical kinds of rot are
 checked here, along with the shapes the rulebook fixes: budgets, the index contract, names,
-the STATE schema, and the Python layout conventions. Decision records are exempt because
+the STATE schema, the version floor claims, and the Python layout conventions. Decision records are exempt because
 they describe the past, which does not rot.
 """
 
@@ -41,6 +41,9 @@ FENCE = re.compile(r"```[^\n]*\n(.*?)```", re.DOTALL)
 DOTTED_MODULE = re.compile(r"[a-z_][a-z0-9_]*(?:\.[a-z_][a-z0-9_]*)+")
 TREE_FILE = re.compile(r"[A-Za-z0-9_\-]+(?:\.[A-Za-z0-9_\-]+)+")
 SKIP_DIRS = {".git", "node_modules", "__pycache__", ".ruff_cache", ".venv", "dist", "build"}
+# Only a claim with the trailing plus is a floor claim; a bare version mention could be
+# talking about anything, and a check may never imply more than it decides.
+FLOOR_CLAIM = re.compile(r"Python (\d+\.\d+)\+")
 
 
 def looks_like_path(token: str) -> bool:
@@ -222,12 +225,39 @@ def check_layout(problems: list[str]) -> None:
                     break
 
 
+def declared_python() -> str | None:
+    """The version ruff's target-version pins, which is the tree's one number."""
+    pyproject = ROOT / "pyproject.toml"
+    if not pyproject.exists():
+        return None
+    match = re.search(r'target-version = "py(\d)(\d+)"', pyproject.read_text(encoding="utf-8"))
+    return f"{match.group(1)}.{match.group(2)}" if match else None
+
+
+def check_version_story(problems: list[str]) -> None:
+    """Every floor claim in living prose names the version the tree declares."""
+    declared = declared_python()
+    if declared is None:
+        return
+    for rel in LIVING:
+        path = ROOT / rel
+        if not path.exists():
+            continue
+        problems.extend(
+            f"{rel}: claims Python {claimed}+ while the tree declares {declared};"
+            " the version story is one number"
+            for claimed in FLOOR_CLAIM.findall(path.read_text(encoding="utf-8"))
+            if claimed != declared
+        )
+
+
 def main() -> int:
     """Run every check and report each disagreement between the tree and its conventions."""
     problems: list[str] = []
     check_documents(problems)
     check_docs_zone(problems)
     check_layout(problems)
+    check_version_story(problems)
 
     for problem in problems:
         print(problem)

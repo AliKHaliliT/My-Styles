@@ -4,7 +4,7 @@ Helm is a strict, AI-ready template for client-side web applications (React, Vit
 
 ## Commands
 
-- Install: `npm install` (Node 20.19+; also regenerates the untracked msw worker in `public/`)
+- Install: `npm install` (Node 24+; also regenerates the untracked msw worker in `public/`)
 - Run the offline demo: `npm run dev` (sign in with username "harbormaster", password "saltmere")
 - Test: `npm test`
 - Lint: `npm run lint` (never auto-fix `jsdoc/require-jsdoc`; its generated stubs come out mangled, so doc comments are written by hand)
