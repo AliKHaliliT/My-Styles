@@ -20,9 +20,10 @@ kind a maintainer decides by recollection unless someone runs it.
 
 ## The decomposition
 
-- Open, held as [claim 0001](claims/0001-tie-breaking-choice-is-negligible-at-scale.md):
-  over a deterministic grid of ten thousand three-decimal amounts, the choice
-  between the two rules moves the accumulated total by less than one cent.
+- Settled. The negligibility conjecture is refuted in
+  [claim 0002](claims/0002-the-tie-rule-moves-the-total-by-dollars-not-cents.md),
+  and what the evidence supports is held in
+  [claim 0003](claims/0003-half-even-cancels-the-drift-that-half-up-accumulates.md).
   The experiment lives in the [coinwise](../arrows/coinwise/) arrow.
 - Not yet conjectured: how the answer changes when amounts carry more than
   three decimals, and how tie density behaves on real price distributions

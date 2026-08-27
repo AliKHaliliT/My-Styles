@@ -7,4 +7,5 @@
   implementing both rounding strategies and the deterministic drift
   experiment.
 - **Claims resting on it**:
-  [0001](../claims/0001-tie-breaking-choice-is-negligible-at-scale.md).
+  [0002](../claims/0002-the-tie-rule-moves-the-total-by-dollars-not-cents.md) and
+  [0003](../claims/0003-half-even-cancels-the-drift-that-half-up-accumulates.md).

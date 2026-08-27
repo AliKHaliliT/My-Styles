@@ -1,6 +1,6 @@
 # 0001. Tie-breaking choice is negligible at scale
 
-Status: Conjecture
+Status: Superseded by 0002
 Date: 2026-08-27
 
 ## Claim

@@ -103,9 +103,14 @@ def check_records(problems: list[str], root: Path) -> None:
                         problems.append(f"{rel}: section {section!r} missing")
                 body = text.split("## Evidence", 1)[-1].split("##", 1)[0].strip()
                 is_conjecture = any(l == "Status: Conjecture" for l in lines)
+                # A superseded record is exempt on both sides. Its evidence lives in
+                # its superseder, because immutability forbids a conjecture ever
+                # gaining evidence in place. The owner approved this rule after the
+                # check wrongly failed the first settled conjecture.
+                is_superseded = any(l.startswith("Status: Superseded by") for l in lines)
                 if is_conjecture and body != "None.":
                     problems.append(f"{rel}: a Conjecture carries evidence; support it or empty it")
-                if not is_conjecture and body == "None.":
+                if not is_conjecture and not is_superseded and body == "None.":
                     problems.append(f"{rel}: a settled claim has no evidence")
                 if any(l.startswith("Status: Refuted") for l in lines) and "eopen" not in text:
                     problems.append(f"{rel}: a Refuted claim names no reopening condition")
@@ -184,6 +189,14 @@ PLANTS = [
     ("docs/arrows/ghost.md", "# Arrow: ghost\n", "does not exist"),
 ]
 
+# A superseded conjecture keeps Evidence None. and must PASS, or this checker
+# would force evidence into an immutable record to earn a clean run.
+LEGAL_PLANTS = [
+    ("docs/claims/0005-planted-legal.md",
+     "# 0005. Planted legal\n\nStatus: Superseded by 0002\nDate: 2026-01-01\n\n"
+     "## Claim\n\nx.\n\n## Evidence\n\nNone.\n\n## Threats\n\n- None named.\n"),
+]
+
 
 def selftest() -> int:
     """Prove each rule fires against a planted defect, then leave no trace."""
@@ -196,6 +209,16 @@ def selftest() -> int:
             if not any(expect in p for p in problems):
                 failures += 1
                 print(f"WRONG: plant {rel} did not raise {expect!r}")
+        finally:
+            target.unlink()
+    for rel, content in LEGAL_PLANTS:
+        target = ROOT / rel
+        target.write_text(content, encoding="utf-8")
+        try:
+            legal_problems, _ = run(ROOT)
+            if legal_problems:
+                failures += 1
+                print(f"WRONG: legal plant {rel} raised {legal_problems[:2]}")
         finally:
             target.unlink()
     baseline, _ = run(ROOT)
