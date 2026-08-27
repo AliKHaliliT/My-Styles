@@ -28,7 +28,7 @@ BLOCKS = [
     ),
     (
         "the upstream report",
-        ["ArchtypeCore/AGENTS.md", "Keel/AGENTS.md", "Helm/AGENTS.md"],
+        ["ArchtypeCore/AGENTS.md", "Keel/AGENTS.md", "Helm/AGENTS.md", "Quiver/AGENTS.md"],
         "## The upstream report",
         "## Documentation index",
     ),

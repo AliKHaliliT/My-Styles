@@ -1,0 +1,70 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "coinwise"
+# An arrow serves an inquiry rather than consumers: it versions no releases.
+version = "0.0.1"
+description = "A Keel-style library arrow measuring rounding drift in monetary accumulation."
+readme = "README.md"
+requires-python = ">=3.13"
+authors = [
+    { name = "Ali Khalili Tazehkandgheshlagh" },
+]
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "ruff",
+    "mypy",
+    "import-linter",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/coinwise"]
+
+[tool.isort]
+known_first_party = ["coinwise"]
+src_paths = ["src", "tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+
+[tool.ruff.lint]
+# The D codes check docstring presence only, never format, because the docstring rhythm is
+# the house's own; the shape rules live in Keel's README Conventions, which this arrow
+# follows. PGH keeps every ignore honest: a suppression names the exact code it silences.
+select = ["E", "F", "B", "UP", "Q", "PGH", "PERF", "C4", "S", "RET504", "D101", "D102", "D103", "D107"]
+# The credential heuristics cannot decide their own question and may not gate; they run as
+# advice through `ruff check --select S105,S106 .` per the family's checking rules.
+ignore = ["E501", "S105", "S106"]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
+# Suites document themselves through case names and assertions, and assert for a living.
+"tests/**" = ["D101", "D102", "D103", "D107", "S101"]
+
+# import-linter machine-checks the Dependency Rule. The layer directories are bare
+# namespace packages by convention, so they are listed as portions.
+[tool.importlinter]
+root_packages = [
+    "coinwise.domain",
+    "coinwise.services",
+    "coinwise.facade",
+]
+
+[[tool.importlinter.contracts]]
+name = "The Dependency Rule points one way"
+type = "layers"
+layers = ["coinwise.facade", "coinwise.services", "coinwise.domain"]
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+implicit_reexport = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

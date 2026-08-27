@@ -25,6 +25,10 @@ Happy coding!
   - Topics: Client-Side SPA, One-Way Sliced Layers (after Feature-Sliced Design), Guarded Wire Boundary, React 19, TypeScript, Vite, TanStack Query, Zustand, zod, MSW
   - Description: A strict, AI-ready template for client-side web applications, splitting the server cache from client state behind a schema-checked wire boundary, demonstrated on a harbormaster-console domain.
   - Date: August 3, 2026
+- [Quiver](https://github.com/AliKHaliliT/My-Styles/tree/main/Quiver)
+  - Topics: Research-Backed Projects, Inquiry Template, Claim Ledger, Evidence Pinning, Host Architecture, Vendored Arrows, Proportional Rigor, Python Audit Tooling
+  - Description: A strict, AI-ready host template for research-backed projects, keeping a question, its claims, and their pinned evidence at the root while complete instances of the artifact styles produce the evidence as arrows under their own law, demonstrated on a rounding-drift inquiry.
+  - Date: August 27, 2026
 
 ## Treasury
 

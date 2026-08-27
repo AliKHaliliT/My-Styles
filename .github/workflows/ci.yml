@@ -113,6 +113,40 @@ jobs:
       - name: Test
         run: pytest
 
+
+  quiver:
+    name: Quiver
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Quiver
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          # Claim pins are verified against history, so the clone cannot be shallow.
+          fetch-depth: 0
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: "3.14"
+      - name: Audit selftest
+        run: python scripts/audit_inquiry.py --selftest
+      - name: Audit
+        run: python scripts/audit_inquiry.py
+      - name: Install the demo arrow
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e arrows/coinwise
+          python -m pip install --group arrows/coinwise/pyproject.toml:dev
+      - name: Arrow lint
+        run: cd arrows/coinwise && ruff check . && lint-imports
+      - name: Arrow credential heuristics, advisory
+        continue-on-error: true
+        run: cd arrows/coinwise && ruff check --select S105,S106 .
+      - name: Arrow type-check
+        run: cd arrows/coinwise && mypy src tests
+      - name: Arrow test
+        run: cd arrows/coinwise && pytest
+
   helm:
     name: Helm
     runs-on: ubuntu-latest
