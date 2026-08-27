@@ -22,6 +22,9 @@ through them.
 [Study 0003's](0003-security-vocabulary/HOW-TO-USE.md) covers why the threat
 model has to be settled before any of its priced entries can be weighed, and
 the order to move through its families.
+[Study 0004's](0004-research-methodology-vocabulary/HOW-TO-USE.md) covers why
+the price a method names is the finding rather than a decoration, and how to look
+a name up rather than reading the vocabulary through.
 
 Before running a new study, read [the method](HOW-TO-RUN-A-STUDY.md). It
 carries the six stages, the checks to write between them, and what the
@@ -35,6 +38,7 @@ method rather than from anyone's recollection of the last one.
 | [0001-primitive-reduction](0001-primitive-reduction/) | 2026-08-11 | 14,765 named software engineering concepts reduced to 125 primitive operations |
 | [0002-optimization-vocabulary](0002-optimization-vocabulary/) | 2026-08-17 | 9,188 named optimization concepts folded to a 1,272 entry vocabulary in six families |
 | [0003-security-vocabulary](0003-security-vocabulary/) | 2026-08-22 | 13,764 named security concepts folded to a 1,996 entry vocabulary in eight families |
+| [0004-research-methodology-vocabulary](0004-research-methodology-vocabulary/) | 2026-08-27 | 22,924 named research-methodology concepts folded to a 2,908 entry vocabulary in thirteen families |
 
 ## Family rulings
 
@@ -52,6 +56,7 @@ check this folder; the question may already be settled.
 | [0003](decisions/0003-adopt-optimizations-discipline-and-leave-its-techniques.md) | Study 0002's disposition: two gate items and free-win lints in, every priced technique out |
 | [0004](decisions/0004-let-the-index-do-what-skill-files-do.md) | Skill files refused; the agent guide and the index already form the two loading tiers |
 | [0005](decisions/0005-take-security-s-unconditional-core-and-refuse-its-priced-bulk.md) | Study 0003's disposition: one gate item and the mechanical lints in, every priced mechanism out |
+| [0006](decisions/0006-hold-research-methodology-for-the-seat-it-was-gathered-for.md) | Study 0004's disposition: the vocabulary enters no style, and what it hands the research seat it was gathered for |
 
 ## Rules of the folder
 

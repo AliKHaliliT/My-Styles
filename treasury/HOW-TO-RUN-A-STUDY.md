@@ -2,7 +2,7 @@
 
 The treasury exists so the next design starts from evidence rather than from
 memory, and the method that produces the evidence has to meet the same
-standard. This file is that method, written from the three studies that have run
+standard. This file is that method, written from the four studies that have run
 under it. It is living guidance, rewritten in place as the practice sharpens,
 and it is the only treasury-level guide; guidance on consuming a particular
 study's findings stays beside that study.
@@ -117,6 +117,62 @@ spending tokens on a scratch file nobody will open.
 
 ## What the studies paid to learn
 
+- Write the names first and the glosses last, and this now has evidence. The
+  applied-or-definitional flag a sweep records survives four stages and still
+  shapes the deliverable, so naming first loses nothing.
+- An exhaustion claim is worth only what its boundary is worth. A pass claiming
+  it finished a list someone else published and numbered is usually honest and
+  always checkable. A pass claiming it finished a region it drew itself is
+  reporting only that it stopped finding names, and every such claim tested has
+  been false. Never record the second kind as a finding.
+- Verifying claims measures fidelity, not coverage. One territory verified
+  thirteen of fourteen claimed lists true while eight equally closed published
+  lists it never opened were wholly absent. Send a reviewer to find the lists the
+  sweep never named, because that is where the names are.
+- Hunt the enumerated interior. A pass enters a source's headline vocabulary and
+  stops at the numbered list one level down, then feels it covered the source.
+  One pass took seven category names from a document and missed a hundred and ten
+  items beneath them while taking a different interior of the same document to
+  its leaves.
+- Check whether the study entered the documents it read. A pass treats a source
+  as the frame it looks through rather than an object it can name, so the
+  document's own name never becomes an entry. Part of the cause is a name clash,
+  since a work often shares a name with the concept it introduced, and the slot
+  looks filled.
+- A fold budget limits ideas, not names. Survival across families folding at one
+  budget ranged from 38 to 95 percent, and alternate names carried per entry
+  explained it at a correlation of 0.95, because an entry carries unlimited
+  alternates at no cost while a gloss is bound by its word cap. Exhaust the
+  alternate list before compressing anything into prose.
+- Name a member in the form a reader will search. A gloss listing four canons as
+  bare adjectives holds all four and matches none of their real names. An
+  alternate name is stored in lookup form by construction, which is why members
+  belong there. A neighbour is not an alternate name and an opposite certainly is
+  not.
+- Search alternates and gloss text in the loss audit, never headwords alone. An
+  audit reading headwords reports a hole for every named member and its output is
+  worthless.
+- Expect the fold to create conflations, because merging is what it does. Twenty
+  six were found in one study, each one a well-formed entry whose parent was
+  wrong. Expect a drop to leak too: a struck item's claim can migrate into a
+  neighbouring gloss and read as that entry's own content.
+- A catalogue built from held knowledge preserves superseded editions silently.
+  Check the current edition wherever an entry names a standard, a code or a
+  guideline.
+- A check that makes a pass damage the work is worse than no check. Ten
+  instrument defects in one study all had one shape, a pattern assuming something
+  real data violates, and the two that mattered made passes rename real concepts
+  and delete a real name to earn a clean run. Name every repair item rather than
+  its count, or whoever inherits the repair cannot verify it.
+- Tell every pass that a warning is answered rather than avoided. Passes that met
+  a non-gating advisory silenced it, one editing an entry purely to stop the note
+  firing.
+- The count of cross-family duplicates measures how well the FAMILIES were drawn,
+  not how well the fold merged. A resolution stage ruling mostly one-home is
+  reporting that its families overlap.
+- Write to disk first, and flush per group. This is the oldest scar in the guide
+  and it saved a study: six fold passes were killed mid-write by a spend limit
+  and ninety percent of their work was already on disk.
 - Write to disk first. Interruption at this scale is normal rather than
   exceptional, and a pass that holds its work until the end loses all of it. A
   spend limit once ended five reviewers in the same minute, and only the work
