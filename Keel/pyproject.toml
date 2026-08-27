@@ -8,7 +8,7 @@ name = "keel"
 version = "0.0.1"
 description = "A strict, AI-ready Clean Architecture template for Python packages."
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.14"
 license = "MIT"
 authors = [
     { name = "Ali Khalili Tazehkandgheshlagh" },
@@ -25,7 +25,7 @@ classifiers = [
     "Intended Audience :: Developers",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Typing :: Typed",
 ]
 dependencies = [
@@ -61,7 +61,7 @@ src_paths = ["src", "tests"]
 
 [tool.ruff]
 line-length = 100
-target-version = "py313"
+target-version = "py314"
 
 [tool.ruff.lint]
 # The D codes check docstring presence only, never format, because the docstring rhythm is
@@ -115,7 +115,7 @@ type = "layers"
 layers = ["keel.facade", "keel.services", "keel.domain"]
 
 [tool.mypy]
-python_version = "3.13"
+python_version = "3.14"
 strict = true
 plugins = ["pydantic.mypy"]
 implicit_reexport = true
@@ -127,3 +127,7 @@ ignore_missing_imports = true
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
+# A deprecation warning is a removal notice at least two releases early, so it gates here
+# rather than scrolling past unread. Any exception is a named ignore for one specific
+# message with a reason beside it, never a blanket.
+filterwarnings = ["error"]

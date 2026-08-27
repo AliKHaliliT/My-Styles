@@ -8,7 +8,7 @@ name = "coinwise"
 version = "0.0.1"
 description = "A Keel-style library arrow measuring rounding drift in monetary accumulation."
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.14"
 authors = [
     { name = "Ali Khalili Tazehkandgheshlagh" },
 ]
@@ -31,7 +31,7 @@ src_paths = ["src", "tests"]
 
 [tool.ruff]
 line-length = 100
-target-version = "py313"
+target-version = "py314"
 
 [tool.ruff.lint]
 # The D codes check docstring presence only, never format, because the docstring rhythm is
@@ -62,9 +62,13 @@ type = "layers"
 layers = ["coinwise.facade", "coinwise.services", "coinwise.domain"]
 
 [tool.mypy]
-python_version = "3.13"
+python_version = "3.14"
 strict = true
 implicit_reexport = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# A deprecation warning is a removal notice at least two releases early, so it gates here
+# rather than scrolling past unread. Any exception is a named ignore for one specific
+# message with a reason beside it, never a blanket.
+filterwarnings = ["error"]

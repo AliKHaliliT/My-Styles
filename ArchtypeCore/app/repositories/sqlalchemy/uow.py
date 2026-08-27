@@ -72,7 +72,7 @@ class SQLAlchemyUnitOfWork(IUnitOfWork):
         self.session: AsyncSession | None = None
 
 
-    async def __aenter__(self) -> "SQLAlchemyUnitOfWork":
+    async def __aenter__(self) -> SQLAlchemyUnitOfWork:
 
         """
 

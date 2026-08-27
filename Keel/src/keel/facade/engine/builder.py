@@ -73,7 +73,7 @@ class EngineBuilder:
         self._discover_plugins: bool = False
 
 
-    def with_reasoner(self, reasoner: IReasoner) -> "EngineBuilder":
+    def with_reasoner(self, reasoner: IReasoner) -> EngineBuilder:
 
         """
 
@@ -107,7 +107,7 @@ class EngineBuilder:
         return self
 
 
-    def with_memory(self, memory: IMemory) -> "EngineBuilder":
+    def with_memory(self, memory: IMemory) -> EngineBuilder:
 
         """
 
@@ -141,7 +141,7 @@ class EngineBuilder:
         return self
 
 
-    def with_event_sink(self, events: IEventSink) -> "EngineBuilder":
+    def with_event_sink(self, events: IEventSink) -> EngineBuilder:
 
         """
 
@@ -175,7 +175,7 @@ class EngineBuilder:
         return self
 
 
-    def with_config(self, config: EngineConfig) -> "EngineBuilder":
+    def with_config(self, config: EngineConfig) -> EngineBuilder:
 
         """
 
@@ -209,7 +209,7 @@ class EngineBuilder:
         return self
 
 
-    def with_tool(self, tool: ITool) -> "EngineBuilder":
+    def with_tool(self, tool: ITool) -> EngineBuilder:
 
         """
 
@@ -243,7 +243,7 @@ class EngineBuilder:
         return self
 
 
-    def without_default_tools(self) -> "EngineBuilder":
+    def without_default_tools(self) -> EngineBuilder:
 
         """
 
@@ -271,7 +271,7 @@ class EngineBuilder:
         return self
 
 
-    def with_discovered_tools(self) -> "EngineBuilder":
+    def with_discovered_tools(self) -> EngineBuilder:
 
         """
 

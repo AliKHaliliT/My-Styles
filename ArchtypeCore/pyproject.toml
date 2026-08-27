@@ -5,7 +5,7 @@
 
 [tool.ruff]
 line-length = 100
-target-version = "py313"
+target-version = "py314"
 
 [tool.ruff.lint]
 # The D codes check docstring presence only, never format, because the docstring rhythm is
@@ -64,7 +64,7 @@ type = "layers"
 layers = ["app.api", "app.services", "app.domain"]
 
 [tool.mypy]
-python_version = "3.13"
+python_version = "3.14"
 # Strict, with the re-export doors kept implicit because an __init__.py here is a door by
 # convention and the checker's explicit-door dialect is not the house's.
 strict = true
@@ -87,3 +87,7 @@ testpaths = ["tests"]
 # The application is run in place rather than installed, so the suite needs the repository
 # root on the import path to reach `app`.
 pythonpath = ["."]
+# A deprecation warning is a removal notice at least two releases early, so it gates here
+# rather than scrolling past unread. Any exception is a named ignore for one specific
+# message with a reason beside it, never a blanket.
+filterwarnings = ["error"]

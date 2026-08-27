@@ -159,7 +159,7 @@ class FakeUnitOfWork:
         self.commits = 0
         self.rollbacks = 0
 
-    async def __aenter__(self) -> "FakeUnitOfWork":
+    async def __aenter__(self) -> FakeUnitOfWork:
         return self
 
     async def __aexit__(self, exc_type: Any, exc_val: Any, traceback: Any) -> None:
