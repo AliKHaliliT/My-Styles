@@ -13,17 +13,17 @@ Helm is a strict, AI-ready template for client-side web applications (React, Vit
 - Build: `npm run build`
 - Preview the build: `npm run preview`
 
-Two of these commands report at two levels. A failure is a verdict, it stops the
+The checks report at two levels. A failure is a verdict, it stops the
 command, and it means a rule the tool fully decides has been broken. A warning is
 advice, it leaves the exit status clean, and it comes from a check that cannot
 decide its own question and so is not allowed to gate. Advice is not noise and
 not optional reading. Every warning is looked at and then either fixed or
 dismissed in writing, in the change that produced it, and a warning is never
-silenced with a suppression comment to make a run look clean. The advisory checks here are the credential and regular-expression heuristics in the lint configuration, which guess from the shape of a string or a pattern and are wrong often enough that they cannot be a gate.
+silenced with a suppression comment to make a run look clean. The advisory checks here are the credential and regular-expression heuristics in the lint configuration, which guess from the shape of a string or a pattern and are wrong often enough that they cannot be a gate, and the prose-vocabulary grep in CI, which reads an honest domain term the same as a tell and so advises for review.
 
 ## Hard rules
 
-- The layer rule is absolute: imports point downward through `app -> pages -> features -> entities -> shared`, never up or sideways. A slice is entered only through its `index.ts` (tests excepted), same-layer slices never import each other, and `src/mocks` is imported only by the bootstrap and the test setup.
+- The layer rule is absolute: imports point downward through `app -> pages -> features -> entities -> shared`, never up or sideways. A slice is entered only through its `index.ts` (tests excepted), same-layer slices never import each other, and `src/mocks` is imported only by the bootstrap and by tests.
 - All HTTP goes through `shared/api`'s `request` with a zod schema; components never call `fetch`, and raw DTOs never leave their entity slice untranslated.
 - Server data lives in the TanStack Query cache only, keyed in each entity's `queries.ts`; never copy query data into a store. Client state (session, theme, drafts, filters) lives in small Zustand stores or component state.
 - Colors and status tones come only from the token utilities defined in `src/app/styles/tokens.css` (`bg-surface`, `text-ink`, `text-signal`, and so on); raw palette classes are off limits.

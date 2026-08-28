@@ -27,7 +27,8 @@ kind a maintainer decides by recollection unless someone runs it.
   The experiment lives in the [coinwise](../arrows/coinwise/) arrow.
 - Not yet conjectured: how the answer changes when amounts carry more than
   three decimals, and how tie density behaves on real price distributions
-  rather than a grid. Both stay open until the first conjecture is settled.
+  rather than a grid. Both are open for a conjecture whenever the inquiry
+  returns to them.
 
 ## Recorded shortenings
 

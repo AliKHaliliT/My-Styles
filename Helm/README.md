@@ -58,6 +58,7 @@ helm/
 │   └── mocks/                  # The pretend backend (MSW); outside the layer stack
 │
 ├── tests/                      # Vitest suites mirroring the src structure
+├── scripts/                    # Tracked repository tooling (the docs audit)
 ├── docs/                       # Technical documentation (the annotated map lives at docs/ARCHITECTURE.md)
 ├── AGENTS.md                   # Agent entry point and the documentation index
 ├── STATE.md                    # Living project state
@@ -70,7 +71,7 @@ helm/
 
 - **Schema-Checked Responses:** every response body is parsed with zod before the app sees it, so a drifting backend fails loudly at the boundary.
 - **Four-State Rendering:** the `QueryState` component renders pending, error (with retry), empty, and success once, so pages never re-implement the ladder.
-- **Session Discipline:** a guarded route tree, tokens injected into the client at bootstrap through dependency inversion, and a cache-level hook that signs out on any 401.
+- **Session Discipline:** a guarded route tree, tokens injected into the client at bootstrap through dependency inversion, and cache-level hooks that sign out on any 401, query or mutation, because a rejected call means the session died server-side.
 - **Token-Owned Theming:** every color is a CSS variable mapped into Tailwind utilities, with dark and light themes switched by one root attribute.
 - **Typed Environment:** exactly one module reads `import.meta.env`; everything else imports a frozen, typed object.
 - **Test Seams Included:** the same mock handlers serve the browser demo and the Node test server, and the suites pin the translators, the query hooks, the client's failure modes, and a form end to end.

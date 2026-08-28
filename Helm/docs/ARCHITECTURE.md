@@ -16,7 +16,7 @@ app  ->  pages  ->  features  ->  entities  ->  shared
 - **entities** are the domain nouns. Each slice owns its model and pure logic, its wire schemas, its translators, and its query hooks. Raw DTOs never leave the slice.
 - **shared** is the base: the HTTP client, typed env access, the UI kit, small libraries, and test helpers. It knows nothing about the layers above.
 
-A slice is entered only through its `index.ts` public API; deep imports are reserved for the slice itself and for tests. Same-layer slices do not import each other; a concern spanning two slices moves up a layer, which is why the departure action is a feature. `src/mocks` stands outside the stack the way a real backend would, and only the bootstrap and the test setup may import it.
+A slice is entered only through its `index.ts` public API; deep imports are reserved for the slice itself and for tests. Same-layer slices do not import each other; a concern spanning two slices moves up a layer, which is why the departure action is a feature. `src/mocks` stands outside the stack the way a real backend would, and only the bootstrap and the tests may import it.
 
 ```text
 helm/
@@ -36,6 +36,9 @@ helm/
 │   └── decisions/              # Immutable decision records; the project's "why" log
 │
 ├── public/                     # Static assets served as-is; holds the untracked msw worker after install
+│
+├── scripts/                    # Tracked repository tooling
+│   └── audit-docs.mjs          # The docs audit; the gate's Docs command
 │
 ├── src/
 │   ├── app/                    # Composition root (bootstrap, providers, router)

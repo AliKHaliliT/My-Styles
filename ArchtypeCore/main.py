@@ -15,7 +15,9 @@ from app.core.exception_handlers import (domain_exception_handler,
 from app.core.exceptions import CustomHTTPException
 from app.core.logging.logging_config import setup_logging
 from app.core.middlewares.cache import NoCacheMiddleware
-# COEP and COOP are imported but not installed; they are enabled at the calls below.
+# COEP and COOP are imported but not installed; their calls below stay commented out
+# because they block the CDN assets the API docs load, and the import keeps them one
+# uncomment away for deployments that do not serve the docs.
 from app.core.middlewares.isolation import (
     CrossOriginEmbedderPolicyMiddleware, CrossOriginOpenerPolicyMiddleware,  # noqa: F401
     CrossOriginResourcePolicyMiddleware, OriginAgentClusterMiddleware)

@@ -6,7 +6,7 @@
 
 ## Next
 
-- Nothing queued.
+- Supersede claims 0004 and 0005 with re-pinned records once the coinwise citizenship change lands in a commit, numbers verified digit for digit first (2026-08-28)
 
 ## Deferred
 

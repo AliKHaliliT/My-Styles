@@ -1,8 +1,9 @@
 """Audit the inquiry layer against its own rules.
 
 The mechanical half of the rulebook is checked here: document shapes and
-budgets, the claim ledger, the citation keys, the arrow manifests, and the
-pins against git history. Everything a tool cannot decide, whether a boundary
+budgets, the registration index, the relative links and root-anchored paths
+living documents name, the claim ledger, the citation keys, the arrow
+manifests, and the pins against git history. Everything a tool cannot decide, whether a boundary
 was the right one, whether a moved arrow touched what a claim measured, is
 advised or left to review, because a check may never imply more than it
 decides.
@@ -15,7 +16,7 @@ import re
 import subprocess
 import sys
 import tempfile
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -39,9 +40,13 @@ CLAIM_STATUS = re.compile(r"^Status: (Conjecture|Supported|Refuted|Stale|Superse
 DECISION_STATUS = re.compile(r"^Status: (Accepted|Superseded by .+)$")
 RECORD_NAME = re.compile(r"^\d{4}-[a-z0-9-]+\.md$")
 STATE_DATE = re.compile(r"\((\d{4}-\d{2}-\d{2})\)")
-CITE_KEY = re.compile(r"\[([a-z]+[0-9]{4}[a-z]?(?:-[0-9]{4})?)\](?!\()")
-BIB_ENTRY = re.compile(r"^- \*\*([a-z]+[0-9]{4}[a-z]?(?:-[0-9]{4})?)\*\*:")
+# A key is an author name closed by a year, or a standard's designation with
+# its year suffixed, so digits may sit inside the name (ieee754-2019).
+CITE_KEY = re.compile(r"\[([a-z][a-z0-9]*[0-9]{4}[a-z]?|[a-z][a-z0-9]*-[0-9]{4})\](?!\()")
+BIB_ENTRY = re.compile(r"^- \*\*([a-z][a-z0-9]*[0-9]{4}[a-z]?|[a-z][a-z0-9]*-[0-9]{4})\*\*:")
 PIN = re.compile(r"arrows/([a-z0-9-]+) at ([0-9a-f]{7,40})\b")
+LINK = re.compile(r"\]\(([^)\s]+)\)")
+PATH_TOKEN = re.compile(r"`([^`\n]+)`")
 
 
 def git(*args: str) -> str:
@@ -52,10 +57,35 @@ def git(*args: str) -> str:
     return done.stdout.strip() if done.returncode == 0 else ""
 
 
+def living_documents(root: Path) -> list[str]:
+    """The spine plus the enumerable organic zone: docs/*.md and the arrow manifests.
+
+    Records under docs/decisions/ and docs/claims/ describe the past, are exempt
+    from every living-document rule, and are shaped by their own checks instead.
+    """
+    rels = list(LIVING)
+    if (root / "docs").exists():
+        for path in sorted((root / "docs").glob("*.md")):
+            rel = f"docs/{path.name}"
+            if rel not in rels:
+                rels.append(rel)
+    if (root / "docs/arrows").exists():
+        rels.extend(f"docs/arrows/{path.name}" for path in sorted((root / "docs/arrows").glob("*.md")))
+    return rels
+
+
+def index_rows(agents: str) -> str:
+    """The documentation index table alone, because registration means a row there."""
+    if "## Documentation index" not in agents:
+        return ""
+    return agents.split("## Documentation index", 1)[1].split("\n## ", 1)[0]
+
+
 def check_living(problems: list[str], root: Path) -> None:
     """Budgets, presence, index registration, and the STATE schema."""
     agents = (root / "AGENTS.md").read_text(encoding="utf-8") if (root / "AGENTS.md").exists() else ""
-    for rel in LIVING:
+    rows = index_rows(agents)
+    for rel in living_documents(root):
         path = root / rel
         if not path.exists():
             problems.append(f"{rel}: missing living document")
@@ -63,7 +93,9 @@ def check_living(problems: list[str], root: Path) -> None:
         lines = path.read_text(encoding="utf-8").split("\n")
         if rel not in FREE_GROWING and len(lines) > BUDGET_LINES:
             problems.append(f"{rel}: {len(lines)} lines, budget is {BUDGET_LINES}")
-        if rel not in ("AGENTS.md", "README.md") and f"({rel})" not in agents:
+        # The manifests are registered as a folder, one row covering the set.
+        registered = f"({rel})" in rows or (rel.startswith("docs/arrows/") and "(docs/arrows/)" in rows)
+        if rel not in ("AGENTS.md", "README.md") and not registered:
             problems.append(f"{rel}: not registered in the AGENTS.md index")
 
     state = root / "STATE.md"
@@ -80,7 +112,7 @@ def check_living(problems: list[str], root: Path) -> None:
             stamp = STATE_DATE.search(entry)
             if not stamp:
                 problems.append(f"STATE.md: entry lacks a date: {entry.strip()[:60]}")
-            elif (date.today() - datetime.strptime(stamp.group(1), "%Y-%m-%d").date()).days > HORIZON_DAYS:
+            elif (datetime.now(timezone.utc).date() - date.fromisoformat(stamp.group(1))).days > HORIZON_DAYS:
                 problems.append(f"STATE.md: entry past the {HORIZON_DAYS}-day horizon: {entry.strip()[:60]}")
 
 
@@ -116,6 +148,40 @@ def check_records(problems: list[str], root: Path) -> None:
                     problems.append(f"{rel}: a Refuted claim names no reopening condition")
 
 
+def claims_to_be_path(token: str, root: Path) -> bool:
+    """Whether a backticked token is claiming to be a repository path.
+
+    Only tokens rooted in something the repository root knows are checked; an
+    unknown first segment is prose, not a path (placeholders, media types).
+    """
+    if "/" not in token or " " in token:
+        return False
+    if any(ch in token for ch in "<>*{}$|\\=\"'"):
+        return False
+    if "://" in token or token.startswith(("http", "-", "@")):
+        return False
+    first = token.lstrip("./").split("/")[0]
+    return (root / first).exists()
+
+
+def check_references(problems: list[str], root: Path) -> None:
+    """Every relative link in a living document resolves, and every root-anchored path it names exists."""
+    for rel in living_documents(root):
+        path = root / rel
+        if not path.exists():
+            continue
+        for line_no, line in enumerate(path.read_text(encoding="utf-8").split("\n"), 1):
+            for target in LINK.findall(line):
+                bare = target.split("#", 1)[0]
+                if not bare or "://" in bare or bare.startswith("mailto:"):
+                    continue
+                if not (path.parent / bare).exists():
+                    problems.append(f"{rel}:{line_no}: links to {target}, which does not resolve")
+            for token in PATH_TOKEN.findall(line):
+                if claims_to_be_path(token, root) and not (root / token).exists():
+                    problems.append(f"{rel}:{line_no}: names `{token}`, which does not exist")
+
+
 def check_citations(problems: list[str], root: Path) -> None:
     """Every cited key resolves in the bibliography."""
     bib = root / "docs/BIBLIOGRAPHY.md"
@@ -125,7 +191,8 @@ def check_citations(problems: list[str], root: Path) -> None:
             entry = BIB_ENTRY.match(line)
             if entry:
                 keys.add(entry.group(1))
-    sources = [root / "docs/QUESTION.md", *sorted((root / "docs/claims").glob("*.md")),
+    sources = [*(root / rel for rel in living_documents(root)),
+               *sorted((root / "docs/claims").glob("*.md")),
                *sorted((root / "docs/decisions").glob("*.md"))]
     for path in sources:
         if not path.exists():
@@ -184,6 +251,7 @@ def run(root: Path) -> tuple[list[str], list[str]]:
     problems: list[str] = []
     advice: list[str] = []
     check_living(problems, root)
+    check_references(problems, root)
     check_records(problems, root)
     check_citations(problems, root)
     check_arrows(problems, root)
@@ -204,7 +272,16 @@ PLANTS = [
     ("docs/claims/0006-planted.md",
      "# 0006. Planted\n\nStatus: Conjecture\nDate: 2026-01-01\n\n## Claim\n\ncites [nobody9999].\n\n## Evidence\n\nNone.\n\n## Threats\n\n- None named.\n",
      "not in the bibliography"),
-    ("docs/arrows/ghost.md", "# Arrow: ghost\n", "does not exist"),
+    ("docs/claims/0011-planted.md",
+     "# 0011. Planted\n\nStatus: Conjecture\nDate: 2026-01-01\n\n## Claim\n\ncites [fake754-2019].\n\n## Evidence\n\nNone.\n\n## Threats\n\n- None named.\n",
+     "[fake754-2019] not in the bibliography"),
+    ("docs/arrows/ghost.md", "# Arrow: ghost\n", "manifest for an arrow that does not exist"),
+    ("docs/PLANTED.md", "# Planted\n\nAn organic document nobody registered.\n",
+     "docs/PLANTED.md: not registered in the AGENTS.md index"),
+    ("docs/PLANTED.md", "# Planted\n\n[gone](ghost/none.md)\n", "links to ghost/none.md, which does not resolve"),
+    ("docs/PLANTED.md", "# Planted\n\nNames `docs/ghost-none.md` in passing.\n",
+     "names `docs/ghost-none.md`, which does not exist"),
+    ("docs/PLANTED.md", "# Planted\n" + "line\n" * 151, "budget is 150"),
 ]
 
 def moved_evidence_pin() -> tuple[str, str] | None:
@@ -243,8 +320,8 @@ def docs_only_moved_pin() -> tuple[str, str] | None:
 # would force evidence into an immutable record to earn a clean run.
 LEGAL_PLANTS = [
     ("docs/claims/0005-planted-legal.md",
-     "# 0005. Planted legal\n\nStatus: Superseded by 0002\nDate: 2026-01-01\n\n"
-     "## Claim\n\nx.\n\n## Evidence\n\nNone.\n\n## Threats\n\n- None named.\n"),
+     ("# 0005. Planted legal\n\nStatus: Superseded by 0002\nDate: 2026-01-01\n\n"
+      "## Claim\n\nx.\n\n## Evidence\n\nNone.\n\n## Threats\n\n- None named.\n")),
 ]
 
 
@@ -281,25 +358,25 @@ def selftest() -> int:
     else:
         arrow_name, old_pin = mover
         pinned = f"run at arrows/{arrow_name} at {old_pin}."
-        movers = [
+        movers: list[tuple[str, str, str, str, bool]] = [
             ("docs/claims/0099-planted-moving.md", "0099", "Supported", pinned, True),
             ("docs/claims/0098-planted-resting.md", "0098", "Stale", pinned, False),
             ("docs/claims/0097-planted-passed.md", "0097", "Superseded by 0099", pinned, False),
         ]
         targets = []
         try:
-            for rel, num, status, evidence, _ in movers:
+            for rel, num, status, evidence, _expect in movers:
                 target = ROOT / rel
                 target.write_text(
                     body.format(num=num, status=status, evidence=evidence), encoding="utf-8"
                 )
                 targets.append(target)
             _, moved_advice = run(ROOT)
-            for rel, num, status, _, expect in movers:
+            for rel, num, status, _evidence, should_fire in movers:
                 fired = any(rel in a for a in moved_advice)
-                if fired != expect:
+                if fired != should_fire:
                     failures += 1
-                    verb = "did not raise" if expect else "wrongly raised"
+                    verb = "did not raise" if should_fire else "wrongly raised"
                     print(f"WRONG: plant {rel} ({status}) {verb} the movement advisory")
         finally:
             for target in targets:

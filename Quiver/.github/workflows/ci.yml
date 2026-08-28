@@ -4,6 +4,7 @@ name: CI
 # enforce is actually enforced rather than remembered. This file sits inert
 # while the template is nested inside another repository and activates when it
 # becomes a repository root.
+# Actions ride major-version tags so a child of this template starts current; pin them to commit digests when your threat model warrants hardening.
 
 on:
   push:
@@ -22,10 +23,10 @@ jobs:
           git grep -PIno "\x{2014}" -- . > em-dashes.tmp || true
           awk -F: '{count[$1]++} END {bad = 0; for (f in count) if (count[f] > 2) { printf "%s carries %d em dashes; the budget is two per file\n", f, count[f]; bad = 1 }; exit bad}' em-dashes.tmp
           rm em-dashes.tmp
-      - name: Prose heuristics on living documents, advisory
+      - name: Prose heuristics, advisory
         continue-on-error: true
         run: |
-          if git grep -inE "paradigm shift|game.changer|ever-evolving|cutting.edge|\bdelve|\btapestry\b|\bsupercharge|\btransformative\b|\bmultifaceted\b|\bmeticulous\b|\bparamount\b|\bembark\b|it.s worth noting|at the end of the day|in today.s world|let.s dive|going forward|a testament to|marks a pivotal|plays a vital role|experts agree|studies show|widely regarded as" -- . ":(exclude).github" ":(exclude)*docs/CONVENTIONS.md" ":(exclude)*docs/decisions/*" ":(exclude)treasury"; then
+          if git grep -inE "paradigm shift|game.changer|ever-evolving|cutting.edge|\bdelve|\btapestry\b|\bsupercharge|\btransformative\b|\bmultifaceted\b|\bmeticulous\b|\bparamount\b|\bembark\b|it.s worth noting|at the end of the day|in today.s world|let.s dive|going forward|a testament to|marks a pivotal|plays a vital role|experts agree|studies show|widely regarded as" -- . ":(exclude)*.github*" ":(exclude)*docs/CONVENTIONS.md" ":(exclude)*docs/decisions/*" ":(exclude)*docs/claims/*" ":(exclude)treasury"; then
             echo "Inflated vocabulary or weasel attribution in living prose; the verdict is review's."
             exit 1
           fi

@@ -84,10 +84,12 @@ my_project/
 ├── requirements.txt            # Python package dependencies
 │
 ├── scripts/                    # Background jobs, CLI commands, and operational scripts
+│   ├── audit_docs.py           # The docs audit; the gate's Docs command
 │   ├── backup.sh               # Shell script for automated backups
 │   ├── create_admin.py         # CLI tool to securely bootstrap an admin user
 │   ├── peer_sync.py            # Cron job to sync VPN interface peers with the DB
-│   └── quota_monitor.py        # Cron job to calculate usage and enforce VPN data quotas
+│   ├── quota_monitor.py        # Cron job to calculate usage and enforce VPN data quotas
+│   └── wg_smoke.py             # Drives every WireGuard subprocess path against a live interface
 │
 ├── STATE.md                    # Living project state (Now / Next / Deferred / Blocked)
 │

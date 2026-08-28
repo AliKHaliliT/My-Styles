@@ -1,6 +1,6 @@
 # ArchetypeCore Agent Guide
 
-ArchetypeCore is a strict, AI-ready Clean Architecture template for FastAPI servers, demonstrated on a VPN (WireGuard) control-plane domain. It is a style template and living blueprint rather than a production deployment, so some gaps are intentional and must not be "fixed" unprompted. Here that is the suites, which demonstrate the test shape rather than covering the surface. The permanent gaps are the ones named here; anything temporary appears in STATE.md.
+ArchetypeCore is a strict, AI-ready Clean Architecture template for FastAPI servers, demonstrated on a VPN (WireGuard) control-plane domain. It is a style template and living blueprint rather than a production deployment, so some gaps are intentional and must not be "fixed" unprompted. Here those are the suites, which demonstrate the test shape rather than covering the surface, and the `engines/` directory, which stays deliberately empty because a style is not a product (its own README carries the rules for filling it). The permanent gaps are the ones named here; anything temporary appears in STATE.md.
 
 ## Commands
 
@@ -13,13 +13,13 @@ ArchetypeCore is a strict, AI-ready Clean Architecture template for FastAPI serv
 - Migrate: `alembic upgrade head`
 - Docker: `docker-compose up --build -d`
 
-Two of these commands report at two levels. A failure is a verdict, it stops the
+The checks report at two levels. A failure is a verdict, it stops the
 command, and it means a rule the tool fully decides has been broken. A warning is
 advice, it leaves the exit status clean, and it comes from a check that cannot
 decide its own question and so is not allowed to gate. Advice is not noise and
 not optional reading. Every warning is looked at and then either fixed or
 dismissed in writing, in the change that produced it, and a warning is never
-silenced with a suppression comment to make a run look clean. The advisory checks here are the credential heuristics, run as `ruff check --select S105,S106 .`, which read any suggestive string as a possible secret and are wrong often enough that they cannot be a gate.
+silenced with a suppression comment to make a run look clean. The advisory checks here are the credential heuristics, run as `ruff check --select S105,S106 .`, which read any suggestive string as a possible secret and are wrong often enough that they cannot be a gate, and the prose-vocabulary grep in CI, which reads an honest domain term the same as a tell and so advises for review.
 
 ## Hard rules
 

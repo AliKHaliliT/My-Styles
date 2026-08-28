@@ -6,6 +6,8 @@ A small, deterministic library measuring the drift a rounding strategy accumulat
 
 coinwise is an arrow of the [Quiver](../../) inquiry that hosts it, built as a full adaptation of the [Keel](https://github.com/AliKHaliliT/My-Styles/tree/main/Keel) template, carrying Keel's architecture, gate, and documentation spine whole under the arrow's own jurisdiction. It exists to produce the evidence behind the inquiry's claims, which pin the exact commit of this tree that produced their numbers.
 
+> **Named incompleteness:** two domain trims are deliberate and must not be "fixed" unprompted. The suites demonstrate the test shape rather than covering the surface, and there is no command-line surface, because this domain does not need one. The spine, the gate, and the law are carried whole.
+
 ## The Philosophy: Why Does This Exist?
 
 The inquiry this arrow serves settles claims with evidence, and evidence nobody can rerun is a screenshot. This library is the rerunnable half of those claims, deterministic by construction, so the pinned commit of this tree reproduces the pinned numbers exactly.
@@ -31,7 +33,7 @@ coinwise enforces the **Dependency Rule**: inner layers (Business Logic) must no
 3. **Determinism as a Feature**
    The grid is fixed by construction, every multiple of a tenth of a cent, so tie density is exactly one in ten, no seed exists to lose, and any run of the same count reproduces the same numbers anywhere.
 4. **Library Citizenship**
-   No global mutable state, no environment reads at import time, curated `__init__` exports, and a `py.typed` marker, so the package behaves the same embedded in the inquiry, a notebook, or a server.
+   No global mutable state, no environment reads at import time, a `NullHandler` on the package logger, curated `__init__` exports, and a `py.typed` marker, so the package behaves the same embedded in the inquiry, a notebook, or a server.
 
 ---
 

@@ -1,12 +1,13 @@
 """Audit the family's shared law for drift between the styles.
 
-The styles replicate certain blocks of law by hand: the delivery gate and the
-upstream report in each agent guide, the rulebook's shared core, and the docs
-audit the two Python styles carry as one script. Replication without drift
-detection is the failure mode this family refuses to tolerate in its derived
-projects, so the same standard applies here. The manifest below is also the
-blueprint: when a new style joins the family, the blocks named here are what
-it must carry, and adding it to the file lists is what puts it under guard.
+The styles replicate certain blocks of law by hand: the delivery gate in the
+three artifact guides (the host's gate is its own by design), the upstream
+report in every guide, the rulebook's shared core, and the docs audit the two
+Python styles carry as one script. Replication without drift detection is the
+failure mode this family refuses to tolerate in its derived projects, so the
+same standard applies here. The manifest below is also the blueprint. When a
+new style joins the family, the blocks that fit its kind are what it must
+carry, and adding it to the file lists is what puts it under guard.
 
 The second duty is the carried copies. An arrow living in this repository is
 a full adaptation of its style and carries pieces of that style verbatim, so
@@ -90,7 +91,7 @@ CARRIES = [
         "agent guide shared tail",
         "Keel/AGENTS.md",
         "Quiver/arrows/coinwise/AGENTS.md",
-        "Two of these commands",
+        "The checks report at two levels",
     ),
     (
         "rulebook",

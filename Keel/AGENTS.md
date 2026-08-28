@@ -11,13 +11,13 @@ Keel is a strict, AI-ready Clean Architecture template for installable Python pa
 - Type-check: `mypy src tests` (strict mode is configured in `pyproject.toml`)
 - Docs: `python scripts/audit_docs.py` (the living documents against the tree and the calendar)
 
-Two of these commands report at two levels. A failure is a verdict, it stops the
+The checks report at two levels. A failure is a verdict, it stops the
 command, and it means a rule the tool fully decides has been broken. A warning is
 advice, it leaves the exit status clean, and it comes from a check that cannot
 decide its own question and so is not allowed to gate. Advice is not noise and
 not optional reading. Every warning is looked at and then either fixed or
 dismissed in writing, in the change that produced it, and a warning is never
-silenced with a suppression comment to make a run look clean. The advisory checks here are the credential heuristics, run as `ruff check --select S105,S106 .`, which read any suggestive string as a possible secret and are wrong often enough that they cannot be a gate.
+silenced with a suppression comment to make a run look clean. The advisory checks here are the credential heuristics, run as `ruff check --select S105,S106 .`, which read any suggestive string as a possible secret and are wrong often enough that they cannot be a gate, and the prose-vocabulary grep in CI, which reads an honest domain term the same as a tell and so advises for review.
 
 ## Hard rules
 

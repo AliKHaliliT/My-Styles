@@ -67,7 +67,7 @@ python scripts/audit_inquiry.py --selftest
 # Work the demo arrow under its own law.
 cd arrows/coinwise
 pip install -e . && pip install --group dev
-pytest && ruff check . && lint-imports && mypy src tests
+pytest && ruff check . && lint-imports && mypy src tests && python scripts/audit_docs.py
 ```
 
 ## Conventions

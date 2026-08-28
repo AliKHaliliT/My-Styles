@@ -37,7 +37,7 @@ coinwise/
 │           └── translators/    # Flatten service results into the public reports (outbound only)
 │
 └── tests/                      # Automated test suite (mirrors the src structure)
-    └── src/coinwise/           # One suite per unit, at the unit's mirrored path
+    └── src/coinwise/           # One suite per unit at its mirrored path, plus the citizenship suite test_package.py
 ```
 
 ## Testing

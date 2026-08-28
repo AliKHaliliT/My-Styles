@@ -59,6 +59,7 @@ keel/
 │       └── services/           # Business logic orchestration (the bounded AgentRunner loop)
 │
 ├── docs/                       # Technical documentation (the annotated map lives at docs/ARCHITECTURE.md)
+├── scripts/                    # Tracked repository tooling (the docs audit, the fixture recorder)
 ├── tests/                      # Automated test suite mirroring the src structure
 ├── AGENTS.md                   # Agent entry point and the documentation index
 ├── STATE.md                    # Living project state

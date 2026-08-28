@@ -15,7 +15,7 @@ docs/BIBLIOGRAPHY.md                 arrows/<name>/   (that style's law)
                                               │ produces results, quoted and
                                               │ pinned to the host commit
                                               ▼
-                             docs/claims/NNNN  (Supported / Refuted / Stale)
+                             docs/claims/NNNN  (Conjecture, Supported, Refuted, Stale, Superseded)
                                               ▲
                        docs/arrows/<name>.md  lists what rests on each arrow
 ```

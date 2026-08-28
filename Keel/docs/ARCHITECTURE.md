@@ -21,6 +21,10 @@ my_package/
 │
 ├── local_util_resources/       # Internal development and repository management scripts
 │
+├── scripts/                    # Tracked repository tooling that ships with the template
+│   ├── audit_docs.py           # The docs audit; the gate's Docs command
+│   └── record_gemini_fixture.py # One real Gemini call, recorded into the replay fixture
+│
 ├── src/                        # The src layout; prevents importing the uninstalled tree
 │   └── keel/                   # The installable package (rename to your package name)
 │       ├── __init__.py         # Curated public surface and __version__ resolution
@@ -56,10 +60,15 @@ my_package/
 │           └── execution/      # AgentRunner; the bounded reason -> act -> record loop
 │
 ├── tests/                      # Automated test suite (mirrors the src structure)
+│   ├── fixtures/               # Recorded wire shapes the suites replay (gemini-decide.json)
 │   └── src/
 │       └── keel/
-│           └── services/
-│               └── execution/  # The loop's contract, with fakes at the outward ports
+│           ├── adapters/
+│           │   └── reasoners/
+│           │       └── gemini/ # The Gemini translators against the recorded fixture
+│           ├── services/
+│           │   └── execution/  # The loop's contract, with fakes at the outward ports
+│           └── test_package.py # Library citizenship, pinned (logger, environment, version)
 │
 └── util_resources/             # Tracked repository assets
     └── readme/                 # Every image the repository embeds (logo, screenshots, figures)

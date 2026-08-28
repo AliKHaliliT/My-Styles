@@ -28,6 +28,13 @@ const DEEP_IMPORT = {
   message: "Enter a slice through its index.ts, not by reaching inside it.",
 }
 
+// The pretend backend stands outside the stack, so inside src only the
+// bootstrap may wire it in; a final override below exempts that one file.
+const MOCKS_IMPORT = {
+  group: ["@/mocks", "@/mocks/**"],
+  message: "Only the bootstrap and the tests may import the mock backend.",
+}
+
 // One rule per layer: ESLint's later config wins for a matching file, so the
 // directional patterns and the deep-import pattern have to travel together.
 const layerRules = LAYERS.map(({ files, forbid }) => ({
@@ -42,6 +49,7 @@ const layerRules = LAYERS.map(({ files, forbid }) => ({
             message: `Imports point downward only: this layer may not reach @/${layer}.`,
           })),
           DEEP_IMPORT,
+          MOCKS_IMPORT,
         ],
       },
     ],
@@ -157,4 +165,10 @@ export default tseslint.config(
     },
   },
   ...layerRules,
+  {
+    files: ["src/app/main.tsx"],
+    rules: {
+      "no-restricted-imports": ["error", { patterns: [DEEP_IMPORT] }],
+    },
+  },
 )

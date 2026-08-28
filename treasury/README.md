@@ -58,6 +58,7 @@ check this folder; the question may already be settled.
 | [0005](decisions/0005-take-security-s-unconditional-core-and-refuse-its-priced-bulk.md) | Study 0003's disposition: one gate item and the mechanical lints in, every priced mechanism out |
 | [0006](decisions/0006-hold-research-methodology-for-the-seat-it-was-gathered-for.md) | Study 0004's disposition: the vocabulary enters no style, and what it hands the research seat it was gathered for |
 | [0007](decisions/0007-hold-a-carried-copy-to-its-original-while-they-share-a-roof.md) | Carried copies track their originals inside the host; an extracted child freezes, and no arrow carries the mechanism |
+| [0008](decisions/0008-ship-template-workflows-on-tags-and-pin-the-live-one.md) | Template workflows ride major-version tags so children start current; the live workflow pins digests, and hardening is the child's deliberate move |
 
 ## Rules of the folder
 
@@ -70,13 +71,13 @@ check this folder; the question may already be settled.
   immutable records; an uppercase file is living and sorts after them.
 - The decisions folder holds family rulings: immutable records of what the
   family adopted, refused, or settled where no single style's bytes carry
-  the answer. Every study leaves its disposition there, and every refusal
-  names the condition that would reopen it.
+  the answer. Every study leaves its disposition there, and a refusal the
+  family could plausibly revisit names the condition that would reopen it.
 - Guidance on consuming a study belongs to that study. Guidance on producing
   one belongs to the folder, and HOW-TO-RUN-A-STUDY.md is the single
-  treasury-level guide: bounded, living, and rewritten in place as the method
-  sharpens. The two are different species, which is why one sits beside the
-  records and the other above them.
+  treasury-level guide: living, rewritten in place as the method sharpens,
+  and kept as brief as the method allows. The two are different species,
+  which is why one sits beside the records and the other above them.
 - Studies are records in the family's document taxonomy. They are exempt
   from the line budget, immutable once merged, and corrected only by a later
   study that names what it supersedes.

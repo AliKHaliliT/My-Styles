@@ -119,7 +119,9 @@ spending tokens on a scratch file nobody will open.
 
 - Write the names first and the glosses last, and this now has evidence. The
   applied-or-definitional flag a sweep records survives four stages and still
-  shapes the deliverable, so naming first loses nothing.
+  shapes the deliverable, so naming first loses nothing, while a gloss written
+  at the sweep is paid for twice, once to write and once to discard or reword
+  at the fold, and a study folds away most of what it gathers.
 - An exhaustion claim is worth only what its boundary is worth. A pass claiming
   it finished a list someone else published and numbered is usually honest and
   always checkable. A pass claiming it finished a region it drew itself is
@@ -170,18 +172,14 @@ spending tokens on a scratch file nobody will open.
 - The count of cross-family duplicates measures how well the FAMILIES were drawn,
   not how well the fold merged. A resolution stage ruling mostly one-home is
   reporting that its families overlap.
-- Write to disk first, and flush per group. This is the oldest scar in the guide
-  and it saved a study: six fold passes were killed mid-write by a spend limit
-  and ninety percent of their work was already on disk.
-- Write to disk first. Interruption at this scale is normal rather than
-  exceptional, and a pass that holds its work until the end loses all of it. A
-  spend limit once ended five reviewers in the same minute, and only the work
-  already flushed survived.
+- Write to disk first, and flush per group. Interruption at this scale is
+  normal rather than exceptional, and a pass that holds its work until the end
+  loses all of it. This is the oldest scar in the guide and it saved a study
+  twice, once when six fold passes were killed mid-write by a spend limit with
+  ninety percent of their work already on disk, and once when a spend limit
+  ended five reviewers in the same minute and only the flushed work survived.
 - Give a reviewer everything already found, or its additions will restate it.
 - A budget is what makes a fold happen. Instructions to be concise are not.
-- Write the names first and the glosses last. A gloss written at the sweep is
-  paid for twice, once to write and once to discard or reword at the fold, and
-  a study folds away most of what it gathers.
 - Enforce a rule only where it binds. A pass sent to trim glosses in an
   untracked sweep file does work the fold will throw away, which is a
   convention reaching past the material it was written for.

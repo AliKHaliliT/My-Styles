@@ -24,8 +24,6 @@ coverage.xml
 .ruff_cache/
 .import_linter_cache/
 
-# Translations (compiled catalogs are built from the tracked sources)
-*.mo
 
 # Environments
 .env

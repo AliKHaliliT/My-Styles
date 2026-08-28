@@ -27,7 +27,7 @@ Managing a VPN forces the architecture to handle practical, complex problems:
 - **Background Jobs:** It utilizes standalone scripts (`scripts/`) to monitor data usage and enforce quotas without relying on the web framework.
 
 > ⚠️ **Disclaimer on the WireGuard Implementation:**
-> While this template acts as a logically complete VPN manager, it serves primarily as an **architectural demonstration**. The WireGuard subprocess interactions (`wg` / `wg-quick`) are theoretical examples of the `IVPNProvider` interface and are **untested in a live routing environment**. Do not deploy the networking components to a production server without thorough networking validation.
+> While this template acts as a logically complete VPN manager, it serves primarily as an **architectural demonstration**. The WireGuard subprocess interactions (`wg` / `wg-quick`) are proven against a live interface by `scripts/wg_smoke.py`, but routing under real client traffic is **left to each deployment's own validation**. Do not deploy the networking components to a production server without thorough networking validation.
 
 ---
 
