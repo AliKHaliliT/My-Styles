@@ -1,14 +1,15 @@
-# 0004. The tie rule moves the total by dollars, not cents
+# 0006. The tie rule moves the total by dollars, not cents
 
-Status: Superseded by 0006
+Status: Refuted
 Date: 2026-08-28
 
 ## Claim
 
-This record re-pins [claim 0002](0002-the-tie-rule-moves-the-total-by-dollars-not-cents.md)
-after the arrow moved past its pin for a dialect rewrite and its promotion to
-a full style adaptation, work that touched no arithmetic. The claim itself is
-unchanged. It settles the line of
+This record re-pins [claim 0004](0004-the-tie-rule-moves-the-total-by-dollars-not-cents.md)
+after the arrow moved past its pin to complete Keel's library citizenship, a
+NullHandler on the package logger, version resolution from package metadata,
+and the suite pinning both, work that touched no arithmetic. The claim itself
+is unchanged. It settles the line of
 [claim 0001](0001-tie-breaking-choice-is-negligible-at-scale.md), which
 conjectured that over a deterministic grid of ten thousand three-decimal
 amounts the choice between round half up and round half even moves the
@@ -18,7 +19,7 @@ refutation is addressed to the same reader.
 
 ## Evidence
 
-The experiment re-ran in `arrows/coinwise at 9c955ac55f26` by calling
+The experiment re-ran in `arrows/coinwise at bfcb32ce5403` by calling
 `run_drift_experiment(10_000)` on the grid of amounts i divided by one thousand
 for i from 1 to 10,000, whose exact sum is 50,005.000 and which contains 1,000
 half-cent ties by construction.
