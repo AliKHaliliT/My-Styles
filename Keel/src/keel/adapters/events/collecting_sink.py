@@ -10,7 +10,7 @@ class CollectingEventSink:
 
     Usage
     -----
-    Intended for tests and introspection: run the engine, then assert on the
+    Intended for tests and introspection. Run the engine, then assert on the
     ordered event stream instead of parsing log output.
     ```python
     from keel.adapters.events import CollectingEventSink

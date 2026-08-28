@@ -2,7 +2,7 @@
 
 This arrow follows Keel's Hexagonal Architecture (Ports and Adapters) shape and enforces Clean Architecture's Dependency Rule with import-linter; the reasoning behind the shape lives in the inherited decision records, [0004](decisions/0004-describe-the-architecture-as-hexagonal.md) for the naming and [0005](decisions/0005-translate-only-outward-at-the-facade-boundary.md) for the boundary. The domain holds the two rounding strategies as pure functions, the service accumulates a stream under a strategy, and the facade runs the deterministic experiment and answers through its own schemas, translated outward so no inner layer's object crosses the public surface.
 
-Two layout conventions hold throughout, as in Keel. Every directory contains **either** subpackages **or** modules, never a mix, with the package root as the sole exception, and an `__init__.py` appears **only** where it re-exports, so the grouping directories are bare namespace packages.
+Two layout conventions hold throughout, as in Keel. Every directory contains either subpackages or modules, never a mix, with the package root as the sole exception, and an `__init__.py` appears only where it re-exports, so the grouping directories are bare namespace packages.
 
 ```text
 coinwise/

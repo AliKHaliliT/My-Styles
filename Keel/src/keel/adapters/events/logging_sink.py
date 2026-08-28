@@ -15,7 +15,7 @@ class LoggingEventSink:
     -----
     This is the default IEventSink implementation. Because the package logger
     carries a NullHandler, events are silent until the host application
-    configures logging: observability without imposing output.
+    configures logging, so the sink observes without imposing output.
     ```python
     from keel.adapters.events import LoggingEventSink
 

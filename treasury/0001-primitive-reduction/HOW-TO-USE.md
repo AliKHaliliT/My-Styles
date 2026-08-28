@@ -8,7 +8,7 @@ guidance and is rewritten in place as the practice sharpens.
 
 ## What a primitive is
 
-A primitive is an irreducible operation: a thing an engineer can choose to do
+A primitive is an irreducible operation, a thing an engineer can choose to do
 that cannot be built out of the other entries on the list. Every primitive
 carries a price, and the price is not a footnote. It names what applying the
 operation forecloses, which is usually another primitive. Read every entry as
@@ -18,12 +18,14 @@ a purchase, never as a virtue.
 
 Primitives oppose each other constantly, and they must, because most are
 positions on a dial where some other primitive is the opposite position.
-Caching does work before it is asked for; lazy loading refuses work until it
-is asked for. Fail fast dies loudly; graceful degradation limps onward. Retry
-insists; load shedding refuses. Locking bets collisions are common; optimistic
-concurrency bets they are rare. Type safety rejects what does not fit;
-tolerant reading accepts what it does not recognize. Append-only keeps
-everything; waste elimination and anonymization exist to remove things. None
+Caching does work before it is asked for, while lazy loading defers work
+until it is asked for. Fail fast stops at the first error; graceful
+degradation keeps serving what it can. Retry repeats a failed call, and load
+shedding drops calls to protect the rest. Locking assumes collisions are
+common, and optimistic concurrency assumes they are rare. Type safety rejects
+input that does not fit its schema, and tolerant reading accepts input it
+does not recognize. Append-only keeps everything, and waste elimination and
+anonymization exist to remove things. None
 of these pairs contains a wrong side. They conflict only when applied to the
 same resource at the same point with a finite budget, which is the situation
 engineering is always in.
@@ -49,11 +51,10 @@ sense, is a fixed table of such rulings, made once so that derived projects
 stop re-fighting the same wars. An anti-pattern is usually a primitive winning
 a conflict it should have lost in that context. There is no configuration of
 primitives that is simply correct; there are only rulings that fit a project's
-constraints and rulings that do not, which is why the same primitive is a cure
-in one repository and a disease in the next. One law holds across every
-ruling: the checker lives outside the thing it checks, because a watchdog
-inside a dead task is no watchdog, and a judge the judged can edit stays
-green forever.
+constraints and rulings that do not. The same primitive can therefore fix one
+repository and damage the next. One law holds across every ruling. The checker
+lives outside the thing it checks, because a checker inside a dead task cannot
+fire, and a checker the checked code can edit will eventually be edited.
 
 ## Recommended use
 

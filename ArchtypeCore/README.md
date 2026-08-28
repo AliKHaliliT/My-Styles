@@ -8,11 +8,11 @@ ArchetypeCore is a highly structured backend template built with FastAPI, Async 
 
 ## The Philosophy: Why Does This Exist?
 
-In the era of AI coding assistants (Copilot, ChatGPT, Claude), starting a project is incredibly fast. However, as projects grow, AI assistants often suffer from **"Architecture Drift"**: taking shortcuts, mixing database queries directly into web routes, leaking HTTP exceptions into business logic, and gradually creating technical debt.
+AI coding assistants make starting a project fast and keeping its shape hard. As a project grows, they suffer from **"Architecture Drift"**: taking shortcuts, mixing database queries directly into web routes, leaking HTTP exceptions into business logic, and gradually creating technical debt.
 
-ArchetypeCore was built to mitigate this. By enforcing explicit boundaries (Translators, Protocols, Unit of Work), it provides a strict structural foundation that guides AI agents (and developers) toward writing decoupled, maintainable code. Because AI systems excel at pattern recognition, providing a solid structure from the beginning ensures that even when adding large architectural components, the agent is highly likely to follow the established conventions.
+ArchetypeCore was built to mitigate this. By enforcing explicit boundaries (Translators, Protocols, Unit of Work), it provides a strict structural foundation that guides AI agents (and developers) toward writing decoupled, maintainable code. An assistant extends whatever pattern it can see, so a tree whose every seam already shows the right pattern makes the next generated route, repository, or service far more likely to land inside it.
 
-AI is inherently stochastic, meaning nothing is perfectly deterministic and there is always a chance an agent might generate messy code. However, the cleaner the foundation, the higher the probability that the resulting codebase remains pristine. On that note, this project will serve as a living point of reference for future works, continuously updated and refined as new improvements, modifications, or components prove necessary.
+This project is a living point of reference for future works, continuously updated and refined as new improvements, modifications, or components prove necessary.
 
 ## The Domain Example: Why a VPN Control Plane?
 
@@ -23,11 +23,11 @@ To demonstrate the utility of Dependency Inversion, ArchetypeCore implements the
 Managing a VPN forces the architecture to handle practical, complex problems:
 
 - **External System State:** Syncing a local database with an actual OS-level network interface.
-- **Abstract Infrastructure:** The business logic coordinates network creation using an abstract `IVPNProvider` interface, demonstrating that the core application remains framework-agnostic.
+- **Abstract Infrastructure:** The business logic coordinates network creation through an abstract `IVPNProvider` interface, so the core never learns which provider implementation it drives.
 - **Background Jobs:** It utilizes standalone scripts (`scripts/`) to monitor data usage and enforce quotas without relying on the web framework.
 
-> ⚠️ **Disclaimer on the WireGuard Implementation:**
-> While this template acts as a logically complete VPN manager, it serves primarily as an **architectural demonstration**. The WireGuard subprocess interactions (`wg` / `wg-quick`) are proven against a live interface by `scripts/wg_smoke.py`, but routing under real client traffic is **left to each deployment's own validation**. Do not deploy the networking components to a production server without thorough networking validation.
+> **Disclaimer on the WireGuard Implementation:**
+> While this template is a logically complete VPN manager, its primary purpose is architectural demonstration. The WireGuard subprocess interactions (`wg` / `wg-quick`) are proven against a live interface by `scripts/wg_smoke.py`, but routing under real client traffic is left to each deployment's own validation. Do not deploy the networking components to a production server without thorough networking validation.
 
 ---
 
@@ -134,7 +134,7 @@ Not everything is documented that heavily, by design. Purely internal helpers an
 
 The rest of the NumPy vocabulary is used where it fits and omitted where it does not: a caveat becomes a `Notes` section (see the middleware classes) rather than a loose sentence, a generator would document `Yields`, a `warnings.warn` would document `Warns`, and `See Also`/`References` are there for cross-references. Sections you do not see are simply not called for by that code; generated code should add them as it introduces the behavior.
 
-Beyond docstrings, the project's technical documentation is governed by a fixed documentation system: a vendor-neutral [AGENTS.md](AGENTS.md) serves as the agent entry point and the single index of every document, [STATE.md](STATE.md) tracks the living project state, [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) holds the current map of the system, and immutable decision records under [docs/decisions/](docs/decisions/) hold the reasoning behind every settled choice. The full rulebook, including the split between living documents and records and the writing rules for each species, lives in [docs/CONVENTIONS.md](docs/CONVENTIONS.md); that file is normative and must not be modified. The rationale behind the system itself is recorded in [its founding decision record](docs/decisions/0001-adopt-the-documentation-system.md).
+Beyond docstrings, the project's technical documentation is governed by a fixed documentation system: a vendor-neutral [AGENTS.md](AGENTS.md) is the agent entry point and the single index of every document, [STATE.md](STATE.md) tracks the living project state, [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) holds the current map of the system, and immutable decision records under [docs/decisions/](docs/decisions/) hold the reasoning behind every settled choice. The full rulebook, including the split between living documents and records and the writing rules for each species, lives in [docs/CONVENTIONS.md](docs/CONVENTIONS.md); that file is normative and must not be modified. The rationale behind the system itself is recorded in [its founding decision record](docs/decisions/0001-adopt-the-documentation-system.md).
 
 Both the rulebook and the conventions above are owned at the style level. A project built from this template never changes them locally, and an improvement discovered while refactoring against the template is not kept as a private advantage; [AGENTS.md](AGENTS.md) describes the upstream report that carries it back to the template, where it is verified and, if it holds, adopted for every project that follows the style.
 

@@ -32,11 +32,11 @@ Link and image referencing follows the repository boundary. Internal document li
 
 ## Present when the trigger exists
 
-Triggers are bidirectional: the file appears when its trigger appears and is removed when its trigger disappears. A conditional file whose trigger is gone is clutter, not caution.
+Triggers are bidirectional. The file appears when its trigger appears and is removed when its trigger disappears. A conditional file whose trigger is gone is clutter, not caution.
 
 | File | Trigger |
 | --- | --- |
-| `LICENSE` | The repository is public. The license text (American spelling: LICENSE), owner-only and effectively immutable; agents never touch it. A private repository or codebase omits it, and should: with no license granted, default all-rights-reserved copyright applies, which is exactly the posture private code wants. |
+| `LICENSE` | The repository is public. The license text (American spelling: LICENSE), owner-only and effectively immutable; agents never touch it. A private repository or codebase omits it, and should, because with no license granted, default all-rights-reserved copyright applies, which is exactly the posture private code wants. |
 | `.env.example` | Anything reads a `.env`. Tracked and secret-free, it mirrors every variable the project consumes; the real `.env` stays ignored. |
 | `.dockerignore` | A `Dockerfile` exists. |
 | `requirements.txt` / `pyproject.toml` | The project's dependency manifest, per project type. A deployed application declares its runtime dependencies in `requirements.txt`; an installable package declares everything in `pyproject.toml`. A project that runs tooling also needs a `pyproject.toml` to configure it, since ruff and mypy read their settings from nowhere else, and that file carries `[tool.*]` sections with no `[project]` table when the project is not a package. |

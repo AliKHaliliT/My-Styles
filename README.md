@@ -4,8 +4,6 @@
 
 A curated collection of my custom software engineering templates, architectural blueprints, and boilerplate designs built to enforce clean execution and reliable human-AI collaboration.
 
-Happy coding!
-
 <!-- ## Featured Templates
 
 1. **[ArchetypeCore](https://github.com/AliKHaliliT/My-Styles/tree/main/ArchtypeCore)** - Strict Clean Architecture Template

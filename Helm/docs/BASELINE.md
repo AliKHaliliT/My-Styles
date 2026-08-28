@@ -33,11 +33,11 @@ Link and image referencing follows the repository boundary. Internal document li
 
 ## Present when the trigger exists
 
-Triggers are bidirectional: the file appears when its trigger appears and is removed when its trigger disappears. A conditional file whose trigger is gone is clutter, not caution.
+Triggers are bidirectional. The file appears when its trigger appears and is removed when its trigger disappears. A conditional file whose trigger is gone is clutter, not caution.
 
 | File | Trigger |
 | --- | --- |
-| `LICENSE` | The repository is public. The license text (American spelling: LICENSE), owner-only and effectively immutable; agents never touch it. A private repository or codebase omits it, and should: with no license granted, default all-rights-reserved copyright applies, which is exactly the posture private code wants. |
+| `LICENSE` | The repository is public. The license text (American spelling: LICENSE), owner-only and effectively immutable; agents never touch it. A private repository or codebase omits it, and should, because with no license granted, default all-rights-reserved copyright applies, which is exactly the posture private code wants. |
 | `.env.example` | Anything reads environment configuration. Tracked and secret-free, it mirrors every variable the project consumes; real `.env` files stay ignored. |
 | `.dockerignore` | A `Dockerfile` exists. |
 | `CHANGELOG.md` | The project is a versioned package that consumers upgrade through (see CONVENTIONS.md). |

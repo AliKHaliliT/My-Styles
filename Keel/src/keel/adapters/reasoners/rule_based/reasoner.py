@@ -20,7 +20,7 @@ class RuleBasedReasoner:
     -----
     The reasoner pattern-matches the goal to one of the built-in tools, waits
     for the tool result on the transcript, and then finishes with it. It
-    exists to prove the architecture: the engine loop, the trace, and every
+    exists to prove the architecture. The engine loop, the trace, and every
     port behave identically whether decisions come from these regexes or from
     a frontier model; swap in another IReasoner and nothing else changes.
     ```python

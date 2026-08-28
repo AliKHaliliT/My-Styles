@@ -1,6 +1,6 @@
 # Documentation Conventions
 
-This file is the rulebook for this project's technical documentation: which documents exist, what species each one is, how each species is written, and where a "why" belongs. It is normative and frozen: **do not modify this file**. If a rule ever has to change, the change is made deliberately, by the style's owner, inside the template itself in the My-Styles repository, and recorded as a new decision record superseding [0001](decisions/0001-adopt-the-documentation-system-and-extend-it-for-inquiry.md). A project derived from this template never edits its copy and never diverges from it; a case for changing a rule travels upstream through the report described in AGENTS.md.
+This file is the rulebook for this project's technical documentation: which documents exist, what species each one is, how each species is written, and where a "why" belongs. It is normative and frozen; do not modify this file. If a rule ever has to change, the change is made deliberately, by the style's owner, inside the template itself in the My-Styles repository, and recorded as a new decision record superseding [0001](decisions/0001-adopt-the-documentation-system-and-extend-it-for-inquiry.md). A project derived from this template never edits its copy and never diverges from it; a case for changing a rule travels upstream through the report described in AGENTS.md.
 
 ## The two species of documents
 

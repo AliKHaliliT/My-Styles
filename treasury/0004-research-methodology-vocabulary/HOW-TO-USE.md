@@ -8,7 +8,7 @@ practice sharpens, and never part of the record.
 It exists so that a question about how to find something out starts from the
 field's own names rather than from whatever the person asking happens to
 remember. Treat every entry as an option to weigh, never an obligation to
-satisfy. The point is that an omission becomes a decision instead of an accident.
+satisfy. The point is that an omission becomes a deliberate decision.
 
 It is a reference work of 2,908 entries and it is not meant to be read through.
 Read the family that covers your question, and reach into the others by name.
@@ -18,16 +18,16 @@ Read the family that covers your question, and reach into the others by name.
 Every entry ends one of two ways, and the difference is the whole value of the
 catalogue.
 
-An entry that names something a person CHOOSES ends by naming what the choice
+An entry that names something a person chooses ends by naming what the choice
 costs. That cost is what a reader deciding actually needs, and it is denominated
 in whatever that kind of thing takes from you. A design costs units, time, and
 assumptions about who can be assigned. An identification strategy costs an
 assumption, and the entry names which one. A reporting guideline costs effort. A
 code of conduct costs whatever it forbids that you might otherwise want.
 
-An entry that names something that HAPPENS to an inquiry ends at definition. A
+An entry that names something that happens to an inquiry ends at definition. A
 bias, a threat, a fallacy, a failure mode has no price, because nobody chooses
-it. Those entries are written so a reader can RECOGNISE the thing in their own
+it. Those entries are written so a reader can recognise the thing in their own
 work, which is the only use they have.
 
 That split is a gradient across the whole subject, running from seven percent
@@ -83,7 +83,7 @@ unverified recall of a paywalled table. The names are canonical and their
 arrangement is not confirmed. Check the source before relying on the grouping.
 
 Entries built from held knowledge can carry a superseded edition of a document.
-Several were caught and corrected, and others may remain. Where an entry names a
+The study's review passes caught and corrected several, and others may remain. Where an entry names a
 standard, a code or a guideline and the wording matters to you, check the current
 edition.
 

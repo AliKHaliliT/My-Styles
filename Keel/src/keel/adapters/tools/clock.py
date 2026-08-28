@@ -11,7 +11,7 @@ class ClockTool:
 
     Usage
     -----
-    This is the deliberately side-effecting demo tool: its output differs on
+    This is the deliberately side-effecting demo tool. Its output differs on
     every call, which is exactly the kind of dependency the engine keeps
     behind a tool boundary instead of letting it leak into domain logic.
     ```python

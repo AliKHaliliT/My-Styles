@@ -34,7 +34,7 @@ never inherited from the template's own.
 
 ## Present when the trigger exists
 
-Triggers are bidirectional: the file appears with its trigger and is removed
+Triggers are bidirectional. The file appears with its trigger and is removed
 when the trigger disappears.
 
 | File | Trigger |

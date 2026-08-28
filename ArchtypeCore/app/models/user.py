@@ -12,7 +12,7 @@ class User(Base, TimestampMixin):
 
     Database representation of an ArchetypeCore service subscriber.
 
-    This model serves as the aggregate root for a customer. it tracks 
+    This model is the aggregate root for a customer. It tracks 
     the user's identity, their operational status, and their cumulative 
     data transfer metrics for quota enforcement.
 

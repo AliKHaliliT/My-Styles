@@ -10,7 +10,7 @@ Helm is the client-side sibling of [ArchetypeCore](https://github.com/AliKHalili
 
 Client codebases drift structurally faster than anything else in a stack, because nothing in the ecosystem enforces where code goes. Fetch calls scatter through components, server responses get copied into global stores and rot there, colors get hardcoded past the design system, and the folder tree decays into dumping grounds. AI assistants amplify all of it, since they extend whatever pattern they can see.
 
-Helm was built to mitigate this. By enforcing explicit boundaries (one-way layers, schema-checked responses, translators at the wire, a cache that is not a store), it provides a strict structural foundation that guides AI agents (and developers) toward writing decoupled, maintainable clients. Because AI systems excel at pattern recognition, providing a solid structure from the beginning ensures that even when adding large architectural components, the agent is highly likely to follow the established conventions.
+Helm was built to mitigate this. By enforcing explicit boundaries (one-way layers, schema-checked responses, translators at the wire, a cache that is not a store), it provides a strict structural foundation that guides AI agents (and developers) toward writing decoupled, maintainable clients. An assistant extends whatever pattern it can see, so a tree whose every seam already shows the right pattern makes the next generated slice, query hook, or translator far more likely to land inside it.
 
 The structure is general-purpose. Dashboards, SaaS frontends, internal tools, and browser utilities all share this skeleton, with routing declared in one place, data entering through a guarded boundary, and state split by who owns it. The demo domain sits on top and peels off cleanly.
 
@@ -25,7 +25,7 @@ Helm implements the console of a small fictional harbor, the Port of Saltmere: s
 - **Async Reality:** pending, error, empty, and success as first-class rendering states, plus a wire-contract failure mode for backends that answer with the wrong shape.
 - **Forms:** schema-validated input with field-level messages and backend rejections surfaced under the form.
 
-> ⚠️ **Disclaimer on the Demo Backend:**
+> **Disclaimer on the Demo Backend:**
 > The harbor office is an in-browser mock (MSW) with realistic latency, auth, and errors. It exists so the template runs fully offline and so the tests exercise the real wire path. It guards nothing; the demo credentials are public by design.
 
 ---
@@ -128,7 +128,7 @@ Not everything is documented that heavily, by design. Thin mappers such as the t
 
 The rest of the TSDoc vocabulary is used where it fits and omitted where it does not: a caveat becomes a `@remarks` block rather than a loose sentence, cross-references use `@see`, defaults use `@defaultValue`, and retirement uses `@deprecated`. Tags you do not see are simply not called for by that code; generated code should add them as it introduces the behavior.
 
-Beyond doc comments, the project's technical documentation is governed by a fixed documentation system: a vendor-neutral [AGENTS.md](AGENTS.md) serves as the agent entry point and the single index of every document, [STATE.md](STATE.md) tracks the living project state, [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) holds the current map of the system, and immutable decision records under [docs/decisions/](docs/decisions/) hold the reasoning behind every settled choice. The full rulebook, including the split between living documents and records and the writing rules for each species, lives in [docs/CONVENTIONS.md](docs/CONVENTIONS.md); that file is normative and must not be modified. The rationale behind the system itself is recorded in [its founding decision record](docs/decisions/0001-adopt-the-documentation-system.md).
+Beyond doc comments, the project's technical documentation is governed by a fixed documentation system: a vendor-neutral [AGENTS.md](AGENTS.md) is the agent entry point and the single index of every document, [STATE.md](STATE.md) tracks the living project state, [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) holds the current map of the system, and immutable decision records under [docs/decisions/](docs/decisions/) hold the reasoning behind every settled choice. The full rulebook, including the split between living documents and records and the writing rules for each species, lives in [docs/CONVENTIONS.md](docs/CONVENTIONS.md); that file is normative and must not be modified. The rationale behind the system itself is recorded in [its founding decision record](docs/decisions/0001-adopt-the-documentation-system.md).
 
 Both the rulebook and the conventions above are owned at the style level. A project built from this template never changes them locally, and an improvement discovered while refactoring against the template is not kept as a private advantage; [AGENTS.md](AGENTS.md) describes the upstream report that carries it back to the template, where it is verified and, if it holds, adopted for every project that follows the style.
 

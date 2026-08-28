@@ -1,6 +1,6 @@
 # coinwise Agent Guide
 
-coinwise is a Keel-style installable Python package serving as an arrow of the Quiver inquiry that hosts it, measuring the drift a rounding strategy accumulates when many monetary amounts are rounded to whole cents and summed. It is a full adaptation of the Keel template under that style's own law, and this guide is Keel's guide with the words rewritten. Some gaps are intentional and must not be "fixed" unprompted. Here those are the suites, which demonstrate the test shape rather than covering the surface, and the command-line surface, which this domain does not need. The permanent gaps are the ones named here; anything temporary appears in STATE.md.
+coinwise is a Keel-style installable Python package, an arrow of the Quiver inquiry that hosts it, measuring the drift a rounding strategy accumulates when many monetary amounts are rounded to whole cents and summed. It is a full adaptation of the Keel template under that style's own law, and this guide is Keel's guide with the words rewritten. Some gaps are intentional and must not be "fixed" unprompted. Here those are the suites, which demonstrate the test shape rather than covering the surface, and the command-line surface, which this domain does not need. The permanent gaps are the ones named here; anything temporary appears in STATE.md.
 
 ## Commands
 
@@ -20,7 +20,7 @@ silenced with a suppression comment to make a run look clean. The advisory check
 
 ## Hard rules
 
-- The Dependency Rule is absolute: `domain` and `services` never import from `facade`, `adapters`, or any SDK; layer-owned objects cross a layer boundary only through translators, a clause no import graph can see, so it is carried in review by the agent writing a change and the human reading it alike.
+- The Dependency Rule is absolute. `domain` and `services` never import from `facade`, `adapters`, or any SDK; layer-owned objects cross a layer boundary only through translators, a clause no import graph can see, so it is carried in review by the agent writing a change and the human reading it alike.
 - Library citizenship: no global mutable state, no environment reads at import time, and a `NullHandler` on the package logger.
 - Every directory holds either subpackages or modules, never a mix (the package root is the sole exception); an `__init__.py` exists only where it re-exports.
 - Test suites live in `tests/`, mirroring the source tree, one suite named after the unit it covers. A collaborator is replaced only at an architectural seam, by a hand-written fake satisfying the port in `domain/interfaces` that it stands in for; never patch or monkey-patch a module's internals, because a test bound to an implementation voids the substitutability the ports exist to provide. No coverage threshold is imposed, so breadth stays a judgment call while the placement and substitution rules do not. The shape is mapped in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#testing).

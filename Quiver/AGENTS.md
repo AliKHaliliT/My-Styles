@@ -12,7 +12,7 @@ The checks report at two levels. A failure is a verdict, it stops the command, a
 
 ## Hard rules
 
-- The jurisdiction split is absolute: everything under `arrows/<name>/` is governed by that arrow's own style, gate, and conventions, and Quiver's law binds the inquiry layer only. Never write into an arrow to satisfy a Quiver rule, and never waive an arrow's own gate because the change came from the inquiry.
+- The jurisdiction split is absolute. Everything under `arrows/<name>/` is governed by that arrow's own style, gate, and conventions, and Quiver's law binds the inquiry layer only. Never write into an arrow to satisfy a Quiver rule, and never waive an arrow's own gate because the change came from the inquiry.
 - A claim is the only place the inquiry holds a truth. Its evidence quotes results in full and pins the host commit that produced them, per the claim rules in [docs/CONVENTIONS.md](docs/CONVENTIONS.md); an assertion outside a claim record is a working note, not knowledge.
 - Follow the documentation rules in [docs/CONVENTIONS.md](docs/CONVENTIONS.md); the rulebook is frozen and must not be edited.
 - The documentation rulebook is owned by the style. [docs/CONVENTIONS.md](docs/CONVENTIONS.md) changes only inside the template itself, in the My-Styles repository and by its owner; a project derived from this template never edits its copy and never diverges from it. A derived project that believes a rule is wrong or missing sends the case upstream instead (see [The upstream report](#the-upstream-report)).

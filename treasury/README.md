@@ -10,8 +10,8 @@ always comes before the findings it produced.
 
 Before drafting a new style, read the newest findings end to end and treat
 every entry as an option to weigh, never an obligation to satisfy. The point
-of the treasury is that an omission becomes a decision instead of an
-accident. A study whose findings need more guidance than this carries its own
+of the treasury is that every omission becomes a deliberate decision. A study
+whose findings need more guidance than this carries its own
 uppercase guide beside its records.
 [Study 0001's](0001-primitive-reduction/HOW-TO-USE.md) covers what a
 primitive is, why primitives oppose one another, and how a project settles

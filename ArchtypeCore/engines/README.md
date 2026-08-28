@@ -1,6 +1,6 @@
 # Engines
 
-This directory holds self-contained business engines: cohesive, framework-free
+This directory holds the self-contained business engines, cohesive, framework-free
 units built with the same Clean Architecture internals as the rest of the
 project (`domain`, `services`, `adapters`, `facade`). Each engine is a portable
 core that knows nothing about the web framework, the transport, or the language
@@ -8,10 +8,10 @@ runtime it happens to be embedded in.
 
 ## Why they live here and not inside `app/`
 
-`app/` is the delivery layer: the part that speaks HTTP and wires up the
+`app/` is the delivery layer, the part that speaks HTTP and wires up the
 framework. It is the layer you rewrite when you move this blueprint to another
 framework or language, so it is the least portable code in the repository. An
-engine is the opposite: pure business logic behind explicit ports, so it is the
+engine is the opposite, pure business logic behind explicit ports, so it is the
 most portable code you own.
 
 Keeping engines as siblings of `app/` rather than nested inside it does two

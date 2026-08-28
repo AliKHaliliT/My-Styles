@@ -24,11 +24,10 @@ search answers.
 1. Scouting. Before any territory is assigned, one cheap pass walks the
    field's canonical catalogs, textbook shelves, and taxonomy indexes and
    returns a territory map with a density estimate per territory. The
-   territory count is this map's output, never an input: a narrow subject
-   may yield one territory and a vast one may yield twenty, and the research
-   record states how the count was derived. A previous study's shape is not
-   a default, because a count carried forward by momentum is the map drawn
-   from memory instead of from the terrain.
+   territory count is this map's output, never an input. A subject may yield
+   one territory or twenty, and the research record states how the count was
+   derived. A previous study's shape is not a default, because a count
+   carried forward by momentum was never scouted from the terrain.
 2. Enumeration. One pass per territory from the scouted map, each sized so a
    pass can be exhaustive inside its own borders and small enough that its
    output fits one response. Fix the rules of entry in one contract file that

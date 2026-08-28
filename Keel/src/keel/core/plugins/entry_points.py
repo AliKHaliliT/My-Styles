@@ -19,7 +19,7 @@ def load_entry_point_tools(group: str = PLUGIN_GROUP) -> list[ITool]:
     -----
     A plugin is any installed distribution exposing an ITool implementation
     (a class or a zero-argument factory) under the group. Discovery is fault
-    isolated: a plugin that fails to load, fails to construct, or does not
+    isolated. A plugin that fails to load, fails to construct, or does not
     satisfy the ITool contract is logged and skipped, never fatal; one broken
     third-party package must not take the engine down with it.
     ```python

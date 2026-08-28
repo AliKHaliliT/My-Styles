@@ -60,10 +60,10 @@ slow by a thousand small defaults that were never decisions at all.
 ## Prices, and what they mean here
 
 Every entry that names a technique names what applying it forecloses. Read the
-price as the deciding half of the entry, because the technique half is what
-makes it sound attractive and the price half is what makes it a choice. Two
-entries whose prices cancel each other are not a contradiction in the catalog,
-they are the two positions of one dial, and [study
+price as the deciding half of the entry, because the price is what turns a
+technique from a recommendation into a choice. Two entries whose prices
+cancel each other are not a contradiction in the catalog; they are the two
+positions of one dial, and [study
 0001's guidance](../0001-primitive-reduction/HOW-TO-USE.md) covers how a
 project settles that kind of conflict and writes the ruling down.
 

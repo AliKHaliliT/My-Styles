@@ -23,7 +23,7 @@ silenced with a suppression comment to make a run look clean. The advisory check
 
 ## Hard rules
 
-- The layer rule is absolute: imports point downward through `app -> pages -> features -> entities -> shared`, never up or sideways. A slice is entered only through its `index.ts` (tests excepted), same-layer slices never import each other, and `src/mocks` is imported only by the bootstrap and by tests.
+- The layer rule is absolute. Imports point downward through `app -> pages -> features -> entities -> shared`, never up or sideways. A slice is entered only through its `index.ts` (tests excepted), same-layer slices never import each other, and `src/mocks` is imported only by the bootstrap and by tests.
 - All HTTP goes through `shared/api`'s `request` with a zod schema; components never call `fetch`, and raw DTOs never leave their entity slice untranslated.
 - Server data lives in the TanStack Query cache only, keyed in each entity's `queries.ts`; never copy query data into a store. Client state (session, theme, drafts, filters) lives in small Zustand stores or component state.
 - Colors and status tones come only from the token utilities defined in `src/app/styles/tokens.css` (`bg-surface`, `text-ink`, `text-signal`, and so on); raw palette classes are off limits.

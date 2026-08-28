@@ -5,9 +5,8 @@ as the practice sharpens. It is not part of the record.
 
 ## What the vocabulary is and is not
 
-It is the field's named concepts, folded so a person can hold them. It is not
-a checklist, not a maturity model, and not a set of requirements. Nothing here
-obliges a project to do anything. The point is that a decision made without
+It is the field's named concepts, folded so a person can hold them. Nothing
+here obliges a project to do anything. The point is that a decision made without
 knowing a name was still a decision, and after reading the relevant family it
 becomes a decision someone made on purpose.
 
@@ -71,8 +70,8 @@ A gloss that ends by naming a cost belongs to something a person applies, and
 the cost is the honest part of the entry. A gloss that ends at the definition
 belongs to something nobody applies, an attack or a property or a failure mode,
 and knowing it costs nothing. When scanning for work to do, read only the
-priced entries. When scanning to understand a report someone sent you, read
-the unpriced ones.
+priced entries, and read the unpriced ones to understand a report someone
+sent you.
 
 ## The traps worth naming
 
