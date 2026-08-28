@@ -1,7 +1,9 @@
 name: CI
 
 # Runs the five commands AGENTS.md documents, so a rule the configuration claims to enforce
-# is actually enforced rather than remembered.
+# is actually enforced rather than remembered. The last step builds the wheel and imports it
+# from a scratch environment, because an editable install never exercises packaging, so a
+# broken build configuration would otherwise pass every other gate.
 
 on:
   push:
@@ -37,3 +39,10 @@ jobs:
         run: mypy src tests
       - name: Test
         run: pytest
+      - name: Package
+        run: |
+          python -m pip install build
+          python -m build
+          python -m venv "$RUNNER_TEMP/wheel-check"
+          "$RUNNER_TEMP/wheel-check/bin/python" -m pip install dist/*.whl
+          "$RUNNER_TEMP/wheel-check/bin/python" -c "import importlib, tomllib; importlib.import_module(tomllib.load(open('pyproject.toml', 'rb'))['project']['name'])"

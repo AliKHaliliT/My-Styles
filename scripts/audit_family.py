@@ -8,6 +8,15 @@ projects, so the same standard applies here. The manifest below is also the
 blueprint: when a new style joins the family, the blocks named here are what
 it must carry, and adding it to the file lists is what puts it under guard.
 
+The second duty is the carried copies. An arrow living in this repository is
+a full adaptation of its style and carries pieces of that style verbatim, so
+while the two share this roof the copy tracks the original, and this script
+is what holds it there. The gate lives at the host root on purpose, because
+no arrow carries this script and no extraction copies it. An instance created
+out of this repository freezes at extraction, owes its style nothing
+afterward, and holds no bytes that depend on a tracking mechanism. Adapting
+to later revisions of the style is the child owner's own refactoring choice.
+
 Anchors cut a block from its file: text from the start anchor (inclusive) to
 the end anchor (exclusive), or the whole file when both anchors are None. A
 block passes when every copy is byte-identical.
@@ -50,6 +59,71 @@ BLOCKS = [
     ),
 ]
 
+# What each arrow carries verbatim from its style: (name, original, copy, start
+# anchor or None for the whole file). The original is canonical; a divergence
+# is fixed by rewriting the copy, never the original.
+CARRIES = [
+    (
+        "agent guide shared tail",
+        "Keel/AGENTS.md",
+        "Quiver/arrows/coinwise/AGENTS.md",
+        "Two of these commands",
+    ),
+    (
+        "rulebook",
+        "Keel/docs/CONVENTIONS.md",
+        "Quiver/arrows/coinwise/docs/CONVENTIONS.md",
+        None,
+    ),
+    (
+        "baseline",
+        "Keel/docs/BASELINE.md",
+        "Quiver/arrows/coinwise/docs/BASELINE.md",
+        None,
+    ),
+    (
+        "docs audit",
+        "Keel/scripts/audit_docs.py",
+        "Quiver/arrows/coinwise/scripts/audit_docs.py",
+        None,
+    ),
+    (
+        ".gitignore",
+        "Keel/.gitignore",
+        "Quiver/arrows/coinwise/.gitignore",
+        None,
+    ),
+    (
+        ".gitattributes",
+        "Keel/.gitattributes",
+        "Quiver/arrows/coinwise/.gitattributes",
+        None,
+    ),
+    (
+        ".editorconfig",
+        "Keel/.editorconfig",
+        "Quiver/arrows/coinwise/.editorconfig",
+        None,
+    ),
+    (
+        "inert workflow",
+        "Keel/.github/workflows/ci.yml",
+        "Quiver/arrows/coinwise/.github/workflows/ci.yml",
+        None,
+    ),
+]
+
+# Inherited record folders: every record in the original folder must exist in
+# the copy byte-identically. The copy may hold records of its own on top,
+# because a full adaptation records its own decisions in its own sequence.
+CARRIED_TREES = [
+    (
+        "decision records",
+        "Keel/docs/decisions",
+        "Quiver/arrows/coinwise/docs/decisions",
+    ),
+]
+
 
 def cut(text: str, start: str | None, end: str | None) -> str:
     """The block between the anchors, or the whole text when both are None."""
@@ -79,12 +153,44 @@ def main() -> int:
             copies = "; ".join(", ".join(v) for v in digests.values())
             problems.append(f"{name}: the copies diverge ({copies}); align them, they are one law")
 
+    for name, original, copy, start in CARRIES:
+        texts: dict[str, str] = {}
+        for rel in (original, copy):
+            path = ROOT / rel
+            try:
+                texts[rel] = cut(path.read_text(encoding="utf-8"), start, None).replace("\r\n", "\n")
+            except FileNotFoundError:
+                problems.append(f"carried {name}: {rel} is missing")
+            except ValueError:
+                problems.append(f"carried {name}: {rel} lacks the anchor that bounds this block")
+        if len(texts) == 2 and texts[original] != texts[copy]:
+            problems.append(
+                f"carried {name}: {copy} does not match {original};"
+                " the original is canonical, rewrite the copy"
+            )
+
+    for name, original_dir, copy_dir in CARRIED_TREES:
+        for path in sorted((ROOT / original_dir).glob("*.md")):
+            twin = ROOT / copy_dir / path.name
+            if not twin.exists():
+                problems.append(
+                    f"carried {name}: {copy_dir}/{path.name} is missing;"
+                    f" the copy must hold every record of {original_dir}"
+                )
+            elif twin.read_text(encoding="utf-8").replace("\r\n", "\n") != path.read_text(
+                encoding="utf-8"
+            ).replace("\r\n", "\n"):
+                problems.append(
+                    f"carried {name}: {copy_dir}/{path.name} does not match its original;"
+                    " an inherited record is immutable in the copy"
+                )
+
     for problem in problems:
         print(problem)
     if problems:
         print(f"\n{len(problems)} problem(s). The family's shared law has drifted.")
         return 1
-    print("The family's shared law is one text.")
+    print("The family's shared law is one text and every carried copy matches its original.")
     return 0
 
 

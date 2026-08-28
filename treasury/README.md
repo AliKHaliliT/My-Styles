@@ -57,6 +57,7 @@ check this folder; the question may already be settled.
 | [0004](decisions/0004-let-the-index-do-what-skill-files-do.md) | Skill files refused; the agent guide and the index already form the two loading tiers |
 | [0005](decisions/0005-take-security-s-unconditional-core-and-refuse-its-priced-bulk.md) | Study 0003's disposition: one gate item and the mechanical lints in, every priced mechanism out |
 | [0006](decisions/0006-hold-research-methodology-for-the-seat-it-was-gathered-for.md) | Study 0004's disposition: the vocabulary enters no style, and what it hands the research seat it was gathered for |
+| [0007](decisions/0007-hold-a-carried-copy-to-its-original-while-they-share-a-roof.md) | Carried copies track their originals inside the host; an extracted child freezes, and no arrow carries the mechanism |
 
 ## Rules of the folder
 

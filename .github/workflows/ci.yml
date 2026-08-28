@@ -4,7 +4,9 @@ name: CI
 # root. Each template therefore carries its own workflow file, which sits inert here and
 # activates once that template becomes the root of a project. This file is what checks the
 # styles inside this repository, running the same five commands each of them documents,
-# plus the family checks that hold the styles' shared law identical. Actions are pinned by
+# plus the family checks that hold the styles' shared law identical. The pip-installable
+# seats also prove the wheel they build, installed into a scratch environment and imported,
+# because an editable install never exercises packaging. Actions are pinned by
 # commit for the same reason the rulebook is pinned by hash: a tag can move, a digest cannot.
 
 on:
@@ -112,6 +114,13 @@ jobs:
         run: mypy src tests
       - name: Test
         run: pytest
+      - name: Package
+        run: |
+          python -m pip install build
+          python -m build
+          python -m venv "$RUNNER_TEMP/wheel-check"
+          "$RUNNER_TEMP/wheel-check/bin/python" -m pip install dist/*.whl
+          "$RUNNER_TEMP/wheel-check/bin/python" -c "import importlib, tomllib; importlib.import_module(tomllib.load(open('pyproject.toml', 'rb'))['project']['name'])"
 
 
   quiver:
@@ -154,6 +163,14 @@ jobs:
         run: cd arrows/coinwise && mypy src tests
       - name: Arrow test
         run: cd arrows/coinwise && pytest
+      - name: Arrow package
+        run: |
+          cd arrows/coinwise
+          python -m pip install build
+          python -m build
+          python -m venv "$RUNNER_TEMP/wheel-check"
+          "$RUNNER_TEMP/wheel-check/bin/python" -m pip install dist/*.whl
+          "$RUNNER_TEMP/wheel-check/bin/python" -c "import importlib, tomllib; importlib.import_module(tomllib.load(open('pyproject.toml', 'rb'))['project']['name'])"
 
   helm:
     name: Helm
