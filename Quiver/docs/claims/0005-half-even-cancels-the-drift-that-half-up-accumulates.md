@@ -1,21 +1,26 @@
-# 0003. Half even cancels the drift that half up accumulates
+# 0005. Half even cancels the drift that half up accumulates
 
-Status: Superseded by 0005
-Date: 2026-08-27
+Status: Supported
+Date: 2026-08-28
 
 ## Claim
 
-On the deterministic grid, round half up accumulates drift linearly in the
-number of ties, at exactly half a cent per tie, while round half even cancels
-to zero drift at every tested scale. It must convince a maintainer choosing a
-ledger's rounding policy, and it is the empirical form of the reason the
-floating-point standard makes ties-to-even its default [ieee754-2019].
+This record re-pins [claim 0003](0003-half-even-cancels-the-drift-that-half-up-accumulates.md)
+after the arrow moved past its pin for a dialect rewrite and its promotion to
+a full style adaptation, work that touched no arithmetic. The claim itself is
+unchanged. On the deterministic grid, round half up accumulates drift linearly
+in the number of ties, at exactly half a cent per tie, while round half even
+cancels to zero drift at every tested scale. It must convince a maintainer
+choosing a ledger's rounding policy, and it is the empirical form of the
+reason the floating-point standard makes ties-to-even its default
+[ieee754-2019].
 
 ## Evidence
 
-The experiment ran in `arrows/coinwise at e263c8c278a4` by calling
+The experiment re-ran in `arrows/coinwise at 9c955ac55f26` by calling
 `run_drift_experiment` at two scales on the grid of amounts i divided by one
-thousand.
+thousand. The numbers equal the superseded record's at its old pin, digit for
+digit.
 
 - At 10,000 amounts, 1,000 ties. Half up drifts +5.000, which is 1,000 ties at
   half a cent each. Half even drifts 0.000, rounded total equal to the exact

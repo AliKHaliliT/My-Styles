@@ -21,9 +21,9 @@ kind a maintainer decides by recollection unless someone runs it.
 ## The decomposition
 
 - Settled. The negligibility conjecture is refuted in
-  [claim 0002](claims/0002-the-tie-rule-moves-the-total-by-dollars-not-cents.md),
+  [claim 0004](claims/0004-the-tie-rule-moves-the-total-by-dollars-not-cents.md),
   and what the evidence supports is held in
-  [claim 0003](claims/0003-half-even-cancels-the-drift-that-half-up-accumulates.md).
+  [claim 0005](claims/0005-half-even-cancels-the-drift-that-half-up-accumulates.md).
   The experiment lives in the [coinwise](../arrows/coinwise/) arrow.
 - Not yet conjectured: how the answer changes when amounts carry more than
   three decimals, and how tie density behaves on real price distributions

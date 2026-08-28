@@ -7,5 +7,5 @@
   implementing both rounding strategies and the deterministic drift
   experiment.
 - **Claims resting on it**:
-  [0002](../claims/0002-the-tie-rule-moves-the-total-by-dollars-not-cents.md) and
-  [0003](../claims/0003-half-even-cancels-the-drift-that-half-up-accumulates.md).
+  [0004](../claims/0004-the-tie-rule-moves-the-total-by-dollars-not-cents.md) and
+  [0005](../claims/0005-half-even-cancels-the-drift-that-half-up-accumulates.md).

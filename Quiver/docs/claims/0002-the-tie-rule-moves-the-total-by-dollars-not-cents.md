@@ -1,6 +1,6 @@
 # 0002. The tie rule moves the total by dollars, not cents
 
-Status: Refuted
+Status: Superseded by 0004
 Date: 2026-08-27
 
 ## Claim
