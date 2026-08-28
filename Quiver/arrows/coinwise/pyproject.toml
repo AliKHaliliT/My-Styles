@@ -9,10 +9,28 @@ version = "0.0.1"
 description = "A Keel-style library arrow measuring rounding drift in monetary accumulation."
 readme = "README.md"
 requires-python = ">=3.14"
+license = "MIT"
 authors = [
     { name = "Ali Khalili Tazehkandgheshlagh" },
 ]
+keywords = [
+    "arrow",
+    "rounding",
+    "drift",
+    "decimal",
+    "keel",
+]
+classifiers = [
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.14",
+    "Typing :: Typed",
+]
 dependencies = []
+
+[project.urls]
+Repository = "https://github.com/AliKHaliliT/My-Styles"
 
 [dependency-groups]
 dev = [

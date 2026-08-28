@@ -1,0 +1,1 @@
+from coinwise.facade.translators.services_to_facade import services_to_facade_strategy_report

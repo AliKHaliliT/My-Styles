@@ -68,7 +68,7 @@ Every work the inquiry consulted is entered, because a source treated as a frame
 
 ## The arrows and their jurisdiction
 
-An arrow is a complete instance of an artifact style, vendored whole under `arrows/<name>/`. Everything inside that tree is governed by the arrow's own style, its gate, and its conventions; this project's law binds the inquiry layer only and never writes into an arrow. Each arrow has one manifest at `docs/arrows/<name>.md`, and an arrow whose named incompleteness matters states it in its own README. Because arrows are vendored, the host history is the only history, which is what makes a pin one hash.
+An arrow is a complete instance of an artifact style, vendored whole under `arrows/<name>/`. Everything inside that tree is governed by the arrow's own style, its gate, and its conventions; this project's law binds the inquiry layer only and never writes into an arrow. Each arrow has one manifest at `docs/arrows/<name>.md`. An arrow is a full adaptation, carrying its style's entire documentation spine, baseline dotfiles, and inert workflow, so the law an agent needs is in place where jurisdiction binds it and a decision made inside the arrow has a record to land in; named incompleteness in an arrow's README covers domain trims only, never the spine. The LICENSE file alone stays at the host root, since a license answers a repository-level question, and an arrow extracted to stand alone gains its own then, following its style's baseline trigger. Because arrows are vendored, the host history is the only history, which is what makes a pin one hash.
 
 ## Proportional rigor
 

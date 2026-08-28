@@ -149,9 +149,19 @@ def check_pins(problems: list[str], advice: list[str], root: Path) -> None:
     """Pins exist in history; movement past a pin is advice, never a verdict."""
     for path in sorted((root / "docs/claims").glob("*.md")):
         rel = f"docs/claims/{path.name}"
-        for arrow, pin in PIN.findall(path.read_text(encoding="utf-8")):
+        text = path.read_text(encoding="utf-8")
+        # A claim whose status already says it is not current, Stale or Superseded,
+        # leaves the movement advisory nothing to prompt, so only claims still
+        # standing as current are advised. The pin must be a real commit either
+        # way, because a record's evidence never gets to point at nothing.
+        resting = any(
+            l.startswith(("Status: Stale", "Status: Superseded by")) for l in text.split("\n")
+        )
+        for arrow, pin in PIN.findall(text):
             if not git("rev-parse", "--verify", f"{pin}^{{commit}}"):
                 problems.append(f"{rel}: pin {pin} is not a commit in this history")
+                continue
+            if resting:
                 continue
             moved = git("log", "--oneline", f"{pin}..HEAD", "--", f"arrows/{arrow}")
             if moved:
@@ -189,6 +199,19 @@ PLANTS = [
     ("docs/arrows/ghost.md", "# Arrow: ghost\n", "does not exist"),
 ]
 
+def moved_arrow_pin() -> tuple[str, str] | None:
+    """An arrow and a commit it has moved past, or None when none has moved."""
+    if not (ROOT / "arrows").exists():
+        return None
+    for path in sorted((ROOT / "arrows").iterdir()):
+        if not path.is_dir():
+            continue
+        shas = git("log", "--reverse", "--format=%H", "--", f"arrows/{path.name}").split("\n")
+        if len(shas) >= 2 and shas[0]:
+            return path.name, shas[0]
+    return None
+
+
 # A superseded conjecture keeps Evidence None. and must PASS, or this checker
 # would force evidence into an immutable record to earn a clean run.
 LEGAL_PLANTS = [
@@ -221,6 +244,39 @@ def selftest() -> int:
                 print(f"WRONG: legal plant {rel} raised {legal_problems[:2]}")
         finally:
             target.unlink()
+    mover = moved_arrow_pin()
+    if mover is None:
+        print("advisory plants skipped: no arrow has moved in this history")
+    else:
+        arrow_name, old_pin = mover
+        body = (
+            "# {num}. Planted advisory\n\nStatus: {status}\nDate: 2026-01-01\n\n"
+            "## Claim\n\nx.\n\n## Evidence\n\n{evidence}\n\n## Threats\n\n- None named.\n"
+        )
+        pinned = f"run at arrows/{arrow_name} at {old_pin}."
+        movers = [
+            ("docs/claims/0099-planted-moving.md", "0099", "Supported", pinned, True),
+            ("docs/claims/0098-planted-resting.md", "0098", "Stale", pinned, False),
+            ("docs/claims/0097-planted-passed.md", "0097", "Superseded by 0099", pinned, False),
+        ]
+        targets = []
+        try:
+            for rel, num, status, evidence, _ in movers:
+                target = ROOT / rel
+                target.write_text(
+                    body.format(num=num, status=status, evidence=evidence), encoding="utf-8"
+                )
+                targets.append(target)
+            _, moved_advice = run(ROOT)
+            for rel, num, status, _, expect in movers:
+                fired = any(rel in a for a in moved_advice)
+                if fired != expect:
+                    failures += 1
+                    verb = "did not raise" if expect else "wrongly raised"
+                    print(f"WRONG: plant {rel} ({status}) {verb} the movement advisory")
+        finally:
+            for target in targets:
+                target.unlink()
     baseline, _ = run(ROOT)
     if baseline:
         failures += 1

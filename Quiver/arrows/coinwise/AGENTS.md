@@ -1,20 +1,30 @@
-# Quiver Agent Guide
+# coinwise Agent Guide
 
-Quiver is a strict, AI-ready template for research-backed projects, demonstrated on a small rounding-drift inquiry. It is a host rather than a fourth peer of the artifact styles. The inquiry layer at the root asks a question and keeps the claims, and complete instances of the artifact styles live whole under `arrows/`, each governed by its own law. It is a style template and living blueprint rather than a finished research project, so some gaps are intentional and must not be "fixed" unprompted. Here that is the demo arrow, which is deliberately incomplete in the ways its own README names. The permanent gaps are the ones named here; anything temporary appears in STATE.md.
+coinwise is a Keel-style installable Python package serving as an arrow of the Quiver inquiry that hosts it, measuring the drift a rounding strategy accumulates when many monetary amounts are rounded to whole cents and summed. It is a full adaptation of the Keel template under that style's own law, and this guide is Keel's guide with the words rewritten. Some gaps are intentional and must not be "fixed" unprompted. Here those are the suites, which demonstrate the test shape rather than covering the surface, and the command-line surface, which this domain does not need. The permanent gaps are the ones named here; anything temporary appears in STATE.md.
 
 ## Commands
 
-- Audit the inquiry: `python scripts/audit_inquiry.py` (the living documents, the claim ledger, the citations, and the pins against the tree, the calendar, and git history)
-- Prove the audit itself: `python scripts/audit_inquiry.py --selftest` (every rule against a planted defect, because a check that never fires and a check that cannot fire look identical)
-- Work on an arrow: use that arrow's own commands, stated in its README; for the demo arrow, `cd arrows/coinwise` then `pip install -e .` with `pip install --group dev`, and its gate commands are `pytest`, `ruff check . && lint-imports`, `mypy src tests`, and `python scripts/audit_docs.py`
+- Install (editable): `pip install -e .` (Python 3.14+; add the tooling with `pip install --group dev`; if an import fails after the tree moves, check where the editable install points with `pip list` before debugging code)
+- Test: `pytest`
+- Lint: `ruff check . && lint-imports` (ruff checks style and docstring presence; import-linter checks the Dependency Rule)
+- Type-check: `mypy src tests` (strict mode is configured in `pyproject.toml`)
+- Docs: `python scripts/audit_docs.py` (the living documents against the tree and the calendar)
 
-The audit reports at two levels. A failure is a verdict, it stops the command, and it means a rule the tool fully decides has been broken. A warning is advice, it leaves the exit status clean, and it comes from a check that cannot decide its own question and so is not allowed to gate. Advice is not noise and not optional reading. Every warning is looked at and then either fixed or dismissed in writing, in the change that produced it, and a warning is never silenced with a suppression to make a run look clean. The advisory check here is the stale-pin scan, which flags every claim still standing as current, its status neither Stale nor Superseded, whose arrow has moved past its pin; only a person can tell whether the movement touched what the claim measured.
+Two of these commands report at two levels. A failure is a verdict, it stops the
+command, and it means a rule the tool fully decides has been broken. A warning is
+advice, it leaves the exit status clean, and it comes from a check that cannot
+decide its own question and so is not allowed to gate. Advice is not noise and
+not optional reading. Every warning is looked at and then either fixed or
+dismissed in writing, in the change that produced it, and a warning is never
+silenced with a suppression comment to make a run look clean. The advisory checks here are the credential heuristics, run as `ruff check --select S105,S106 .`, which read any suggestive string as a possible secret and are wrong often enough that they cannot be a gate.
 
 ## Hard rules
 
-- The jurisdiction split is absolute: everything under `arrows/<name>/` is governed by that arrow's own style, gate, and conventions, and Quiver's law binds the inquiry layer only. Never write into an arrow to satisfy a Quiver rule, and never waive an arrow's own gate because the change came from the inquiry.
-- A claim is the only place the inquiry holds a truth. Its evidence quotes results in full and pins the host commit that produced them, per the claim rules in [docs/CONVENTIONS.md](docs/CONVENTIONS.md); an assertion outside a claim record is a working note, not knowledge.
-- Follow the documentation rules in [docs/CONVENTIONS.md](docs/CONVENTIONS.md); the rulebook is frozen and must not be edited.
+- The Dependency Rule is absolute: `domain` and `services` never import from `facade`, `adapters`, or any SDK; layer-owned objects cross a layer boundary only through translators, a clause no import graph can see, so it is carried in review by the agent writing a change and the human reading it alike.
+- Library citizenship: no global mutable state, no environment reads at import time, and a `NullHandler` on the package logger.
+- Every directory holds either subpackages or modules, never a mix (the package root is the sole exception); an `__init__.py` exists only where it re-exports.
+- Test suites live in `tests/`, mirroring the source tree, one suite named after the unit it covers. A collaborator is replaced only at an architectural seam, by a hand-written fake satisfying the port in `domain/interfaces` that it stands in for; never patch or monkey-patch a module's internals, because a test bound to an implementation voids the substitutability the ports exist to provide. No coverage threshold is imposed, so breadth stays a judgment call while the placement and substitution rules do not. The shape is mapped in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#testing).
+- Follow the docstring convention in the [README's Conventions section](README.md#conventions) and the documentation rules in [docs/CONVENTIONS.md](docs/CONVENTIONS.md); the latter is frozen and must not be edited.
 - The documentation rulebook is owned by the style. [docs/CONVENTIONS.md](docs/CONVENTIONS.md) changes only inside the template itself, in the My-Styles repository and by its owner; a project derived from this template never edits its copy and never diverges from it. A derived project that believes a rule is wrong or missing sends the case upstream instead (see [The upstream report](#the-upstream-report)).
 - No em dashes anywhere: code, docstrings, comments, documentation, commit messages. CI greps every tracked byte for the character; commit messages stay with review.
 - Commit history speaks in the owner's voice alone: no attribution trailers, no Co-Authored-By lines, nothing naming a tool or an assistant in a commit message. Held in review, like every commit-message rule.
@@ -28,22 +38,29 @@ The audit reports at two levels. A failure is a verdict, it stops the command, a
 
 ## The delivery gate
 
-A task is not delivered while the gate below has findings. Carry these items from the first line written, because they are cheapest to satisfy while the work is still forming and most expensive as after-the-fact repairs; the closing pass exists to confirm, not to redo.
+A task is not delivered while the gate below has findings. Carry these items from the first line written, because they are cheapest to satisfy while the code is still forming and most expensive as after-the-fact repairs; the closing pass exists to confirm, not to redo.
 
-Closing a task follows one loop: run the checking commands above, weigh the change against every item below, fix what an item names, and repeat. One pass with no findings ends the loop. A finding is a concrete disagreement with a listed item, never general unease; the list is closed, and nothing outside it may generate rework. If the same finding survives three honest fix attempts, stop looping, record the finding and the attempts in STATE.md, and say so plainly when delivering.
+Closing a task follows one loop: run the checking commands above, weigh the change against every item below, fix what an item names, and repeat. One pass with no findings ends the loop. A finding is a concrete disagreement with a listed item, never general unease; the list is closed, and nothing outside it may generate rework. If the same finding survives three honest fix attempts, stop looping, record the finding and the attempts in STATE.md, and say so plainly when delivering. The names below index a wider literature; where a name's common usage and the rule beside it differ, the rule governs.
 
-- **Claim honesty**: every claim states its assertion plainly and names who it must convince, or names itself Conjecture; nothing ships as fact with an empty Evidence section.
-- **Evidence honesty**: results are quoted in the record in full, with how they were produced, never pointed at, so the record stays accurate after the tree moves on.
-- **Pin honesty**: evidence names the pinned commit of every arrow involved, and a claim resting on a moved arrow is flipped Stale or superseded, never left implying it is current.
-- **Boundary honesty**: any completeness assertion, a literature search, a parameter sweep, an ablation, names the enumerable boundary it exhausted, or is offered as judgment.
-- **Threat naming**: every claim names the threats most endangering it, from the field's own vocabulary; naming is free, and no method, design, or standard is ever mandated, because those are priced.
-- **Graveyard honesty**: a dead end that cost real effort or could plausibly be retried gets its Refuted record with killing evidence and reopening condition, in the same change that abandons it.
-- **Rigor honesty**: any stage of the spine that was skipped is skipped in writing.
-- **Jurisdiction**: a change inside an arrow passes that arrow's own style gate; this gate claims only the inquiry layer.
-- **The commands**: the audit has passed against the final state of the tree, and every advisory finding printed along the way has been read and then fixed or dismissed in writing.
-- **State discipline**: STATE.md swept at both ends of the change; execution tracking lives there and never in a record.
-- **Records discipline**: decisions and claims immutable, status-line edits only, dated, self-contained, and every citation key resolving.
-- **The institution boundary**: the inquiry layer records the work between meetings and stops where an advisor, committee, or reviewer's jurisdiction starts; it never simulates their approval.
+- **Cognitive load**: nothing in the change is harder to hold in mind than the task requires.
+- **Granularity**: the size of every new unit (function, file, document, the change itself) is a choice, not an accident.
+- **Growth honesty**: what each loop's or query's cost grows with is a choice, not an accident, and no change buys a worse growth rate where a construction of equal effort exists.
+- **Ubiquitous language**: new names use the vocabulary the tree already speaks.
+- **Single source of truth**: the change introduces no second copy of any fact, and anything derived points at its source.
+- **Least privilege and surface**: nothing gains more access, exports, or dependencies than the task needs.
+- **Adversary honesty**: every change that creates or moves a trust boundary names who it is meant to withstand, and deciding that nobody is attacking it is a decision to write down rather than an assumption to leave implicit.
+- **Boundary honesty**: no data crosses a boundary unchecked, and checking happens at the door, once.
+- **Loud failure**: every new failure path raises a typed error; nothing is swallowed or silently defaulted.
+- **Two hats**: shape changes and behavior changes are separate steps, and no incidental reformatting rides along.
+- **Waste**: nothing speculative and nothing the change orphaned is left behind.
+- **The measured line**: nothing is made faster without a measurement that demanded it, and every optimization that lands records its measurement and its price.
+- **Test honesty**: substitutes stand in only at the declared seams, and time, randomness, and order are controlled.
+- **Point-of-use truth**: the doc comment or docstring each export carries is true, not merely present.
+- **Intent-split placement**: every documentation change lands in the document whose reader it serves, per the rulebook's species.
+- **Decision records**: any choice made here that would be re-litigated without a record gets one now.
+- **Debt**: every shortcut taken is written in STATE.md before delivery, never carried in memory.
+- **The commands**: every checking command above has passed against the final state of the tree, and every advisory finding printed along the way has been read and then fixed or dismissed in writing.
+- **The hard rules**: the change disagrees with no review-held clause of this guide's Hard rules, re-read now, not recalled.
 
 ## The upstream report
 
@@ -64,16 +81,11 @@ This is the single index of the project's technical documentation. A document th
 
 | Document | What it is and when to read it |
 | --- | --- |
-| [README.md](README.md) | Human-facing overview: philosophy, structure, setup, and the conventions. |
+| [README.md](README.md) | Human-facing overview: philosophy, structure, setup, and the docstring convention. |
 | [STATE.md](STATE.md) | Living project state (Now / Next / Deferred / Blocked). Read first, always. |
-| [docs/QUESTION.md](docs/QUESTION.md) | The root question, why it is worth asking, and its open conjectures. Read before touching any claim or arrow. |
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | The map of the inquiry: arrows, and how evidence flows into claims. Read before any structural change. |
-| [docs/BIBLIOGRAPHY.md](docs/BIBLIOGRAPHY.md) | Every work consulted, as self-contained citations addressed by key. |
-| [docs/CONVENTIONS.md](docs/CONVENTIONS.md) | The documentation rulebook: species, schemas, claims, pins, naming. Frozen; do not edit. Read before writing or changing any documentation. |
-| [docs/BASELINE.md](docs/BASELINE.md) | The repository baseline: always-present files, never-tracked files, and their modification rules. |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | The annotated map of the whole template. Read before any structural change. |
+| [docs/CONVENTIONS.md](docs/CONVENTIONS.md) | The documentation rulebook: document species, schemas, naming. Frozen; do not edit. Read before writing or changing any documentation. |
+| [docs/BASELINE.md](docs/BASELINE.md) | The repository baseline: always-present files, never-tracked files, and their modification rules. Read before adding, removing, or reshaping root-level or dot files. |
 | [docs/decisions/](docs/decisions/) | Immutable decision records holding the project's "why". Read the relevant record before revisiting a settled topic; never edit an accepted record. |
-| [docs/claims/](docs/claims/) | Immutable claim records holding what the inquiry holds true, on what evidence, at which pin. |
-| [docs/arrows/](docs/arrows/) | One living manifest per arrow: its style, the part of the question it serves, and the claims resting on it. |
-| [arrows/coinwise/README.md](arrows/coinwise/README.md) | The demo arrow: what it measures, its commands, and its named incompleteness. |
 
 There are no assistant-specific instruction files. Every assistant reads this file directly. If a tool genuinely cannot read AGENTS.md, give it a one-line shim that imports or points to this file and nothing more.

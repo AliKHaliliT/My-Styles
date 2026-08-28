@@ -1,35 +1,9 @@
-from dataclasses import dataclass
 from decimal import Decimal
 
 from coinwise.domain.rounding import round_half_even, round_half_up
-from coinwise.services.accumulation import DriftResult, accumulate
-
-
-@dataclass(frozen=True)
-class ExperimentReport:
-
-    """
-
-    Both strategies' results over one deterministic grid of amounts.
-
-
-    Usage
-    -----
-    One call runs the whole experiment; the count fixes the grid, the
-    grid fixes the ties, and the report carries one DriftResult per
-    strategy over the identical amounts.
-    ```python
-    from coinwise.facade.experiment import run_drift_experiment
-
-    report = run_drift_experiment(1000)
-    print((report.half_up.drift, report.half_even.drift))
-    ```
-
-    """
-
-    count: int
-    half_up: DriftResult
-    half_even: DriftResult
+from coinwise.facade.schemas import ExperimentReport
+from coinwise.facade.translators import services_to_facade_strategy_report
+from coinwise.services.accumulation import accumulate
 
 
 def grid_amounts(count: int) -> list[Decimal]:
@@ -99,6 +73,6 @@ def run_drift_experiment(count: int) -> ExperimentReport:
     amounts = grid_amounts(count)
     return ExperimentReport(
         count=count,
-        half_up=accumulate(amounts, round_half_up),
-        half_even=accumulate(amounts, round_half_even),
+        half_up=services_to_facade_strategy_report(accumulate(amounts, round_half_up)),
+        half_even=services_to_facade_strategy_report(accumulate(amounts, round_half_even)),
     )

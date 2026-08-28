@@ -132,6 +132,14 @@ jobs:
         run: python scripts/audit_inquiry.py --selftest
       - name: Audit
         run: python scripts/audit_inquiry.py
+      - name: Arrow docs
+        run: cd arrows/coinwise && python scripts/audit_docs.py
+      - name: Arrow seams
+        run: |
+          if git grep -nE "monkeypatch|unittest\.mock|mock\.patch|MonkeyPatch" -- arrows/coinwise/tests; then
+            echo "Module mocking is banned; substitute only at a declared seam."
+            exit 1
+          fi
       - name: Install the demo arrow
         run: |
           python -m pip install --upgrade pip
