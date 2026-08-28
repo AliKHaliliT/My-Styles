@@ -83,7 +83,8 @@ check this folder; the question may already be settled.
 - Files are self-contained. The method, the numbers, and the findings live
   in the files themselves, never behind an external link.
 - Every byte follows the family prose rules. Written for a public audience,
-  no em dashes, colons only for lists, quotes, and labels.
+  colons only for lists, quotes, and labels, em dashes inside the family's
+  per-file budget.
 - Nothing in here describes the current state of any repository. State rots
   and belongs to STATE files. The treasury holds only findings that stay
   true.

@@ -145,6 +145,13 @@ def check_arrows(problems: list[str], root: Path) -> None:
         problems.append(f"docs/arrows/{name}.md: manifest for an arrow that does not exist")
 
 
+# The paths inside an arrow that can change what a run produces: the code, the
+# suites, and the project file that selects dependencies and warning behavior.
+# Documentation and workflow bytes carried inside an arrow execute nothing
+# during an experiment, so their movement can move no number and never advises.
+EVIDENCE_PATHS = ("src", "tests", "pyproject.toml")
+
+
 def check_pins(problems: list[str], advice: list[str], root: Path) -> None:
     """Pins exist in history; movement past a pin is advice, never a verdict."""
     for path in sorted((root / "docs/claims").glob("*.md")):
@@ -163,10 +170,11 @@ def check_pins(problems: list[str], advice: list[str], root: Path) -> None:
                 continue
             if resting:
                 continue
-            moved = git("log", "--oneline", f"{pin}..HEAD", "--", f"arrows/{arrow}")
+            spec = [f"arrows/{arrow}/{part}" for part in EVIDENCE_PATHS]
+            moved = git("log", "--oneline", f"{pin}..HEAD", "--", *spec)
             if moved:
                 advice.append(
-                    f"{rel}: arrows/{arrow} moved past pin {pin[:12]}"
+                    f"{rel}: arrows/{arrow} evidence paths moved past pin {pin[:12]}"
                     f" ({len(moved.splitlines())} commit(s)); confirm the claim or flip it Stale"
                 )
 
@@ -199,16 +207,35 @@ PLANTS = [
     ("docs/arrows/ghost.md", "# Arrow: ghost\n", "does not exist"),
 ]
 
-def moved_arrow_pin() -> tuple[str, str] | None:
-    """An arrow and a commit it has moved past, or None when none has moved."""
+def moved_evidence_pin() -> tuple[str, str] | None:
+    """An arrow and a commit its evidence paths moved past, or None when none has."""
     if not (ROOT / "arrows").exists():
         return None
     for path in sorted((ROOT / "arrows").iterdir()):
         if not path.is_dir():
             continue
-        shas = git("log", "--reverse", "--format=%H", "--", f"arrows/{path.name}").split("\n")
+        spec = [f"arrows/{path.name}/{part}" for part in EVIDENCE_PATHS]
+        shas = git("log", "--reverse", "--format=%H", "--", *spec).split("\n")
         if len(shas) >= 2 and shas[0]:
             return path.name, shas[0]
+    return None
+
+
+def docs_only_moved_pin() -> tuple[str, str] | None:
+    """An arrow and a commit it moved past in non-evidence bytes alone, or None."""
+    if not (ROOT / "arrows").exists():
+        return None
+    for path in sorted((ROOT / "arrows").iterdir()):
+        if not path.is_dir():
+            continue
+        spec = [f"arrows/{path.name}/{part}" for part in EVIDENCE_PATHS]
+        last_evidence = git("log", "-1", "--format=%H", "--", *spec)
+        if not last_evidence:
+            continue
+        # Every commit past the last evidence commit that touched the arrow
+        # touched only its other bytes, or it would itself be the last one.
+        if git("log", "--oneline", f"{last_evidence}..HEAD", "--", f"arrows/{path.name}"):
+            return path.name, last_evidence
     return None
 
 
@@ -244,15 +271,15 @@ def selftest() -> int:
                 print(f"WRONG: legal plant {rel} raised {legal_problems[:2]}")
         finally:
             target.unlink()
-    mover = moved_arrow_pin()
+    body = (
+        "# {num}. Planted advisory\n\nStatus: {status}\nDate: 2026-01-01\n\n"
+        "## Claim\n\nx.\n\n## Evidence\n\n{evidence}\n\n## Threats\n\n- None named.\n"
+    )
+    mover = moved_evidence_pin()
     if mover is None:
-        print("advisory plants skipped: no arrow has moved in this history")
+        print("advisory plants skipped: no arrow's evidence paths have moved in this history")
     else:
         arrow_name, old_pin = mover
-        body = (
-            "# {num}. Planted advisory\n\nStatus: {status}\nDate: 2026-01-01\n\n"
-            "## Claim\n\nx.\n\n## Evidence\n\n{evidence}\n\n## Threats\n\n- None named.\n"
-        )
         pinned = f"run at arrows/{arrow_name} at {old_pin}."
         movers = [
             ("docs/claims/0099-planted-moving.md", "0099", "Supported", pinned, True),
@@ -277,6 +304,28 @@ def selftest() -> int:
         finally:
             for target in targets:
                 target.unlink()
+    quiet_mover = docs_only_moved_pin()
+    if quiet_mover is None:
+        print("docs-only advisory plant skipped: no arrow has moved in non-evidence bytes alone")
+    else:
+        arrow_name, quiet_pin = quiet_mover
+        rel = "docs/claims/0096-planted-quiet.md"
+        target = ROOT / rel
+        target.write_text(
+            body.format(
+                num="0096",
+                status="Supported",
+                evidence=f"run at arrows/{arrow_name} at {quiet_pin}.",
+            ),
+            encoding="utf-8",
+        )
+        try:
+            _, quiet_advice = run(ROOT)
+            if any(rel in a for a in quiet_advice):
+                failures += 1
+                print(f"WRONG: plant {rel} raised the movement advisory for a docs-only move")
+        finally:
+            target.unlink()
     baseline, _ = run(ROOT)
     if baseline:
         failures += 1

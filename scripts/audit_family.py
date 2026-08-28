@@ -57,6 +57,29 @@ BLOCKS = [
         None,
         None,
     ),
+    (
+        "the prose law",
+        [
+            "ArchtypeCore/docs/CONVENTIONS.md",
+            "Keel/docs/CONVENTIONS.md",
+            "Helm/docs/CONVENTIONS.md",
+            "Quiver/docs/CONVENTIONS.md",
+        ],
+        "## Prose",
+        None,
+    ),
+    (
+        "the em dash rule",
+        ["ArchtypeCore/AGENTS.md", "Keel/AGENTS.md", "Helm/AGENTS.md", "Quiver/AGENTS.md"],
+        "- An em dash is legal",
+        "- Commit history speaks",
+    ),
+    (
+        "the prose hard rule",
+        ["ArchtypeCore/AGENTS.md", "Keel/AGENTS.md", "Helm/AGENTS.md", "Quiver/AGENTS.md"],
+        "- All prose must read",
+        "- Every tracked byte is public prose",
+    ),
 ]
 
 # What each arrow carries verbatim from its style: (name, original, copy, start
