@@ -1,14 +1,14 @@
-# 0007. Half even cancels the drift that half up accumulates
+# 0009. Half even cancels the drift that half up accumulates
 
-Status: Superseded by 0009
-Date: 2026-08-28
+Status: Supported
+Date: 2026-09-01
 
 ## Claim
 
-This record re-pins [claim 0005](0005-half-even-cancels-the-drift-that-half-up-accumulates.md)
-after the arrow moved past its pin to complete Keel's library citizenship, a
-NullHandler on the package logger, version resolution from package metadata,
-and the suite pinning both, work that touched no arithmetic. The claim itself
+This record re-pins [claim 0007](0007-half-even-cancels-the-drift-that-half-up-accumulates.md)
+after the arrow moved past its pin to adopt derandomized property tests for
+the domain's stated invariants and carry their dependency, work that
+touched no arithmetic. The claim itself
 is unchanged. On the deterministic grid, round half up accumulates drift
 linearly in the number of ties, at exactly half a cent per tie, while round
 half even cancels to zero drift at every tested scale. It must convince a
@@ -18,7 +18,7 @@ of the reason the floating-point standard makes ties-to-even its default
 
 ## Evidence
 
-The experiment re-ran in `arrows/coinwise at bfcb32ce5403` by calling
+The experiment re-ran in `arrows/coinwise at 4cfde7cf4aed` by calling
 `run_drift_experiment` at two scales on the grid of amounts i divided by one
 thousand. The numbers equal the superseded record's at its old pin, digit for
 digit.
