@@ -34,6 +34,7 @@ Repository = "https://github.com/AliKHaliliT/My-Styles"
 
 [dependency-groups]
 dev = [
+    "hypothesis",
     "pytest",
     "ruff",
     "mypy",

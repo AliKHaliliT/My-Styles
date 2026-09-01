@@ -39,6 +39,7 @@ gemini = [
 
 [dependency-groups]
 dev = [
+    "hypothesis",
     "pytest",
     "pytest-asyncio",
     "ruff",

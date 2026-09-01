@@ -16,7 +16,7 @@ It is also the host's first arrow, which makes it the exemplar future arrows are
 
 ## The Domain: Rounding Drift
 
-Monetary code rounds to whole cents constantly, and the two common tie rules, round half up and round half even, agree everywhere except on amounts sitting exactly halfway between two cents. Whether that disagreement matters at ledger scale is the hosting inquiry's question, and this library is the instrument that answers it.
+Monetary code rounds to whole cents constantly, and the two common tie rules, round half up and round half even, differ only on amounts sitting exactly halfway between two cents. Whether that disagreement matters at ledger scale is the hosting inquiry's question, and this library is the instrument that answers it.
 
 Small as the domain is, it still exercises the layers honestly. The strategies and the tie test stay pure and framework-free in `domain`, the measurement logic in `services` knows nothing about how experiments are surfaced, and the public answer crosses the boundary only through the facade's own schemas.
 

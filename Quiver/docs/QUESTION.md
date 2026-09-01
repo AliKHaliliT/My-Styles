@@ -7,7 +7,7 @@ ledger scale?
 ## Why it is worth asking
 
 Monetary code rounds constantly, and the two common tie-breaking rules, round
-half up and round half even, agree everywhere except on amounts that sit
+half up and round half even, differ only on amounts that sit
 exactly halfway between two cents. It is tempting to treat the choice as taste. The
 IEEE floating-point standard defines ties-to-even as its default for a stated
 reason, freedom from bias in long computations [ieee754-2019], and the classic
