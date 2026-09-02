@@ -59,6 +59,8 @@ check this folder; the question may already be settled.
 | [0006](decisions/0006-hold-research-methodology-for-the-seat-it-was-gathered-for.md) | Study 0004's disposition: the vocabulary enters no style, and what it hands the research seat it was gathered for |
 | [0007](decisions/0007-hold-a-carried-copy-to-its-original-while-they-share-a-roof.md) | Carried copies track their originals inside the host; an extracted child freezes, and no arrow carries the mechanism |
 | [0008](decisions/0008-ship-template-workflows-on-tags-and-pin-the-live-one.md) | Template workflows ride major-version tags so children start current; the live workflow pins digests, and hardening is the child's deliberate move |
+| [0009](decisions/0009-serve-a-ui-beside-the-server-from-helm.md) | A UI beside an ArchetypeCore server is a Helm instance, co-hosted from `app/static/` or standalone from the same build; the Jinja2 slot leaves the server's form |
+| [0010](decisions/0010-defer-the-frontend-seat-that-ships-its-own-server.md) | The server-rendered frontend seat waits for a public-facing product that needs SEO, streaming, or cookie sessions; until then Helm is the whole frontend answer |
 
 ## Rules of the folder
 

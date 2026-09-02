@@ -118,6 +118,10 @@ VITE_API_BASE_URL=https://api.your-backend.example
 
 The client code does not change. The mock backend stays in the tree, because the test suite runs against it regardless of mode.
 
+### 4. Co-Hosting Inside an ArchetypeCore Image
+
+The same build also ships inside an [ArchetypeCore](https://github.com/AliKHaliliT/My-Styles/tree/main/ArchtypeCore) server when one deploy unit is wanted. The server copies `dist/` into its `app/static/` and mounts it under a prefix such as `/dashboard` with single-page fallback, while its API keeps `/api/v1`, so set `VITE_API_BASE_URL` to the relative `/api/v1` and the client shares the server's origin with no CORS and plain cookies. A multi-stage Dockerfile builds this project in one stage and copies `dist/` into the server image in the next. This tree stays under its own law either way; the server serves the artifact and never imports the source.
+
 ---
 
 ## Conventions

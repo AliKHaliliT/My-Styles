@@ -59,8 +59,7 @@ archetype-core/
 │   ├── models/                 # Database mapping layer (SQLAlchemy Declarative Models)
 │   ├── repositories/           # Concrete DB access and DB Translators
 │   ├── services/               # Business logic orchestration
-│   ├── static/                 # Static web assets
-│   ├── templates/              # HTML templates (Jinja2)
+│   ├── static/                 # Files the server serves itself (a co-hosted Helm dashboard lands here)
 │   └── utils/                  # General-purpose utilities (e.g., Field Reordering)
 │
 ├── db/                         # Database connection, mixins, and Alembic migrations
@@ -81,6 +80,7 @@ archetype-core/
 - **Advanced Security Middlewares:** Pre-configured ASGI middlewares for CORS, Content-Security-Policy (CSP), Strict-Transport-Security (HSTS), and modern Origin Isolation headers.
 - **Auto-Generated Swagger Examples:** Pydantic `json_schema_extra` configurations ensure the `/docs` UI shows realistic payload examples without polluting Base Mixins.
 - **CLI Operational Scripts:** Standalone Python scripts (`quota_monitor.py`, `peer_sync.py`) that successfully hook into the database and domain logic without booting up the web server.
+- **A Dashboard Slot, Not a Dashboard:** A UI beside this server is a [Helm](https://github.com/AliKHaliliT/My-Styles/tree/main/Helm) instance. Its build output lands in the app's `static/` slot and is served under a prefix with single-page fallback while the API keeps `/api/v1`, so one image ships both; the same build also runs standalone on any static host. Helm's source stays in its own tree under its own law, and this server serves the artifact and never imports it.
 
 ---
 

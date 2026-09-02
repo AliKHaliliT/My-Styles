@@ -45,9 +45,7 @@ my_project/
 │   │   ├── access/             # Auth, User, and Device management workflows
 │   │   └── vpn/                # Concrete VPN protocol implementations (e.g., WireGuardProvider)
 │   │
-│   ├── static/                 # Static web assets (CSS, JS, images for templates)
-│   │
-│   ├── templates/              # HTML templates (Jinja2) for potential server-side rendering
+│   ├── static/                 # Files the server serves itself; the home of a co-hosted Helm dashboard's build
 │   │
 │   └── utils/                  # General-purpose utility functions and decorators (e.g., field reordering)
 │
