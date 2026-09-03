@@ -61,6 +61,10 @@ FIGURE = re.compile(r"^figure ([a-z0-9_-]+): (.+?)\s*$", re.MULTILINE)
 ILLEGAL_RECORD_EDIT = re.compile(r"^[-+](?![-+])(?!Status: )")
 # A name that stands before a slash anywhere in the map or the baseline is a housed directory.
 HOUSED = re.compile(r"([A-Za-z0-9_.-]+)/")
+# This sentence dates the immutability rule's arrival in the tree's own history, so it is what
+# the check searches for, never the function's name, which a child's past may already carry.
+# Changing what the check covers changes this sentence, and the anchor moves forward with it.
+IMMUTABILITY_SCOPE = "records held immutable beyond their Status line: every file below a subfolder of docs/ except the arrow manifests"
 
 
 def git(*args: str) -> str:
@@ -260,12 +264,13 @@ def check_rooms(problems: list[str], root: Path) -> None:
 
 
 def check_record_immutability(problems: list[str], root: Path) -> None:
-    """A record changes only on its Status line, in the working tree and in every commit since this check arrived.
+    """A record changes only on its Status line, in the working tree and in every commit since this scope arrived.
 
-    The rule binds from the commit that brought this check into the tree, found in git's own
-    history, so an adopting project is held from its adoption forward and never re-litigates a
-    past it did not write under the rule. A shallow clone cannot show that history, so it fails
-    rather than quietly checking less.
+    The rule binds from the commit that brought its current scope sentence into the tree, found
+    in git's own history, so an adopting project is held from its adoption forward, never
+    re-litigates a past it did not write under the rule, and is never caught by a widened scope
+    reaching behind its own arrival. A shallow clone cannot show that history, so it fails rather
+    than quietly checking less.
     """
     if root != ROOT:
         return
@@ -274,7 +279,7 @@ def check_record_immutability(problems: list[str], root: Path) -> None:
         return
     # Every subfolder of docs/ except the arrow manifests is a record folder, so the diff is
     # read over docs/ and only files below such a folder count; living documents change freely.
-    arrivals = git("log", "--reverse", "--format=%H", "-S", "def check_record_immutability", "--", "scripts/audit_inquiry.py").split()
+    arrivals = git("log", "--reverse", "--format=%H", "-S", IMMUTABILITY_SCOPE, "--", "scripts/audit_inquiry.py").split()
     diffs = [("the working tree", git("diff", "HEAD", "--unified=0", "--diff-filter=M", "--", "docs"))]
     if arrivals:
         commits = [arrivals[0], *git("log", "--format=%H", f"{arrivals[0]}..HEAD", "--diff-filter=M", "--", "docs").split()]
@@ -632,6 +637,17 @@ def selftest() -> int:
                 print(f"WRONG: a Status flip on {record.name} was reported as an illegal edit")
         finally:
             record.write_bytes(original)
+    # The immutability rule is dated by its scope sentence, so the commit the search finds must
+    # be the one that introduced that sentence: its parent must not contain it. A history without
+    # the sentence yet has nothing to prove and says so.
+    arrival = git("log", "--reverse", "--format=%H", "-S", IMMUTABILITY_SCOPE, "--", "scripts/audit_inquiry.py").split()
+    if not arrival:
+        print("anchor plant skipped: the immutability scope sentence has not reached history yet")
+    else:
+        parent = git("show", f"{arrival[0]}^:scripts/audit_inquiry.py")
+        if IMMUTABILITY_SCOPE in parent:
+            failures += 1
+            print("WRONG: the immutability anchor is older than the commit that introduced the current scope")
     baseline, _ = run(ROOT)
     if baseline:
         failures += 1

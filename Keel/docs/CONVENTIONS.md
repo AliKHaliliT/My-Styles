@@ -109,6 +109,8 @@ Not everything is documented that heavily, by design. Purely internal helpers an
 
 The rest of the NumPy vocabulary is used where it fits and omitted where it does not: a caveat becomes a `Notes` section rather than a loose sentence, a generator would document `Yields`, a `warnings.warn` would document `Warns`, and `See Also`/`References` are there for cross-references. Sections you do not see are simply not called for by that code; generated code should add them as it introduces the behavior.
 
+A module carries no docstring; its name and its room in the map say what it is, and only a script run as a command opens with one.
+
 Test files stand outside the every-export rule, because a suite documents itself through the name of each case and the assertion it makes. A comment belongs in a test only where the reason a case exists is invisible from its name, as with a regression guard that should name the defect it pins.
 
 ## Prose

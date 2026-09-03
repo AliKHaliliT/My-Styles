@@ -62,6 +62,10 @@ NUMPY_SECTION = re.compile(
     re.MULTILINE,
 )
 TRIO = ("Parameters", "Returns", "Raises")
+# This sentence dates the immutability rule's arrival in the tree's own history, so it is what
+# the check searches for, never the function's name, which a child's past may already carry.
+# Changing what the check covers changes this sentence, and the anchor moves forward with it.
+IMMUTABILITY_SCOPE = "records held immutable beyond their Status line: every file below a subfolder of docs/"
 
 
 def git(*args: str) -> str:
@@ -351,12 +355,13 @@ def check_import_graph(problems: list[str]) -> None:
 
 
 def check_record_immutability(problems: list[str]) -> None:
-    """A record changes only on its Status line, in the working tree and in every commit since this check arrived.
+    """A record changes only on its Status line, in the working tree and in every commit since this scope arrived.
 
-    The rule binds from the commit that brought this check into the tree, found in git's own
-    history, so an adopting project is held from its adoption forward and never re-litigates a
-    past it did not write under the rule. A shallow clone cannot show that history, so it fails
-    rather than quietly checking less.
+    The rule binds from the commit that brought its current scope sentence into the tree, found
+    in git's own history, so an adopting project is held from its adoption forward, never
+    re-litigates a past it did not write under the rule, and is never caught by a widened scope
+    reaching behind its own arrival. A shallow clone cannot show that history, so it fails rather
+    than quietly checking less.
     """
     if not (ROOT / "docs").is_dir():
         return
@@ -365,7 +370,7 @@ def check_record_immutability(problems: list[str]) -> None:
         return
     # Every subfolder of docs/ is a record folder, so the diff is read over docs/ and only
     # files below a subfolder count; the flat living documents at the top change freely.
-    arrivals = git("log", "--reverse", "--format=%H", "-S", "def check_record_immutability", "--", "scripts/audit_docs.py").split()
+    arrivals = git("log", "--reverse", "--format=%H", "-S", IMMUTABILITY_SCOPE, "--", "scripts/audit_docs.py").split()
     diffs = [("the working tree", git("diff", "HEAD", "--unified=0", "--diff-filter=M", "--", "docs"))]
     if arrivals:
         commits = [arrivals[0], *git("log", "--format=%H", f"{arrivals[0]}..HEAD", "--diff-filter=M", "--", "docs").split()]
@@ -453,6 +458,11 @@ def check_docstrings(problems: list[str]) -> None:
             text = source.read_text(encoding="utf-8")
             lines = text.split("\n")
             tree = ast.parse(text)
+            # A module carries no docstring in this dialect; its name and its room in the map say
+            # what it is, and only a script run as a command, which lives outside these roots,
+            # opens with one.
+            if ast.get_docstring(tree) is not None:
+                problems.append(f"{rel}:1: a module carries no docstring; its name and its room in the map say what it is, and only a script opens with one")
             for node in ast.walk(tree):
                 if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
                     continue
