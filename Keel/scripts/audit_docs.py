@@ -46,6 +46,7 @@ BACKTICK = re.compile(r"`([^`\n]+)`")
 LINK = re.compile(r"\[[^\]]*\]\(([^)\s]+)\)")
 STATE_DATE = re.compile(r"\((\d{4}-\d{2}-\d{2})\)")
 RECORD_NAME = re.compile(r"^\d{4}-[a-z0-9-]+\.md$")
+DATED_RECORD_NAME = re.compile(r"^\d{4}-\d{2}-\d{2}-[a-z0-9-]+\.md$")
 FENCE = re.compile(r"```[^\n]*\n(.*?)```", re.DOTALL)
 DOTTED_MODULE = re.compile(r"[a-z_][a-z0-9_]*(?:\.[a-z_][a-z0-9_]*)+")
 TREE_FILE = re.compile(r"[A-Za-z0-9_\-]+(?:\.[A-Za-z0-9_\-]+)+")
@@ -244,19 +245,25 @@ def check_docs_zone(problems: list[str]) -> None:
                     f"docs/decisions/: {numbers[num]} and {f.name} share the number {num}; renumber the newer record"
                 )
             numbers[num] = f.name
-    # Everything else under docs/ is a document with a room or it does not exist. A file below
-    # a subdirectory is registered by its own path or by its directory's row in the index; a
-    # file that is not markdown has no species and no room here at all.
+    # Below the top level, docs/ holds record folders only: decisions/ with its numbered
+    # records, and dated folders such as briefings or progress reports, each registered by
+    # its own row. A living document belongs at the top as a flat UPPERCASE file, where the
+    # naming and budget rules can see it, so anything else below a subfolder fails.
     for path in tracked_files():
         if not path.startswith("docs/") or path.startswith("docs/decisions/"):
             continue
-        if path.count("/") == 1 and path.endswith(".md"):
+        if path.count("/") == 1:
+            if not path.endswith(".md"):
+                problems.append(f"{path}: docs/ holds markdown documents only; assets live where the baseline sends them")
             continue
         folder = "/".join(path.split("/")[:2])
-        if not path.endswith(".md"):
-            problems.append(f"{path}: docs/ holds markdown documents only; assets live where the baseline sends them")
-        elif f"({path})" not in agents and f"({folder}/)" not in agents:
-            problems.append(f"{path}: lives under docs/ but is neither the spine, a record, nor registered in the index; give it a room or fold it")
+        if f"({folder}/)" not in agents:
+            problems.append(f"{path}: {folder}/ has no row in the AGENTS.md index; a subfolder of docs/ is a registered record folder or it does not exist")
+        if not DATED_RECORD_NAME.match(path.rsplit("/", 1)[-1]):
+            problems.append(
+                f"{path}: a file below a docs/ subfolder is a dated record named YYYY-MM-DD-short-kebab-title.md; "
+                f"a living document is a flat UPPERCASE file at the top of docs/"
+            )
 
 
 def check_rooms(problems: list[str]) -> None:
@@ -351,17 +358,19 @@ def check_record_immutability(problems: list[str]) -> None:
     past it did not write under the rule. A shallow clone cannot show that history, so it fails
     rather than quietly checking less.
     """
-    if not (ROOT / "docs/decisions").is_dir():
+    if not (ROOT / "docs").is_dir():
         return
     if git("rev-parse", "--is-shallow-repository").strip() == "true":
         problems.append("the clone is shallow, so record history cannot be checked; fetch the full history")
         return
+    # Every subfolder of docs/ is a record folder, so the diff is read over docs/ and only
+    # files below a subfolder count; the flat living documents at the top change freely.
     arrivals = git("log", "--reverse", "--format=%H", "-S", "def check_record_immutability", "--", "scripts/audit_docs.py").split()
-    diffs = [("the working tree", git("diff", "HEAD", "--unified=0", "--diff-filter=M", "--", "docs/decisions"))]
+    diffs = [("the working tree", git("diff", "HEAD", "--unified=0", "--diff-filter=M", "--", "docs"))]
     if arrivals:
-        commits = [arrivals[0], *git("log", "--format=%H", f"{arrivals[0]}..HEAD", "--diff-filter=M", "--", "docs/decisions").split()]
+        commits = [arrivals[0], *git("log", "--format=%H", f"{arrivals[0]}..HEAD", "--diff-filter=M", "--", "docs").split()]
         diffs.extend(
-            (sha[:12], git("show", sha, "--format=", "--unified=0", "-M", "--diff-filter=M", "--", "docs/decisions"))
+            (sha[:12], git("show", sha, "--format=", "--unified=0", "-M", "--diff-filter=M", "--", "docs"))
             for sha in commits
         )
     for where, diff in diffs:
@@ -370,6 +379,11 @@ def check_record_immutability(problems: list[str]) -> None:
         for line in diff.splitlines():
             if line.startswith("+++ b/"):
                 current = line[6:]
+                below = current.split("docs/", 1)[1] if "docs/" in current else ""
+                if "/" not in below:
+                    current = ""
+                continue
+            if not current:
                 continue
             if line.startswith(("--- ", "+++ ", "@@", "diff ", "index ", "similarity ", "rename ")):
                 continue
@@ -394,12 +408,41 @@ def section_entries(body: str) -> list[str]:
     return names
 
 
+def check_rhythm(problems: list[str], rel: str, lines: list[str], node: ast.FunctionDef | ast.AsyncFunctionDef | ast.ClassDef, doc: str) -> None:
+    """The house docstring rhythm, held byte by byte where a rule can see it.
+
+    The exemplars open with a blank line after the header, a lone triple quote, and a blank
+    line; they close with a blank line, a lone triple quote, and a blank line before the body;
+    every section header stands after two blank lines; and every parameter entry is typed as
+    name : type. Each of those is a shape, so each is decided here rather than reviewed.
+    """
+    opening = node.body[0]
+    start, end = opening.lineno, opening.end_lineno or opening.lineno
+    where = f"{rel}:{start}: {node.name}"
+    if lines[start - 1].strip() != '"""' or lines[end - 1].strip() != '"""':
+        problems.append(f"{where}'s docstring opens and closes with a triple quote alone on its line")
+        return
+    if start < 2 or lines[start - 2].strip():
+        problems.append(f"{where}'s docstring follows a blank line after the header")
+    if lines[start].strip():
+        problems.append(f"{where}'s docstring opens with a blank line after the triple quote")
+    if lines[end - 2].strip():
+        problems.append(f"{where}'s docstring closes with a blank line before the triple quote")
+    if len(node.body) > 1 and end < len(lines) and lines[end].strip():
+        problems.append(f"{where}'s docstring is followed by a blank line before the body")
+    body = doc.split("\n")
+    for i, raw in enumerate(body):
+        if NUMPY_SECTION.match(raw + "\n" + (body[i + 1] if i + 1 < len(body) else "")) and (i < 2 or body[i - 1].strip() or body[i - 2].strip()):
+            problems.append(f"{where}'s {raw.strip()} section stands after two blank lines")
+
+
 def check_docstrings(problems: list[str]) -> None:
-    """The decidable half of the docstring convention: the trio travels together and names match the code.
+    """The decidable half of the docstring convention: rhythm, the trio together, and names that match the code.
 
     Whether a docstring says something true, and which classes warrant a Usage block, stay
-    with review; what is held here is that a function documenting any of Parameters, Returns,
-    or Raises documents all three, that Parameters names exactly the signature, and that an
+    with review; what is held here is the house rhythm of blank lines and lone triple quotes,
+    that a function documenting any of Parameters, Returns, or Raises documents all three,
+    that Parameters names exactly the signature with every entry typed, and that an
     Attributes section names only attributes the class declares.
     """
     for root in python_roots():
@@ -407,13 +450,16 @@ def check_docstrings(problems: list[str]) -> None:
             if "__pycache__" in source.parts:
                 continue
             rel = source.relative_to(ROOT).as_posix()
-            tree = ast.parse(source.read_text(encoding="utf-8"))
+            text = source.read_text(encoding="utf-8")
+            lines = text.split("\n")
+            tree = ast.parse(text)
             for node in ast.walk(tree):
                 if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
                     continue
                 doc = ast.get_docstring(node, clean=False)
                 if not doc:
                     continue
+                check_rhythm(problems, rel, lines, node, doc)
                 marks = list(NUMPY_SECTION.finditer(doc))
                 sections = {
                     m.group(1): doc[m.end(): marks[i + 1].start() if i + 1 < len(marks) else len(doc)]
@@ -439,6 +485,14 @@ def check_docstrings(problems: list[str]) -> None:
                     documented = section_entries(sections["Parameters"])
                     if documented != signature:
                         problems.append(f"{rel}:{node.lineno}: {node.name} documents parameters {documented} but its signature has {signature}")
+                    entries = [line for line in sections["Parameters"].split("\n") if line.strip()]
+                    base = min((len(line) - len(line.lstrip()) for line in entries), default=0)
+                    untyped = [
+                        line.strip() for line in entries
+                        if len(line) - len(line.lstrip()) == base and line.strip() != "None." and " : " not in line
+                    ]
+                    if untyped:
+                        problems.append(f"{rel}:{node.lineno}: {node.name} lists parameters without a type ({', '.join(untyped)}); an entry reads name : type")
 
 
 def check_layout(problems: list[str]) -> list[Path]:

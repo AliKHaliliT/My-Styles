@@ -45,6 +45,7 @@ RECORD_FOLDERS = ("docs/decisions", "docs/claims")
 CLAIM_STATUS = re.compile(r"^Status: (Conjecture|Supported|Refuted|Stale|Superseded by \d{4})$")
 DECISION_STATUS = re.compile(r"^Status: (Accepted|Superseded by .+)$")
 RECORD_NAME = re.compile(r"^\d{4}-[a-z0-9-]+\.md$")
+DATED_RECORD_NAME = re.compile(r"^\d{4}-\d{2}-\d{2}-[a-z0-9-]+\.md$")
 STATE_DATE = re.compile(r"\((\d{4}-\d{2}-\d{2})\)")
 # A key is an author name closed by a year, or a standard's designation with
 # its year suffixed, so digits may sit inside the name (ieee754-2019).
@@ -143,16 +144,25 @@ def check_living(problems: list[str], root: Path) -> None:
     # Everything else under docs/ is a document with a room or it does not exist. A file below
     # a subdirectory is registered by its own path or by its directory's row in the index; a
     # file that is not markdown has no species and no room here at all.
+    # Below the top level, docs/ holds the record folders and the arrow manifests only. A
+    # record folder beyond decisions and claims holds dated documents, registered by its own
+    # row; a living document belongs at the top as a flat UPPERCASE file, where the naming and
+    # budget rules can see it, so anything else below a subfolder fails.
     for tracked in tracked_files() if root == ROOT else []:
-        if not tracked.startswith("docs/") or tracked.startswith(("docs/decisions/", "docs/claims/")):
+        if not tracked.startswith("docs/") or tracked.startswith(("docs/decisions/", "docs/claims/", "docs/arrows/")):
             continue
-        if tracked.count("/") == 1 and tracked.endswith(".md"):
+        if tracked.count("/") == 1:
+            if not tracked.endswith(".md"):
+                problems.append(f"{tracked}: docs/ holds markdown documents only; assets live where the baseline sends them")
             continue
         folder = "/".join(tracked.split("/")[:2])
-        if not tracked.endswith(".md"):
-            problems.append(f"{tracked}: docs/ holds markdown documents only; assets live where the baseline sends them")
-        elif f"({tracked})" not in rows and f"({folder}/)" not in rows:
-            problems.append(f"{tracked}: lives under docs/ but is neither the spine, a record, nor registered in the index; give it a room or fold it")
+        if f"({folder}/)" not in rows:
+            problems.append(f"{tracked}: {folder}/ has no row in the AGENTS.md index; a subfolder of docs/ is a registered record folder or it does not exist")
+        if not DATED_RECORD_NAME.match(tracked.rsplit("/", 1)[-1]):
+            problems.append(
+                f"{tracked}: a file below a docs/ subfolder is a dated record named YYYY-MM-DD-short-kebab-title.md; "
+                f"a living document is a flat UPPERCASE file at the top of docs/"
+            )
 
 
 def check_records(problems: list[str], root: Path) -> None:
@@ -262,12 +272,14 @@ def check_record_immutability(problems: list[str], root: Path) -> None:
     if git("rev-parse", "--is-shallow-repository") == "true":
         problems.append("the clone is shallow, so record history cannot be checked; fetch the full history")
         return
+    # Every subfolder of docs/ except the arrow manifests is a record folder, so the diff is
+    # read over docs/ and only files below such a folder count; living documents change freely.
     arrivals = git("log", "--reverse", "--format=%H", "-S", "def check_record_immutability", "--", "scripts/audit_inquiry.py").split()
-    diffs = [("the working tree", git("diff", "HEAD", "--unified=0", "--diff-filter=M", "--", *RECORD_FOLDERS))]
+    diffs = [("the working tree", git("diff", "HEAD", "--unified=0", "--diff-filter=M", "--", "docs"))]
     if arrivals:
-        commits = [arrivals[0], *git("log", "--format=%H", f"{arrivals[0]}..HEAD", "--diff-filter=M", "--", *RECORD_FOLDERS).split()]
+        commits = [arrivals[0], *git("log", "--format=%H", f"{arrivals[0]}..HEAD", "--diff-filter=M", "--", "docs").split()]
         diffs.extend(
-            (sha[:12], git("show", sha, "--format=", "--unified=0", "-M", "--diff-filter=M", "--", *RECORD_FOLDERS))
+            (sha[:12], git("show", sha, "--format=", "--unified=0", "-M", "--diff-filter=M", "--", "docs"))
             for sha in commits
         )
     for where, diff in diffs:
@@ -276,6 +288,11 @@ def check_record_immutability(problems: list[str], root: Path) -> None:
         for line in diff.splitlines():
             if line.startswith("+++ b/"):
                 current = line[6:]
+                below = current.split("docs/", 1)[1] if "docs/" in current else ""
+                if "/" not in below or below.startswith("arrows/"):
+                    current = ""
+                continue
+            if not current:
                 continue
             if line.startswith(("--- ", "+++ ", "@@", "diff ", "index ", "similarity ", "rename ")):
                 continue
@@ -462,7 +479,8 @@ def docs_only_moved_pin() -> tuple[str, str] | None:
 
 # Plants the tracked-tree checks can see; each is intent-to-added for one run.
 TRACKED_PLANTS = [
-    ("docs/legacy/OLD.md", "# Old\n", "neither the spine, a record, nor registered in the index"),
+    ("docs/legacy/OLD.md", "# Old\n", "docs/legacy/ has no row in the AGENTS.md index"),
+    ("docs/legacy/GUIDE.md", "# Guide\n", "a living document is a flat UPPERCASE file at the top of docs/"),
     ("docs/diagram.png", "not a document\n", "docs/ holds markdown documents only"),
     ("stray/note.txt", "nobody gave this a room\n", "stray/: exists in the tree but has no room"),
     ("ROGUE.txt", "nobody named this\n", "ROGUE.txt: sits at the root but neither the map nor the baseline names it"),

@@ -27,7 +27,7 @@ Nearly every documentation failure is a species violation. Never mix the two spe
 | `docs/claims/` | Records | The claim ledger; the durable home of what the inquiry holds true, on what evidence. |
 | `docs/arrows/` | Living | One manifest per arrow: the style it follows, the part of the question it serves, and the claims resting on it. |
 
-Assistant-specific instruction files do not exist here; every assistant reads `AGENTS.md`. Beyond the spine, documentation grows organically. Further documents are added under `docs/` (UPPERCASE markdown, one subject per file, one species per file) and registered in the index. The one exception in location is a directory whose purpose needs stating where a reader stands, which may carry its own `README.md` beside its contents, registered in the index like any other document. Growth changes the number of documents, never the species rules of an existing one.
+Assistant-specific instruction files do not exist here; every assistant reads `AGENTS.md`. Beyond the spine, documentation grows organically. Further documents are added under `docs/` (UPPERCASE markdown, one subject per file, one species per file) and registered in the index. The one exception in location is a directory whose purpose needs stating where a reader stands, which may carry its own `README.md` beside its contents, registered in the index like any other document. A subfolder under `docs/` is a record folder or `arrows/`, nothing else; living organic documents are flat UPPERCASE files at the top of `docs/`, because the naming and budget rules see only that shape. A record folder beyond `decisions/` and `claims/` holds dated documents named `YYYY-MM-DD-short-kebab-title.md`, ordered by date rather than by number, immutable like every record, and registered by its own row in the index. Growth changes the number of documents, never the species rules of an existing one.
 
 ## The index contract
 
@@ -41,7 +41,7 @@ Assistant-specific instruction files do not exist here; every assistant reads `A
 - A sentence in a living document is a claim, not a fact. Verify a claim before relying on it, and end every change by sweeping `STATE.md`.
 - Rewrite in place; never append-and-preserve.
 - `AGENTS.md`, `docs/ARCHITECTURE.md`, and `docs/BIBLIOGRAPHY.md` grow with the inquiry rather than against a number, saying everything as briefly as it can be said. Every other living document is bounded at 150 lines, the audit fails one that exceeds its bound, and the remedy is fission by subject. `README.md` stands outside both classes, governed by the README schema in BASELINE.md.
-- The mechanical half of freshness is checked by `scripts/audit_inquiry.py`: paths named exist, relative links resolve, no `STATE.md` entry outlives its horizon, no bounded document exceeds its budget, every document under `docs/` is registered or lives in a registered folder, every root entry has a room in the map or the baseline, a record changes only on its Status line, two claims quoting one figure at one pin agree, each manifest names exactly the current claims on its arrow, names and schemas hold. Records are exempt from every rule in this section; they describe the past, which does not rot.
+- The mechanical half of freshness is checked by `scripts/audit_inquiry.py`: paths named exist, relative links resolve, no `STATE.md` entry outlives its horizon, no bounded document exceeds its budget, every document under `docs/` is registered or is a dated record in a registered record folder, every root entry has a room in the map or the baseline, a record changes only on its Status line, two claims quoting one figure at one pin agree, each manifest names exactly the current claims on its arrow, names and schemas hold. Records are exempt from every rule in this section; they describe the past, which does not rot.
 
 ### The STATE.md schema
 
@@ -80,7 +80,7 @@ A "why" that fits in a sentence and explains one change goes in the commit messa
 
 ## Naming
 
-Spine and organic documents use UPPERCASE basenames at predictable locations. Decision and claim records use `NNNN-short-kebab-title.md`, each sequence numbered independently, because they are many, ordered, and cited by number. Arrow manifests are lowercase, named exactly after the arrow directory they describe.
+Spine and organic documents use UPPERCASE basenames at predictable locations. Decision and claim records use `NNNN-short-kebab-title.md`, each sequence numbered independently, because they are many, ordered, and cited by number. Arrow manifests are lowercase, named exactly after the arrow directory they describe. Other record folders name their files `YYYY-MM-DD-short-kebab-title.md`, since a briefing or a progress report is ordered by when it happened.
 
 ## Code inside arrows
 
