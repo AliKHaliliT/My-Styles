@@ -2,14 +2,20 @@
 
 A living document rots when a sentence that was true at writing stops being true after
 reality moves through a path that never touches the file. The mechanical kinds of rot are
-checked here, along with the shapes the rulebook fixes: budgets, the index contract, names,
-the STATE schema, the version floor claims, and the Python layout conventions. Decision records are exempt because
-they describe the past, which does not rot.
+checked here, along with the shapes the rulebook fixes: budgets, the index contract over the
+whole docs zone, names, the STATE schema, the version floor claims, the Python layout
+conventions, the room every directory and root file has in the map or the baseline, the
+coverage of the import graph the Dependency Rule contract runs over, the immutability of
+records, and the decidable half of the docstring convention. Decision records are exempt from
+the freshness rules because they describe the past, which does not rot; what is held about
+them is that nobody rewrites the past.
 """
 
 import ast
 import re
+import subprocess
 import sys
+import tomllib
 from datetime import date, datetime
 from pathlib import Path
 
@@ -26,6 +32,9 @@ LIVING = [
 
 # An entry older than this is expired and must be re-verified before anything relies on it.
 HORIZON_DAYS = 90
+# In-flight work that has not moved in this long is either finished or stalled, and Now is
+# for neither; the shorter horizon is what makes the sweep mechanical where it can be.
+NOW_HORIZON_DAYS = 30
 # Now is for in-flight work only; past this many entries the section is accreting, not tracking.
 NOW_CAP = 5
 # Bounded documents fail past this; AGENTS.md, docs/ARCHITECTURE.md, and README.md are the
@@ -44,6 +53,40 @@ SKIP_DIRS = {".git", "node_modules", "__pycache__", ".ruff_cache", ".venv", "dis
 # Only a claim with the trailing plus is a floor claim; a bare version mention could be
 # talking about anything, and a check may never imply more than it decides.
 FLOOR_CLAIM = re.compile(r"Python (\d+\.\d+)\+")
+# A changed diff line that is not a Status line; the +++ and --- headers are excluded by the
+# lookahead and skipped by name where the diff is read.
+ILLEGAL_RECORD_EDIT = re.compile(r"^[-+](?![-+])(?!Status: )")
+NUMPY_SECTION = re.compile(
+    r"^[ \t]*(Parameters|Returns|Raises|Attributes|Yields|Warns|Notes|Usage|Examples|See Also|References)[ \t]*\n[ \t]*-{3,}[ \t]*$",
+    re.MULTILINE,
+)
+TRIO = ("Parameters", "Returns", "Raises")
+
+
+def git(*args: str) -> str:
+    """One git call against the repository this file lives in; empty when git says no."""
+    # The arguments are this script's own constants and git is the tool the family runs on.
+    done = subprocess.run(["git", *args], cwd=ROOT, capture_output=True, text=True, check=False)  # noqa: S603, S607
+    return done.stdout if done.returncode == 0 else ""
+
+
+def tracked_files() -> list[str]:
+    """Every tracked path, posix and relative to the root, so untracked local clutter never fires a check."""
+    return [p for p in git("ls-files", "-z").split("\0") if p]
+
+
+def drawn_entries(text: str) -> set[str]:
+    """Every name drawn in a document's tree diagrams, directories without their trailing slash."""
+    names: set[str] = set()
+    for fence in FENCE.finditer(text):
+        block = fence.group(1)
+        if "──" not in block:
+            continue
+        for raw in block.splitlines():
+            entry = raw.split("#", 1)[0].strip(" │├└─\t").rstrip("/")
+            if entry:
+                names.add(entry)
+    return names
 
 
 def looks_like_path(token: str) -> bool:
@@ -148,14 +191,20 @@ def check_documents(problems: list[str]) -> None:
         sections = re.findall(r"^## (.+)$", text, re.MULTILINE)
         if sections != ["Now", "Next", "Deferred", "Blocked"]:
             problems.append(f"STATE.md: sections are {sections}, not the four the schema fixes")
-        for match in STATE_DATE.finditer(text):
-            stamped = datetime.strptime(match.group(1), "%Y-%m-%d").date()
-            age = (today - stamped).days
-            if age > HORIZON_DAYS:
-                line = text.count("\n", 0, match.start()) + 1
+        section = ""
+        for line_no, raw in enumerate(text.split("\n"), 1):
+            if raw.startswith("## "):
+                section = raw[3:].strip()
+                continue
+            stamp = STATE_DATE.search(raw)
+            if not stamp:
+                continue
+            horizon = NOW_HORIZON_DAYS if section == "Now" else HORIZON_DAYS
+            age = (today - datetime.strptime(stamp.group(1), "%Y-%m-%d").date()).days
+            if age > horizon:
                 problems.append(
-                    f"STATE.md:{line}: entry last verified {match.group(1)}, {age} days ago; "
-                    f"re-verify it against reality, then re-date or remove it"
+                    f"STATE.md:{line_no}: entry last verified {stamp.group(1)}, {age} days ago against the "
+                    f"{horizon}-day horizon of {section}; re-verify it against reality, then re-date or remove it"
                 )
         now_section = re.search(r"^## Now\n(.*?)(?=^## )", text, re.MULTILINE | re.DOTALL)
         if now_section:
@@ -195,11 +244,220 @@ def check_docs_zone(problems: list[str]) -> None:
                     f"docs/decisions/: {numbers[num]} and {f.name} share the number {num}; renumber the newer record"
                 )
             numbers[num] = f.name
+    # Everything else under docs/ is a document with a room or it does not exist. A file below
+    # a subdirectory is registered by its own path or by its directory's row in the index; a
+    # file that is not markdown has no species and no room here at all.
+    for path in tracked_files():
+        if not path.startswith("docs/") or path.startswith("docs/decisions/"):
+            continue
+        if path.count("/") == 1 and path.endswith(".md"):
+            continue
+        folder = "/".join(path.split("/")[:2])
+        if not path.endswith(".md"):
+            problems.append(f"{path}: docs/ holds markdown documents only; assets live where the baseline sends them")
+        elif f"({path})" not in agents and f"({folder}/)" not in agents:
+            problems.append(f"{path}: lives under docs/ but is neither the spine, a record, nor registered in the index; give it a room or fold it")
 
 
-def check_layout(problems: list[str]) -> None:
-    """Folder purity and door-only __init__ files, the Python layout conventions."""
+def check_rooms(problems: list[str]) -> None:
+    """Every tracked directory near the root, and every root file, has a room in the map or the baseline.
+
+    The tree is read one level deep at the root and one level below each Python root, which is
+    the depth the form draws; deeper structure is the code's own and the layout check holds it.
+    A directory is housed when its name is drawn in the map's tree, or the baseline names it.
+    """
+    arch = ROOT / "docs/ARCHITECTURE.md"
+    if not arch.exists():
+        return
+    named = drawn_entries(arch.read_text(encoding="utf-8"))
+    baseline = ROOT / "docs/BASELINE.md"
+    if baseline.exists():
+        for match in BACKTICK.finditer(baseline.read_text(encoding="utf-8")):
+            token = match.group(1).removeprefix("./")
+            named.update(seg for seg in token.split("/") if seg)
+    roots = {r.relative_to(ROOT).as_posix() for r in python_roots()}
+    directories: set[str] = set()
+    files: set[str] = set()
+    for path in tracked_files():
+        parts = path.split("/")
+        if len(parts) == 1:
+            files.add(parts[0])
+            continue
+        directories.add(parts[0])
+        for depth in (1, 2):
+            if "/".join(parts[:depth]) in roots and len(parts) > depth + 1:
+                directories.add("/".join(parts[: depth + 1]))
+    problems.extend(
+        f"{directory}/: exists in the tree but has no room in docs/ARCHITECTURE.md or the baseline; draw it or fold it"
+        for directory in sorted(directories)
+        if directory.split("/")[-1] not in named
+    )
+    problems.extend(
+        f"{name}: sits at the root but neither the map nor the baseline names it; give it a room or remove it"
+        for name in sorted(files - {"AGENTS.md", "README.md", "STATE.md", "LICENSE"})
+        if name not in named
+    )
+
+
+def check_import_graph(problems: list[str]) -> None:
+    """The import graph the Dependency Rule contract runs over covers every module on disk.
+
+    A contract reporting KEPT over a partial graph implies more than it decided, so the
+    modules grimp sees under the contract's roots are held to the modules on disk.
+    """
+    pyproject = ROOT / "pyproject.toml"
+    if not pyproject.exists():
+        return
+    roots = tomllib.loads(pyproject.read_text(encoding="utf-8")).get("tool", {}).get("importlinter", {}).get("root_packages", [])
+    if not roots:
+        return
+    try:
+        import grimp
+    except ImportError:
+        problems.append("the import graph library is not installed, so the contract's coverage cannot be verified; install the dev group")
+        return
+    for base in (ROOT / "src", ROOT):
+        if base.is_dir() and str(base) not in sys.path:
+            sys.path.insert(0, str(base))
+    try:
+        graph = grimp.build_graph(*roots, include_external_packages=False)
+    except Exception as error:  # noqa: BLE001  # whatever stops the graph stops the contract too, and is reported as such
+        problems.append(f"the import graph could not be built ({error}); install the project before auditing")
+        return
+    on_disk: set[str] = set()
+    for root in roots:
+        home = next((b for b in (ROOT / "src", ROOT) if b.joinpath(*root.split(".")).is_dir()), None)
+        if home is None:
+            problems.append(f"{root}: named as an import-linter root, yet no directory matches it")
+            continue
+        for module in home.joinpath(*root.split(".")).rglob("*.py"):
+            if "__pycache__" in module.parts:
+                continue
+            parts = list(module.relative_to(home).with_suffix("").parts)
+            on_disk.add(".".join(parts[:-1] if parts[-1] == "__init__" else parts))
+    unseen = sorted(on_disk - set(graph.modules))
+    if unseen:
+        problems.append(
+            f"the import graph covers {len(on_disk) - len(unseen)} of {len(on_disk)} modules under the contract roots, "
+            f"so the Dependency Rule contract decides less than it reports; unseen: {', '.join(unseen[:5])}"
+        )
+
+
+def check_record_immutability(problems: list[str]) -> None:
+    """A record changes only on its Status line, in the working tree and in every commit since this check arrived.
+
+    The rule binds from the commit that brought this check into the tree, found in git's own
+    history, so an adopting project is held from its adoption forward and never re-litigates a
+    past it did not write under the rule. A shallow clone cannot show that history, so it fails
+    rather than quietly checking less.
+    """
+    if not (ROOT / "docs/decisions").is_dir():
+        return
+    if git("rev-parse", "--is-shallow-repository").strip() == "true":
+        problems.append("the clone is shallow, so record history cannot be checked; fetch the full history")
+        return
+    arrivals = git("log", "--reverse", "--format=%H", "-S", "def check_record_immutability", "--", "scripts/audit_docs.py").split()
+    diffs = [("the working tree", git("diff", "HEAD", "--unified=0", "--diff-filter=M", "--", "docs/decisions"))]
+    if arrivals:
+        commits = [arrivals[0], *git("log", "--format=%H", f"{arrivals[0]}..HEAD", "--diff-filter=M", "--", "docs/decisions").split()]
+        diffs.extend(
+            (sha[:12], git("show", sha, "--format=", "--unified=0", "-M", "--diff-filter=M", "--", "docs/decisions"))
+            for sha in commits
+        )
+    for where, diff in diffs:
+        current = ""
+        flagged: set[str] = set()
+        for line in diff.splitlines():
+            if line.startswith("+++ b/"):
+                current = line[6:]
+                continue
+            if line.startswith(("--- ", "+++ ", "@@", "diff ", "index ", "similarity ", "rename ")):
+                continue
+            if ILLEGAL_RECORD_EDIT.match(line) and current not in flagged:
+                flagged.add(current)
+                problems.append(f"{current}: edited beyond its Status line in {where}; a record is immutable, so supersede it instead")
+
+
+def section_entries(body: str) -> list[str]:
+    """The names a NumPy section lists, read from the lines at its own indent; None. lists nothing."""
+    lines = [line for line in body.split("\n") if line.strip()]
+    if not lines:
+        return []
+    base = min(len(line) - len(line.lstrip()) for line in lines)
+    names: list[str] = []
+    for line in lines:
+        if len(line) - len(line.lstrip()) != base:
+            continue
+        head = line.strip().split(" :", 1)[0].split(":", 1)[0].strip()
+        if head and head != "None.":
+            names.append(head.lstrip("*"))
+    return names
+
+
+def check_docstrings(problems: list[str]) -> None:
+    """The decidable half of the docstring convention: the trio travels together and names match the code.
+
+    Whether a docstring says something true, and which classes warrant a Usage block, stay
+    with review; what is held here is that a function documenting any of Parameters, Returns,
+    or Raises documents all three, that Parameters names exactly the signature, and that an
+    Attributes section names only attributes the class declares.
+    """
     for root in python_roots():
+        for source in sorted(root.rglob("*.py")):
+            if "__pycache__" in source.parts:
+                continue
+            rel = source.relative_to(ROOT).as_posix()
+            tree = ast.parse(source.read_text(encoding="utf-8"))
+            for node in ast.walk(tree):
+                if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+                    continue
+                doc = ast.get_docstring(node, clean=False)
+                if not doc:
+                    continue
+                marks = list(NUMPY_SECTION.finditer(doc))
+                sections = {
+                    m.group(1): doc[m.end(): marks[i + 1].start() if i + 1 < len(marks) else len(doc)]
+                    for i, m in enumerate(marks)
+                }
+                if isinstance(node, ast.ClassDef):
+                    if "Attributes" in sections:
+                        declared = {t.target.id for t in node.body if isinstance(t, ast.AnnAssign) and isinstance(t.target, ast.Name)}
+                        stray = [n for n in section_entries(sections["Attributes"]) if n not in declared]
+                        if stray:
+                            problems.append(f"{rel}:{node.lineno}: {node.name} documents attributes {stray} that the class does not declare")
+                    continue
+                present = [s for s in TRIO if s in sections]
+                if present and len(present) != len(TRIO):
+                    problems.append(
+                        f"{rel}:{node.lineno}: {node.name} documents {present} alone; a full docstring carries "
+                        f"Parameters, Returns, and Raises together, None. where a section is empty"
+                    )
+                if "Parameters" in sections:
+                    arguments = node.args
+                    ordered = [*arguments.posonlyargs, *arguments.args, arguments.vararg, *arguments.kwonlyargs, arguments.kwarg]
+                    signature = [a.arg for a in ordered if a is not None and a.arg not in ("self", "cls")]
+                    documented = section_entries(sections["Parameters"])
+                    if documented != signature:
+                        problems.append(f"{rel}:{node.lineno}: {node.name} documents parameters {documented} but its signature has {signature}")
+
+
+def check_layout(problems: list[str]) -> list[Path]:
+    """Folder purity and door-only __init__ files, the Python layout conventions, over a tree that exists.
+
+    The audit says which roots it held, and fails when the tree's shape leaves it nothing to
+    hold, because a run that examined nothing must not look like one that found nothing.
+    """
+    roots = python_roots()
+    src = ROOT / "src"
+    if src.is_dir():
+        loose = sorted(p.name for p in src.iterdir() if p.suffix == ".py")
+        if loose:
+            problems.append(f"src/: holds loose modules ({', '.join(loose)}); the form is one package directory under src/")
+        if len(roots) != 1:
+            problems.append(f"src/: holds {len(roots)} package directories; the form is exactly one, so the layout has one tree to hold")
+    elif not roots:
+        problems.append("no app/ or src/ package tree exists for the layout conventions to hold, so this audit decides nothing about layout")
+    for root in roots:
         for directory in [root, *[p for p in root.rglob("*") if p.is_dir()]]:
             if directory.name == "__pycache__":
                 continue
@@ -223,6 +481,7 @@ def check_layout(problems: list[str]) -> None:
                     rel = init.relative_to(ROOT)
                     problems.append(f"{rel}: an __init__.py is a door and only re-exports")
                     break
+    return roots
 
 
 def declared_python() -> str | None:
@@ -256,7 +515,11 @@ def main() -> int:
     problems: list[str] = []
     check_documents(problems)
     check_docs_zone(problems)
-    check_layout(problems)
+    check_rooms(problems)
+    held = check_layout(problems)
+    check_import_graph(problems)
+    check_record_immutability(problems)
+    check_docstrings(problems)
     check_version_story(problems)
 
     for problem in problems:
@@ -264,7 +527,8 @@ def main() -> int:
     if problems:
         print(f"\n{len(problems)} problem(s). The tree disagrees with its own conventions.")
         return 1
-    print("The tree agrees with its own conventions.")
+    over = ", ".join(r.relative_to(ROOT).as_posix() for r in held) or "no package tree"
+    print(f"The tree agrees with its own conventions (layout held over {over}).")
     return 0
 
 

@@ -77,9 +77,16 @@ jobs:
         working-directory: ArchtypeCore
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          # Record immutability is checked against history, so the clone cannot be shallow.
+          fetch-depth: 0
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
         with:
           python-version: "3.14"
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-dev.txt
       - name: Docs
         run: python scripts/audit_docs.py
       - name: Seams
@@ -88,10 +95,6 @@ jobs:
             echo "Module mocking is banned; substitute only at a declared seam."
             exit 1
           fi
-      - name: Install
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install -r requirements-dev.txt
       - name: Lint
         run: ruff check . && lint-imports
       - name: Credential heuristics, advisory
@@ -110,9 +113,17 @@ jobs:
         working-directory: Keel
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          # Record immutability is checked against history, so the clone cannot be shallow.
+          fetch-depth: 0
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
         with:
           python-version: "3.14"
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+          python -m pip install --group dev
       - name: Docs
         run: python scripts/audit_docs.py
       - name: Seams
@@ -121,11 +132,6 @@ jobs:
             echo "Module mocking is banned; substitute only at a declared seam."
             exit 1
           fi
-      - name: Install
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install -e .
-          python -m pip install --group dev
       - name: Lint
         run: ruff check . && lint-imports
       - name: Credential heuristics, advisory
@@ -162,6 +168,11 @@ jobs:
         run: python scripts/audit_inquiry.py --selftest
       - name: Audit
         run: python scripts/audit_inquiry.py
+      - name: Install the demo arrow
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e arrows/coinwise
+          python -m pip install --group arrows/coinwise/pyproject.toml:dev
       - name: Arrow docs
         run: cd arrows/coinwise && python scripts/audit_docs.py
       - name: Arrow seams
@@ -170,11 +181,6 @@ jobs:
             echo "Module mocking is banned; substitute only at a declared seam."
             exit 1
           fi
-      - name: Install the demo arrow
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install -e arrows/coinwise
-          python -m pip install --group arrows/coinwise/pyproject.toml:dev
       - name: Arrow lint
         run: cd arrows/coinwise && ruff check . && lint-imports
       - name: Arrow credential heuristics, advisory
@@ -201,6 +207,9 @@ jobs:
         working-directory: Helm
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          # Record immutability is checked against history, so the clone cannot be shallow.
+          fetch-depth: 0
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: "24"

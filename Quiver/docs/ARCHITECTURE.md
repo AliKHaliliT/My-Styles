@@ -39,3 +39,13 @@ The inquiry layer is tested by `scripts/audit_inquiry.py`, whose own rules are
 proven by `--selftest` against planted defects. Arrow code is tested by each
 arrow's own suite under its own style's testing contract; the audit never
 reaches into an arrow, and an arrow's suite never checks a claim.
+
+## Exemplars
+
+The map says where things live; these files say how they read. An artifact of a kind listed here is cut from its exemplar and rewritten, never written fresh from the rule, because the rule names what must exist and only these bytes carry the dialect. The demo's named incompleteness bounds what the exemplars cover, not how closely they are followed.
+
+- A settled claim with its pin and figures: `docs/claims/0009-half-even-cancels-the-drift-that-half-up-accumulates.md`.
+- A superseded claim, showing the re-pin form: `docs/claims/0007-half-even-cancels-the-drift-that-half-up-accumulates.md`.
+- A decision record: `docs/decisions/0009-advise-only-on-movement-that-can-move-a-number.md`.
+- An arrow manifest: `docs/arrows/coinwise.md`.
+- The question with its decomposition: `docs/QUESTION.md`.

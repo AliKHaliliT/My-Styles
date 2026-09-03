@@ -15,6 +15,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          # Record immutability is checked against history, so the clone cannot be shallow.
+          fetch-depth: 0
       - name: Em dash budget, two per file
         run: |
           git grep -PIno "\x{2014}" -- . > em-dashes.tmp || true
@@ -30,13 +33,13 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: "3.14"
-      - name: Docs
-        run: python scripts/audit_docs.py
       - name: Install
         run: |
           python -m pip install --upgrade pip
           python -m pip install -e .
           python -m pip install --group dev
+      - name: Docs
+        run: python scripts/audit_docs.py
       - name: Lint
         run: ruff check . && lint-imports
       - name: Credential heuristics, advisory

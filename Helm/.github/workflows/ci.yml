@@ -13,6 +13,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          # Record immutability is checked against history, so the clone cannot be shallow.
+          fetch-depth: 0
       - name: Em dash budget, two per file
         run: |
           git grep -PIno "\x{2014}" -- . > em-dashes.tmp || true
@@ -29,10 +32,10 @@ jobs:
         with:
           node-version: "24"
           cache: npm
-      - name: Docs
-        run: node scripts/audit-docs.mjs
       - name: Install
         run: npm ci
+      - name: Docs
+        run: node scripts/audit-docs.mjs
       - name: Lint
         run: npm run lint
       - name: Type-check

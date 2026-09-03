@@ -23,8 +23,8 @@ silenced with a suppression comment to make a run look clean. The advisory check
 - The Dependency Rule is absolute. `domain` and `services` never import from `facade`, `adapters`, or any SDK; layer-owned objects cross a layer boundary only through translators, a clause no import graph can see, so it is carried in review by the agent writing a change and the human reading it alike.
 - Library citizenship: no global mutable state, no environment reads at import time, and a `NullHandler` on the package logger.
 - Every directory holds either subpackages or modules, never a mix (the package root is the sole exception); an `__init__.py` exists only where it re-exports.
-- Test suites live in `tests/`, mirroring the source tree, one suite named after the unit it covers. A collaborator is replaced only at an architectural seam, by a hand-written fake satisfying the port in `domain/interfaces` that it stands in for; never patch or monkey-patch a module's internals, because a test bound to an implementation voids the substitutability the ports exist to provide. No coverage threshold is imposed, so breadth stays a judgment call while the placement and substitution rules do not. The shape is mapped in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#testing).
-- Follow the docstring convention in the [README's Conventions section](README.md#conventions) and the documentation rules in [docs/CONVENTIONS.md](docs/CONVENTIONS.md); the latter is frozen and must not be edited.
+- Test suites live in `tests/`, mirroring the source tree, one suite named after the unit it covers. A collaborator is replaced only at an architectural seam, by a hand-written fake satisfying the port in `domain/interfaces` that it stands in for; never patch or monkey-patch a module's internals, because a test bound to an implementation voids the substitutability the ports exist to provide. No coverage threshold is imposed, so breadth stays a judgment call while the placement and substitution rules do not. The shape is mapped in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#testing). An invariant with no observable output, such as work done once rather than twice, is observed through a counting fake at the seam it crosses, and where no seam exists the invariant is asking for one.
+- Follow the docstring convention in the rulebook's code-level section and the documentation rules in [docs/CONVENTIONS.md](docs/CONVENTIONS.md); the latter is frozen and must not be edited.
 - The documentation rulebook is owned by the style. [docs/CONVENTIONS.md](docs/CONVENTIONS.md) changes only inside the template itself, in the My-Styles repository and by its owner; a project derived from this template never edits its copy and never diverges from it. A derived project that believes a rule is wrong or missing sends the case upstream instead (see [The upstream report](#the-upstream-report)).
 - An em dash is legal where it clearly beats the comma, the parenthesis, or the period it replaces, and it counts as its paragraph's one flourish. A tracked file carries at most two; CI counts that boundary, while the judgment of fit and commit messages stay with review.
 - Commit history speaks in the owner's voice alone: no attribution trailers, no Co-Authored-By lines, nothing naming a tool or an assistant in a commit message. Held in review, like every commit-message rule.
@@ -75,13 +75,34 @@ The order is strict:
 
 Every report opens by saying why the reader is seeing it. The style's owner uses the report to point an agent at the template and improve it directly. Anyone else is holding it because this template is open source, and the right move is to file the report as an issue on the template's repository so the improvement reaches everyone who builds on the style.
 
+The reply travels the same road down. The template's maintainer answers a report with one file that names, per entry, whether it was kept, adapted, or refused and why, what the reporting project now reverts in favor of the template's version, and the template commit the project aligns to next, so the reply is a re-alignment order rather than a verdict to interpret.
+
+## Adopting this style
+
+An existing repository adopts this style through one refactor, and the refactor is done when the gate below holds, not when the tree looks similar. Three rules govern the work.
+
+The adopting agent folds, moves, rewrites, and deletes on its own authority. Ten documents that say one thing become one document that says it; a folder with no room in the map is given one, folded into a room that exists, or removed; code is rewritten into the convention rather than left beside it. Git is the archive, so none of this needs asking. What the owner reviews is content that leaves the repository, and it is reviewed once, at the end, from the inventory the agent keeps: every tracked path classified as kept in its room, folded into a named document, moved to a named room, or deleted with its reason. The pause-and-propose rule stays reserved for a conflict with a rule; a routine refactor decision never pauses.
+
+The demo is the authority on dialect and never on scope. Every artifact the refactor produces is cut from the exemplar the map's Exemplars section names for its kind, a docstring from the exemplar docstring, a translator from the exemplar translator, a suite from the exemplar suite, because a rule names what must exist and only the style's own bytes carry how it reads. What the demo leaves out is its named incompleteness, not a ceiling.
+
+The adoption is done when every item below holds, and the agent says so by naming the boundary it exhausted rather than by feeling finished. The gate decides what a check can decide; what it cannot, it names as review's, so a passing gate is never read as the whole.
+
+- **Inventory exhausted**: every tracked path is classified, and no path is left undecided.
+- **Audits green**: the docs audit, the lint, the type-check, and the tests pass on the final tree, which holds that every directory has a room, every document under `docs/` a species and a row, every record its immutability, and every documented parameter its name.
+- **Debt paid**: the STATE debt list the adoption opened, inherited prose or inherited structure that could not be brought under the law in one change, is empty.
+- **Pin recorded**: the README attribution names the template commit the project was aligned to.
+- **Report written**: the upstream report exists, or the closing note states that nothing qualified.
+- **Residue named**: whether folding preserved meaning, whether docstrings say true things, and whether prose is good are review's questions against the exemplars, and the closing note says so instead of implying the gate covered them.
+
+Re-alignment is the same refactor in miniature. The child reads the decision records the template gained since its pin, because every rule change carries one; recopies the files the style carries verbatim, the rulebook, the baseline, the docs audit, the inherited records, the editor and attribute files, and this guide from its shared tail; re-adapts from a diff whatever it adapted at adoption; runs the gate above; and moves the pin. No changelog is kept, because the records are the changelog and a summary would be a lossy copy of them.
+
 ## Documentation index
 
 This is the single index of the project's technical documentation. A document that is not listed here does not exist as far as this project is concerned: when you create a document, register it here in the same change; when you remove one, delist it here.
 
 | Document | What it is and when to read it |
 | --- | --- |
-| [README.md](README.md) | Human-facing overview: philosophy, structure, setup, and the docstring convention. |
+| [README.md](README.md) | Human-facing overview: philosophy, structure, and setup. |
 | [STATE.md](STATE.md) | Living project state (Now / Next / Deferred / Blocked). Read first, always. |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | The annotated map of the whole template. Read before any structural change. |
 | [docs/CONVENTIONS.md](docs/CONVENTIONS.md) | The documentation rulebook: document species, schemas, naming. Frozen; do not edit. Read before writing or changing any documentation. |

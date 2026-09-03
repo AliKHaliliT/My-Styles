@@ -45,3 +45,13 @@ coinwise/
 Suites live in `tests/`, mirroring the source tree, one suite named after the unit it covers. Nothing here is substituted, because every collaborator is deterministic and runs in process, so each suite composes the real thing. The seam rule stands unchanged for the day a port reaches outside; a collaborator is then replaced only by a hand-written fake satisfying the port it stands in for, never by patching a module's internals, since a test bound to an implementation voids the substitutability the ports exist to provide. No coverage threshold is imposed, so breadth stays a judgment call while placement and substitution do not.
 
 The strategies suite also carries the property shape (see [decision 0035](decisions/0035-test-stated-invariants-with-derandomized-properties.md)). The domain's stated invariants, agreement everywhere off ties, at most half a cent of movement, idempotence, and the tie behavior of each rule, hold over generated amounts rather than hand-picked ones. Every property runs derandomized with no example database, so the pinned tree reproduces the same result on every run, and a green property test claims no counterexample in its generated cases, never a proof.
+
+## Exemplars
+
+The map says where things live; these files say how they read. An artifact of a kind listed here is cut from its exemplar and rewritten, never written fresh from the rule, because the rule names what must exist and only these bytes carry the dialect. The demo's named incompleteness bounds what the exemplars cover, not how closely they are followed.
+
+- A pure strategy module: `src/coinwise/domain/rounding/strategies.py`.
+- The outbound translator: `src/coinwise/facade/translators/services_to_facade.py`.
+- The service: `src/coinwise/services/accumulation/simulate.py`.
+- A suite with examples and properties side by side: `tests/src/coinwise/domain/rounding/test_strategies.py`.
+- A decision record: `docs/decisions/0035-test-stated-invariants-with-derandomized-properties.md`.

@@ -40,6 +40,12 @@ BLOCKS = [
         "the upstream report",
         ["ArchtypeCore/AGENTS.md", "Keel/AGENTS.md", "Helm/AGENTS.md", "Quiver/AGENTS.md"],
         "## The upstream report",
+        "## Adopting this style",
+    ),
+    (
+        "the adoption section",
+        ["ArchtypeCore/AGENTS.md", "Keel/AGENTS.md", "Helm/AGENTS.md", "Quiver/AGENTS.md"],
+        "## Adopting this style",
         "## Documentation index",
     ),
     (

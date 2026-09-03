@@ -23,7 +23,8 @@ own baseline per its own style.
 
 The README's sections appear in this order, each with a content contract:
 title and badges, the one-line pitch and expansion (a derived project's
-expansion carries one sentence linking this template), The Philosophy, The
+expansion carries one sentence linking this template and naming the template
+commit it was cut from or last aligned to), The Philosophy, The
 Domain (headed `The Domain Example: ...` here because the demo inquiry is a
 demo, and `The Domain: ...` in a project whose question is real), Core
 Architectural Pillars, Project Structure, Key Features, Getting Started,

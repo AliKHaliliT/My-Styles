@@ -1,9 +1,11 @@
 """Audit the inquiry layer against its own rules.
 
 The mechanical half of the rulebook is checked here: document shapes and
-budgets, the registration index, the relative links and root-anchored paths
-living documents name, the claim ledger, the citation keys, the arrow
-manifests, and the pins against git history. Everything a tool cannot decide, whether a boundary
+budgets, the registration index over the whole docs zone, the relative links
+and root-anchored paths living documents name, the room every root entry has
+in the map or the baseline, the claim ledger, the immutability of records,
+the agreement of figures two claims quote for one run, the citation keys, the
+arrow manifests, and the pins against git history. Everything a tool cannot decide, whether a boundary
 was the right one, whether a moved arrow touched what a claim measured, is
 advised or left to review, because a check may never imply more than it
 decides.
@@ -34,7 +36,11 @@ LIVING = [
 FREE_GROWING = {"AGENTS.md", "README.md", "docs/ARCHITECTURE.md", "docs/BIBLIOGRAPHY.md"}
 BUDGET_LINES = 150
 HORIZON_DAYS = 90
+# In-flight work that has not moved in this long is either finished or stalled, and Now is
+# for neither; the shorter horizon is what makes the sweep mechanical where it can be.
+NOW_HORIZON_DAYS = 30
 NOW_CAP = 5
+RECORD_FOLDERS = ("docs/decisions", "docs/claims")
 
 CLAIM_STATUS = re.compile(r"^Status: (Conjecture|Supported|Refuted|Stale|Superseded by \d{4})$")
 DECISION_STATUS = re.compile(r"^Status: (Accepted|Superseded by .+)$")
@@ -47,6 +53,13 @@ BIB_ENTRY = re.compile(r"^- \*\*([a-z][a-z0-9]*[0-9]{4}[a-z]?|[a-z][a-z0-9]*-[0-
 PIN = re.compile(r"arrows/([a-z0-9-]+) at ([0-9a-f]{7,40})\b")
 LINK = re.compile(r"\]\(([^)\s]+)\)")
 PATH_TOKEN = re.compile(r"`([^`\n]+)`")
+# A figure a claim rests on, written on its own line so two records can be held to one value.
+FIGURE = re.compile(r"^figure ([a-z0-9_-]+): (.+?)\s*$", re.MULTILINE)
+# A changed diff line that is not a Status line; the +++ and --- headers are excluded by the
+# lookahead and skipped by name where the diff is read.
+ILLEGAL_RECORD_EDIT = re.compile(r"^[-+](?![-+])(?!Status: )")
+# A name that stands before a slash anywhere in the map or the baseline is a housed directory.
+HOUSED = re.compile(r"([A-Za-z0-9_.-]+)/")
 
 
 def git(*args: str) -> str:
@@ -55,6 +68,11 @@ def git(*args: str) -> str:
         ["git", *args], cwd=ROOT, capture_output=True, text=True, check=False
     )
     return done.stdout.strip() if done.returncode == 0 else ""
+
+
+def tracked_files() -> list[str]:
+    """Every tracked path, posix and relative to the root, so untracked local clutter never fires a check."""
+    return [p for p in git("ls-files", "-z").split("\0") if p]
 
 
 def living_documents(root: Path) -> list[str]:
@@ -108,12 +126,33 @@ def check_living(problems: list[str], root: Path) -> None:
         entries = [l for l in now.split("\n") if l.startswith("- ") and "Nothing" not in l]
         if len(entries) > NOW_CAP:
             problems.append(f"STATE.md: Now holds {len(entries)} entries, cap is {NOW_CAP}")
-        for entry in entries:
-            stamp = STATE_DATE.search(entry)
+        section = ""
+        today = datetime.now(timezone.utc).date()
+        for raw in text.split("\n"):
+            if raw.startswith("## "):
+                section = raw[3:].strip()
+                continue
+            if not raw.startswith("- ") or "Nothing" in raw:
+                continue
+            stamp = STATE_DATE.search(raw)
+            horizon = NOW_HORIZON_DAYS if section == "Now" else HORIZON_DAYS
             if not stamp:
-                problems.append(f"STATE.md: entry lacks a date: {entry.strip()[:60]}")
-            elif (datetime.now(timezone.utc).date() - date.fromisoformat(stamp.group(1))).days > HORIZON_DAYS:
-                problems.append(f"STATE.md: entry past the {HORIZON_DAYS}-day horizon: {entry.strip()[:60]}")
+                problems.append(f"STATE.md: entry lacks a date: {raw.strip()[:60]}")
+            elif (today - date.fromisoformat(stamp.group(1))).days > horizon:
+                problems.append(f"STATE.md: entry past the {horizon}-day horizon of {section}: {raw.strip()[:60]}")
+    # Everything else under docs/ is a document with a room or it does not exist. A file below
+    # a subdirectory is registered by its own path or by its directory's row in the index; a
+    # file that is not markdown has no species and no room here at all.
+    for tracked in tracked_files() if root == ROOT else []:
+        if not tracked.startswith("docs/") or tracked.startswith(("docs/decisions/", "docs/claims/")):
+            continue
+        if tracked.count("/") == 1 and tracked.endswith(".md"):
+            continue
+        folder = "/".join(tracked.split("/")[:2])
+        if not tracked.endswith(".md"):
+            problems.append(f"{tracked}: docs/ holds markdown documents only; assets live where the baseline sends them")
+        elif f"({tracked})" not in rows and f"({folder}/)" not in rows:
+            problems.append(f"{tracked}: lives under docs/ but is neither the spine, a record, nor registered in the index; give it a room or fold it")
 
 
 def check_records(problems: list[str], root: Path) -> None:
@@ -182,6 +221,91 @@ def check_references(problems: list[str], root: Path) -> None:
                     problems.append(f"{rel}:{line_no}: names `{token}`, which does not exist")
 
 
+def check_rooms(problems: list[str], root: Path) -> None:
+    """Every tracked root directory and root file has a room in the map or the baseline.
+
+    The inquiry layer draws no package tree, so a directory is housed when its name stands
+    before a slash anywhere in docs/ARCHITECTURE.md or docs/BASELINE.md, and a root file when
+    either names it in backticks. Deeper structure belongs to the arrows and their own law.
+    """
+    if root != ROOT:
+        return
+    named: set[str] = set()
+    for rel in ("docs/ARCHITECTURE.md", "docs/BASELINE.md"):
+        if (root / rel).exists():
+            text = (root / rel).read_text(encoding="utf-8")
+            named.update(HOUSED.findall(text))
+            for match in PATH_TOKEN.finditer(text):
+                named.update(seg for seg in match.group(1).removeprefix("./").split("/") if seg)
+    directories = {p.split("/")[0] for p in tracked_files() if "/" in p}
+    files = {p for p in tracked_files() if "/" not in p} - {"AGENTS.md", "README.md", "STATE.md", "LICENSE"}
+    problems.extend(
+        f"{d}/: exists in the tree but has no room in docs/ARCHITECTURE.md or the baseline; draw it or fold it"
+        for d in sorted(directories) if d not in named
+    )
+    problems.extend(
+        f"{f}: sits at the root but neither the map nor the baseline names it; give it a room or remove it"
+        for f in sorted(files) if f not in named
+    )
+
+
+def check_record_immutability(problems: list[str], root: Path) -> None:
+    """A record changes only on its Status line, in the working tree and in every commit since this check arrived.
+
+    The rule binds from the commit that brought this check into the tree, found in git's own
+    history, so an adopting project is held from its adoption forward and never re-litigates a
+    past it did not write under the rule. A shallow clone cannot show that history, so it fails
+    rather than quietly checking less.
+    """
+    if root != ROOT:
+        return
+    if git("rev-parse", "--is-shallow-repository") == "true":
+        problems.append("the clone is shallow, so record history cannot be checked; fetch the full history")
+        return
+    arrivals = git("log", "--reverse", "--format=%H", "-S", "def check_record_immutability", "--", "scripts/audit_inquiry.py").split()
+    diffs = [("the working tree", git("diff", "HEAD", "--unified=0", "--diff-filter=M", "--", *RECORD_FOLDERS))]
+    if arrivals:
+        commits = [arrivals[0], *git("log", "--format=%H", f"{arrivals[0]}..HEAD", "--diff-filter=M", "--", *RECORD_FOLDERS).split()]
+        diffs.extend(
+            (sha[:12], git("show", sha, "--format=", "--unified=0", "-M", "--diff-filter=M", "--", *RECORD_FOLDERS))
+            for sha in commits
+        )
+    for where, diff in diffs:
+        current = ""
+        flagged: set[str] = set()
+        for line in diff.splitlines():
+            if line.startswith("+++ b/"):
+                current = line[6:]
+                continue
+            if line.startswith(("--- ", "+++ ", "@@", "diff ", "index ", "similarity ", "rename ")):
+                continue
+            if ILLEGAL_RECORD_EDIT.match(line) and current not in flagged:
+                flagged.add(current)
+                problems.append(f"{current}: edited beyond its Status line in {where}; a record is immutable, so supersede it instead")
+
+
+def check_figures(problems: list[str], root: Path) -> None:
+    """Two claims quoting the same figure at the same pin quote the same value.
+
+    A figure is a `figure <name>: <value>` line in a claim, and it is held against every pin
+    the claim names, so a record that cites one run and quotes another's number, or two records
+    that disagree about one run, fails here instead of waiting for a reader to notice.
+    """
+    seen: dict[tuple[str, str], tuple[str, str]] = {}
+    for path in sorted((root / "docs/claims").glob("*.md")) if (root / "docs/claims").exists() else []:
+        text = path.read_text(encoding="utf-8")
+        pins = [pin for _, pin in PIN.findall(text)]
+        for name, value in FIGURE.findall(text):
+            for pin in pins:
+                key = (pin, name)
+                if key in seen and seen[key][0] != value:
+                    problems.append(
+                        f"docs/claims/{path.name}: figure {name} at pin {pin[:12]} is {value}, but "
+                        f"{seen[key][1]} quotes {seen[key][0]}; two records quote different values for one run"
+                    )
+                seen.setdefault(key, (value, path.name))
+
+
 def check_citations(problems: list[str], root: Path) -> None:
     """Every cited key resolves in the bibliography."""
     bib = root / "docs/BIBLIOGRAPHY.md"
@@ -210,6 +334,20 @@ def check_arrows(problems: list[str], root: Path) -> None:
         problems.append(f"arrows/{name}: no manifest at docs/arrows/{name}.md")
     for name in sorted(manifests - arrows):
         problems.append(f"docs/arrows/{name}.md: manifest for an arrow that does not exist")
+    # A manifest is living, so the claims it says rest on the arrow are the current ones: every
+    # claim still standing that pins the arrow is linked, and no superseded claim is.
+    for name in sorted(arrows & manifests):
+        manifest = (root / "docs/arrows" / f"{name}.md").read_text(encoding="utf-8")
+        for path in sorted((root / "docs/claims").glob("*.md")) if (root / "docs/claims").exists() else []:
+            text = path.read_text(encoding="utf-8")
+            if not any(arrow == name for arrow, _ in PIN.findall(text)):
+                continue
+            superseded = any(l.startswith("Status: Superseded by") for l in text.split("\n"))
+            linked = path.name in manifest
+            if superseded and linked:
+                problems.append(f"docs/arrows/{name}.md: still lists {path.name}, which is superseded; a manifest names the current claims")
+            if not superseded and not linked:
+                problems.append(f"docs/arrows/{name}.md: does not list {path.name}, a current claim pinned to this arrow")
 
 
 # The paths inside an arrow that can change what a run produces: the code, the
@@ -252,7 +390,10 @@ def run(root: Path) -> tuple[list[str], list[str]]:
     advice: list[str] = []
     check_living(problems, root)
     check_references(problems, root)
+    check_rooms(problems, root)
     check_records(problems, root)
+    check_record_immutability(problems, root)
+    check_figures(problems, root)
     check_citations(problems, root)
     check_arrows(problems, root)
     check_pins(problems, advice, root)
@@ -276,6 +417,9 @@ PLANTS = [
      "# 0011. Planted\n\nStatus: Conjecture\nDate: 2026-01-01\n\n## Claim\n\ncites [fake754-2019].\n\n## Evidence\n\nNone.\n\n## Threats\n\n- None named.\n",
      "[fake754-2019] not in the bibliography"),
     ("docs/arrows/ghost.md", "# Arrow: ghost\n", "manifest for an arrow that does not exist"),
+    ("docs/claims/0095-planted-unlisted.md",
+     "# 0095. Planted unlisted\n\nStatus: Supported\nDate: 2026-01-01\n\n## Claim\n\nx.\n\n## Evidence\n\nrun at arrows/coinwise at 0123456789ab.\n\n## Threats\n\n- None named.\n",
+     "does not list 0095-planted-unlisted.md, a current claim pinned to this arrow"),
     ("docs/PLANTED.md", "# Planted\n\nAn organic document nobody registered.\n",
      "docs/PLANTED.md: not registered in the AGENTS.md index"),
     ("docs/PLANTED.md", "# Planted\n\n[gone](ghost/none.md)\n", "links to ghost/none.md, which does not resolve"),
@@ -315,6 +459,14 @@ def docs_only_moved_pin() -> tuple[str, str] | None:
             return path.name, last_evidence
     return None
 
+
+# Plants the tracked-tree checks can see; each is intent-to-added for one run.
+TRACKED_PLANTS = [
+    ("docs/legacy/OLD.md", "# Old\n", "neither the spine, a record, nor registered in the index"),
+    ("docs/diagram.png", "not a document\n", "docs/ holds markdown documents only"),
+    ("stray/note.txt", "nobody gave this a room\n", "stray/: exists in the tree but has no room"),
+    ("ROGUE.txt", "nobody named this\n", "ROGUE.txt: sits at the root but neither the map nor the baseline names it"),
+]
 
 # A superseded conjecture keeps Evidence None. and must PASS, or this checker
 # would force evidence into an immutable record to earn a clean run.
@@ -403,6 +555,65 @@ def selftest() -> int:
                 print(f"WRONG: plant {rel} raised the movement advisory for a docs-only move")
         finally:
             target.unlink()
+    # Checks that read the tracked tree need a plant git can see, so these are added with
+    # intent-to-add and removed from the index again; nothing reaches a commit.
+    for rel, content, expect in TRACKED_PLANTS:
+        target = ROOT / rel
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(content, encoding="utf-8")
+        git("add", "-N", "--", rel)
+        try:
+            tracked_problems, _ = run(ROOT)
+            if not any(expect in p for p in tracked_problems):
+                failures += 1
+                print(f"WRONG: tracked plant {rel} did not raise {expect!r}")
+        finally:
+            git("rm", "--cached", "-q", "--", rel)
+            target.unlink()
+            if target.parent != ROOT and not any(target.parent.iterdir()):
+                target.parent.rmdir()
+    # Two claims quoting one figure at one pin must agree, so the plant is a pair.
+    pair = [
+        ("docs/claims/0094-planted-figure-a.md", "0094", "5.000"),
+        ("docs/claims/0093-planted-figure-b.md", "0093", "6.000"),
+    ]
+    written = []
+    try:
+        for rel, num, value in pair:
+            target = ROOT / rel
+            target.write_text(
+                f"# {num}. Planted figure\n\nStatus: Supported\nDate: 2026-01-01\n\n## Claim\n\nx.\n\n"
+                f"## Evidence\n\nrun at arrows/coinwise at 0123456789ab.\n\nfigure drift: {value}\n\n## Threats\n\n- None named.\n",
+                encoding="utf-8",
+            )
+            written.append(target)
+        figure_problems, _ = run(ROOT)
+        if not any("two records quote different values" in p for p in figure_problems):
+            failures += 1
+            print("WRONG: two claims quoting different values for one figure at one pin raised nothing")
+    finally:
+        for target in written:
+            target.unlink()
+    # A record edited beyond its Status line must fail, and a Status flip alone must pass, or
+    # the check would forbid the one edit the rulebook allows.
+    record = next(iter(sorted((ROOT / "docs/decisions").glob("0001-*.md"))), None)
+    if record is None:
+        print("immutability plants skipped: no record 0001 to plant on")
+    else:
+        original = record.read_bytes()
+        try:
+            record.write_bytes(original + b"\nplanted body edit\n")
+            edited_problems, _ = run(ROOT)
+            if not any("edited beyond its Status line" in p for p in edited_problems):
+                failures += 1
+                print(f"WRONG: a body edit to {record.name} raised nothing")
+            record.write_bytes(original.replace(b"Status: Accepted", b"Status: Superseded by 0099", 1))
+            flipped_problems, _ = run(ROOT)
+            if any("edited beyond its Status line" in p for p in flipped_problems):
+                failures += 1
+                print(f"WRONG: a Status flip on {record.name} was reported as an illegal edit")
+        finally:
+            record.write_bytes(original)
     baseline, _ = run(ROOT)
     if baseline:
         failures += 1

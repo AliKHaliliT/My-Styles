@@ -28,6 +28,8 @@ helm/
 ├── vite.config.ts              # Build, the @ -> src alias, and Vitest configuration
 ├── eslint.config.js            # Flat ESLint configuration
 ├── tsconfig.json               # Solution file referencing the app and node configs
+├── tsconfig.app.json           # Compiler options for the browser bundle under src/
+├── tsconfig.node.json          # Compiler options for the build tooling (vite.config.ts)
 │
 ├── docs/                       # Technical documentation (indexed in AGENTS.md)
 │   ├── ARCHITECTURE.md         # This file; the annotated map of the template
@@ -75,3 +77,13 @@ In mock mode (the default) an MSW service worker answers the same HTTP the clien
 Three rules hold however broad the suite is. Suites live in `tests/`, mirroring the source tree, one suite named after the unit it covers. A collaborator is replaced only at an architectural seam, by the MSW handlers answering at the wire boundary or a hand-written fake satisfying the contract it stands in for, never by mocking a module's internals, since a test bound to an implementation voids the substitutability the layering exists to provide. And no coverage threshold is imposed, because a percentage gate buys assertions that assert nothing, so breadth stays a judgment call while placement and substitution do not.
 
 The suites are characterization tests pinning the seams: the translators (pure), the query hooks (against the mock backend), the HTTP client's failure modes (401 and a broken wire contract), the auth store, and the schedule-arrival form end to end. `tests/setup.ts` starts the node mock server, resets the pretend database between cases, and clears the token provider and storage so no test inherits another's session.
+
+## Exemplars
+
+The map says where things live; these files say how they read. An artifact of a kind listed here is cut from its exemplar and rewritten, never written fresh from the rule, because the rule names what must exist and only these bytes carry the dialect. The demo's named incompleteness bounds what the exemplars cover, not how closely they are followed.
+
+- An entity slice, model, wire schema, translators, api, and queries: `src/entities/vessel/`.
+- A feature slice with a store and a guarded route: `src/features/auth/`.
+- The wire boundary: `src/shared/api/client.ts`.
+- A translator suite: `tests/src/entities/vessel/translate.test.ts`, and a boundary suite: `tests/src/shared/api/client.test.ts`.
+- A decision record: `docs/decisions/0008-check-the-layer-rule-instead-of-reviewing-it.md`.

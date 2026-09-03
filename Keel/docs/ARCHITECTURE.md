@@ -81,3 +81,15 @@ Three rules hold however broad the suite is. Suites live in `tests/`, mirroring 
 `tests/src/keel/services/execution/test_agent_runner.py` is the worked example, and it shows the two ways a port pays off. The registry, the transcript, and the event sink are the shipped adapters, since each is already deterministic and runs in process, so a test composes the real thing. Only the reasoner and a tool are stood in for, because those are what reach a model and the outside world in production. The suite pins the loop's contract rather than its internals: a finish action completes the run and records one step, a tool result reaches the next decision, a failing tool becomes data unless the configuration says to halt, an unknown tool is reported without ending the run, the step budget bounds a reasoner that never stops, and a broken event sink never takes the run down.
 
 `tests/src/keel/facade/translators/test_domain_to_facade.py` is the worked example of the property shape (see [decision 0035](decisions/0035-test-stated-invariants-with-derandomized-properties.md)). It states the translator's invariant, that nothing is lost or invented crossing the boundary, over generated runs and steps rather than hand-picked ones, and every property runs derandomized with no example database so the suite reproduces on every run. A green property test claims no counterexample in its generated cases, never a proof.
+
+## Exemplars
+
+The map says where things live; these files say how they read. An artifact of a kind listed here is cut from its exemplar and rewritten, never written fresh from the rule, because the rule names what must exist and only these bytes carry the dialect. The demo's named incompleteness bounds what the exemplars cover, not how closely they are followed.
+
+- A guarded builder class with a `Usage` block: `src/keel/facade/engine/builder.py`.
+- An outbound translator: `src/keel/facade/translators/domain_to_facade.py`.
+- An adapter behind a port: `src/keel/adapters/tools/clock.py`.
+- A domain schema: `src/keel/domain/schemas/runs/run.py`.
+- A suite composing real adapters with fakes at the outward ports: `tests/src/keel/services/execution/test_agent_runner.py`.
+- A property suite over a stated invariant: `tests/src/keel/facade/translators/test_domain_to_facade.py`.
+- A decision record: `docs/decisions/0025-let-a-check-imply-no-more-than-it-decides.md`.

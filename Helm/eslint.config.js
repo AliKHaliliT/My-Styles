@@ -100,11 +100,13 @@ export default tseslint.config(
   },
   {
     // Every export carries a doc comment; the one-sentence minimum is the convention in
-    // the README. Suites are exempt by the same rule that keeps them outside the
-    // every-export requirement, and they live outside src anyway.
+    // the rulebook's code-level section. Suites are exempt by the same rule that keeps them
+    // outside the every-export requirement, and they live outside src anyway. Where a comment
+    // documents parameters, the names must be the signature's, which a machine can decide.
     files: ["src/**/*.{ts,tsx}"],
     plugins: { jsdoc },
     rules: {
+      "jsdoc/check-param-names": ["error", { checkDestructured: false }],
       "jsdoc/require-jsdoc": [
         "error",
         {

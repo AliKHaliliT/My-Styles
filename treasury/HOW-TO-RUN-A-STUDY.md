@@ -79,6 +79,10 @@ search answers.
   differently in two contexts is not reported as a duplicate.
 - Entries that point at another entry instead of defining themselves.
 - Per-file counts at every stage, which is where the funnel numbers come from.
+- Token spend per stage, recorded in the research record beside the funnel
+  counts, so the next cut to the method's cost is decided from data rather
+  than from a feeling that a stage was expensive; accuracy is the fixed
+  criterion, and a cut that cannot show it kept completeness is not made.
 - A name index emitted for the next stage to consume.
 - An independent pass confirming that additions do not restate what their
   author was shown, which turns a reviewer's error rate into a measurement.
