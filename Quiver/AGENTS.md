@@ -4,7 +4,7 @@ Quiver is a strict, AI-ready template for research-backed projects, demonstrated
 
 ## Commands
 
-- Audit the inquiry: `python scripts/audit_inquiry.py` (the living documents, the claim ledger, the citations, and the pins against the tree, the calendar, and git history)
+- Audit the inquiry: `python scripts/audit_inquiry.py` (the living documents, the claim ledger, the review passes, the citations, and the pins against the tree, the calendar, and git history)
 - Prove the audit itself: `python scripts/audit_inquiry.py --selftest` (every rule against a planted defect, because a check that never fires and a check that cannot fire look identical)
 - Work on an arrow: use that arrow's own commands, stated in its README; for the demo arrow, `cd arrows/coinwise` then `pip install -e .` with `pip install --group dev`, and its gate commands are `pytest`, `ruff check . && lint-imports`, `mypy src tests`, and `python scripts/audit_docs.py`
 
@@ -44,7 +44,18 @@ Closing a task follows one loop: run the checking commands above, weigh the chan
 - **The commands**: the audit has passed against the final state of the tree, and every advisory finding printed along the way has been read and then fixed or dismissed in writing.
 - **State discipline**: STATE.md swept at both ends of the change; execution tracking lives there and never in a record.
 - **Records discipline**: decisions and claims immutable, status-line edits only, dated, self-contained, and every citation key resolving.
+- **Pass discipline**: every pass over the literature leaves a review record with its boundary named and each stage run or collapsed in writing, and a claim of exhaustion in it ran the completeness review.
 - **The institution boundary**: the inquiry layer records the work between meetings and stops where an advisor, committee, or reviewer's jurisdiction starts; it never simulates their approval.
+
+## Running a review pass
+
+The literature enters the inquiry the way an experiment does, through a bounded pass that leaves one record and moves the ledger. A pass serves one slice of the question, small enough to hold in view, and is bounded before it begins: the catalogs, venues, databases, and search terms it will cover, and the date range it covers, so a later pass over the same slice extends it from the date it stopped rather than starting again. The record of the pass lives in `docs/reviews/` under the date it ran. What it found lives in the ledger, the bibliography, the claims, and the question's decomposition, and nowhere else, because a separate synthesis of what the ledger already holds would rot.
+
+A pass runs six stages, inherited from the family's study method and sized to the slice. Scouting walks the field's canonical catalogs and review papers to see where the slice's literature lives and how dense it is. Enumeration reads within the boundary and names every work found, entering each in the bibliography with its edition. Checks run between stages and cost nothing, since every key resolves, every work is entered, and the record has its shape by script. Completeness review is an independent look for what enumeration missed, against something published, a canonical bibliography, a review paper's reference list, a numbered index, never against a feeling. The fold turns what was read into ledger entries, read-evidence claims quoting the source in full and conjectures opened or closed in the decomposition. Resolution settles two sources that disagree by naming which the inquiry follows and why.
+
+Rigor is proportional. Every stage has a line in the record; a stage that ran says what it did, and a stage that was collapsed says so and why in one line, which is the price this project already charges for shortening the spine. Three things never collapse: the boundary, because a pass without one is a browse; the checks, because they are free; and the record, because knowing later what was known when is the point. One collapse carries a condition. A pass may claim its boundary exhausted only if the completeness review ran; otherwise its findings enter the ledger as judgment, and the claims resting on them say so. The method a pass follows is named from the field's own vocabulary, a scoping read, a systematic search, snowballing from a seed set, and never mandated, because naming is free and methods are priced.
+
+The loop is the inquiry's rhythm. A pass yields read evidence and conjectures; an arrow turns a conjecture into run evidence; a result reframes the question and opens a slice; the next pass is bounded to that slice and to the dates since the last record over it. Over years this leaves a chain of small dated records per slice rather than one review nobody can date, and a thesis chapter is written from the ledger afterward, never kept beside it. A pass may close its record with what it cost, so the next collapse is decided from data.
 
 ## The upstream report
 
@@ -97,6 +108,7 @@ This is the single index of the project's technical documentation. A document th
 | [docs/decisions/](docs/decisions/) | Immutable decision records holding the project's "why". Read the relevant record before revisiting a settled topic; never edit an accepted record. |
 | [docs/claims/](docs/claims/) | Immutable claim records holding what the inquiry holds true, on what evidence, at which pin. |
 | [docs/arrows/](docs/arrows/) | One living manifest per arrow: its style, the part of the question it serves, and the claims resting on it. |
+| [docs/reviews/](docs/reviews/) | One immutable record per pass over the literature: the slice, the boundary searched, the stages run or collapsed, what was found and what it changed. |
 | [arrows/coinwise/README.md](arrows/coinwise/README.md) | The demo arrow: what it measures, its commands, and its named incompleteness. |
 
 There are no assistant-specific instruction files. Every assistant reads this file directly. If a tool genuinely cannot read AGENTS.md, give it a one-line shim that imports or points to this file and nothing more.

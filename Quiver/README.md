@@ -40,6 +40,7 @@ Quiver/
     BASELINE.md          The repository baseline.
     decisions/           Immutable decision records.
     claims/              Immutable claim records, the inquiry's knowledge.
+    reviews/             Immutable records of each pass over the literature.
     arrows/              One living manifest per arrow.
   arrows/
     coinwise/            A Keel-style library arrow, whole and under Keel's law.

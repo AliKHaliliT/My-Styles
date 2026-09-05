@@ -46,6 +46,10 @@ CLAIM_STATUS = re.compile(r"^Status: (Conjecture|Supported|Refuted|Stale|Superse
 DECISION_STATUS = re.compile(r"^Status: (Accepted|Superseded by .+)$")
 RECORD_NAME = re.compile(r"^\d{4}-[a-z0-9-]+\.md$")
 DATED_RECORD_NAME = re.compile(r"^\d{4}-\d{2}-\d{2}-[a-z0-9-]+\.md$")
+REVIEW_SECTIONS = ("## Slice", "## Boundary", "## Method", "## Stages", "## Found", "## Changed", "## Left out")
+REVIEW_STAGES = ("Scouting", "Enumeration", "Checks", "Completeness review", "Fold", "Resolution")
+STAGE_LINE = re.compile(r"^- (Scouting|Enumeration|Checks|Completeness review|Fold|Resolution): (ran|collapsed)\b(.*)$", re.MULTILINE)
+COMPLETENESS = re.compile(r"^Completeness: (exhausted|judgment)\s*$", re.MULTILINE)
 STATE_DATE = re.compile(r"\((\d{4}-\d{2}-\d{2})\)")
 # A key is an author name closed by a year, or a standard's designation with
 # its year suffixed, so digits may sit inside the name (ieee754-2019).
@@ -328,6 +332,55 @@ def check_figures(problems: list[str], root: Path) -> None:
                 seen.setdefault(key, (value, path.name))
 
 
+def section_body(text: str, heading: str) -> str:
+    """The text of one section of a record, empty when the section is absent."""
+    if heading not in text:
+        return ""
+    return text.split(heading, 1)[1].split("\n## ", 1)[0]
+
+
+def check_reviews(problems: list[str], root: Path) -> None:
+    """Every review pass carries its shape, names its boundary's completeness, runs or collapses each stage in writing, and names the pass it extends.
+
+    Whether the boundary was well chosen or the reading was good stays with review; what is held
+    here is that a pass claiming exhaustion ran the completeness review, that the checks never
+    collapse, and that a collapsed stage names its reason.
+    """
+    folder = root / "docs/reviews"
+    if not folder.exists():
+        return
+    for path in sorted(folder.glob("*.md")):
+        rel = f"docs/reviews/{path.name}"
+        text = path.read_text(encoding="utf-8")
+        if not any(line.startswith("Date: ") for line in text.split("\n")):
+            problems.append(f"{rel}: no Date line")
+        for heading in REVIEW_SECTIONS:
+            if heading not in text:
+                problems.append(f"{rel}: section {heading!r} missing")
+        completeness = COMPLETENESS.search(section_body(text, "## Boundary"))
+        if completeness is None:
+            problems.append(f"{rel}: the Boundary ends with a line Completeness: exhausted or Completeness: judgment")
+        stages = {name: (mode, tail) for name, mode, tail in STAGE_LINE.findall(section_body(text, "## Stages"))}
+        for name in REVIEW_STAGES:
+            if name not in stages:
+                problems.append(f"{rel}: stage {name} has no line; each stage ran or collapsed in writing")
+            elif stages[name][0] == "collapsed" and len(stages[name][1].strip(" ,.")) < 3:
+                problems.append(f"{rel}: stage {name} collapsed without a reason; a collapse costs one written line")
+        if stages.get("Checks", ("ran", ""))[0] == "collapsed":
+            problems.append(f"{rel}: the checks never collapse, because they are free")
+        if completeness and completeness.group(1) == "exhausted" and stages.get("Completeness review", ("collapsed", ""))[0] != "ran":
+            problems.append(f"{rel}: a pass claiming its boundary exhausted ran the completeness review; otherwise it claims judgment")
+        slice_text = section_body(text, "## Slice")
+        if "First pass" not in slice_text:
+            prior = [t for t in LINK.findall(slice_text) if t.endswith(".md")]
+            if not prior:
+                problems.append(f"{rel}: the Slice names the prior pass it extends or says First pass")
+            problems.extend(
+                f"{rel}: extends {target}, which does not exist"
+                for target in prior if not (path.parent / target.split("#", 1)[0]).exists()
+            )
+
+
 def check_citations(problems: list[str], root: Path) -> None:
     """Every cited key resolves in the bibliography."""
     bib = root / "docs/BIBLIOGRAPHY.md"
@@ -339,7 +392,8 @@ def check_citations(problems: list[str], root: Path) -> None:
                 keys.add(entry.group(1))
     sources = [*(root / rel for rel in living_documents(root)),
                *sorted((root / "docs/claims").glob("*.md")),
-               *sorted((root / "docs/decisions").glob("*.md"))]
+               *sorted((root / "docs/decisions").glob("*.md")),
+               *(sorted((root / "docs/reviews").glob("*.md")) if (root / "docs/reviews").exists() else [])]
     for path in sources:
         if not path.exists():
             continue
@@ -416,6 +470,7 @@ def run(root: Path) -> tuple[list[str], list[str]]:
     check_records(problems, root)
     check_record_immutability(problems, root)
     check_figures(problems, root)
+    check_reviews(problems, root)
     check_citations(problems, root)
     check_arrows(problems, root)
     check_pins(problems, advice, root)
@@ -482,6 +537,29 @@ def docs_only_moved_pin() -> tuple[str, str] | None:
     return None
 
 
+# A well-formed review pass; each review plant breaks exactly one rule of it.
+REVIEW_TEMPLATE = (
+    "# Planted pass\n\nDate: 2026-01-01\n\n## Slice\n\nFirst pass over the planted slice.\n\n"
+    "## Boundary\n\nRead the works the question cites and nothing else.\nCompleteness: judgment\n\n"
+    "## Method\n\nA scoping read of a known corpus.\n\n## Stages\n\n"
+    "- Scouting: collapsed, the slice was already scouted by the question.\n"
+    "- Enumeration: ran, over the cited works.\n"
+    "- Checks: ran, every key resolves.\n"
+    "- Completeness review: collapsed, no completeness is claimed.\n"
+    "- Fold: collapsed, the ledger did not move.\n"
+    "- Resolution: collapsed, no two sources conflict.\n\n"
+    "## Found\n\n[goldberg1991].\n\n## Changed\n\nNothing in the ledger.\n\n## Left out\n\nEvery database.\n"
+)
+REVIEW_PLANTS = [
+    ("docs/reviews/2026-01-01-planted-no-boundary.md", REVIEW_TEMPLATE.replace("## Boundary", "## Bounds"), "section '## Boundary' missing"),
+    ("docs/reviews/2026-01-01-planted-exhausted.md", REVIEW_TEMPLATE.replace("Completeness: judgment", "Completeness: exhausted"), "ran the completeness review"),
+    ("docs/reviews/2026-01-01-planted-checks-collapsed.md", REVIEW_TEMPLATE.replace("- Checks: ran, every key resolves.", "- Checks: collapsed, no time this pass."), "the checks never collapse"),
+    ("docs/reviews/2026-01-01-planted-no-prior.md", REVIEW_TEMPLATE.replace("First pass over the planted slice.", "Extends an earlier pass."), "names the prior pass it extends or says First pass"),
+    ("docs/reviews/2026-01-01-planted-no-fold.md", REVIEW_TEMPLATE.replace("- Fold: collapsed, the ledger did not move.\n", ""), "stage Fold has no line"),
+    ("docs/reviews/2026-01-01-planted-bare-collapse.md", REVIEW_TEMPLATE.replace("- Resolution: collapsed, no two sources conflict.", "- Resolution: collapsed."), "collapsed without a reason"),
+    ("docs/reviews/2026-01-01-planted-dead-prior.md", REVIEW_TEMPLATE.replace("First pass over the planted slice.", "Extends [an earlier pass](2025-01-01-nothing-here.md)."), "which does not exist"),
+]
+
 # Plants the tracked-tree checks can see; each is intent-to-added for one run.
 TRACKED_PLANTS = [
     ("docs/legacy/OLD.md", "# Old\n", "docs/legacy/ has no row in the AGENTS.md index"),
@@ -523,6 +601,27 @@ def selftest() -> int:
                 print(f"WRONG: legal plant {rel} raised {legal_problems[:2]}")
         finally:
             target.unlink()
+    (ROOT / "docs/reviews").mkdir(exist_ok=True)
+    for rel, content, expect in REVIEW_PLANTS:
+        target = ROOT / rel
+        target.write_text(content, encoding="utf-8")
+        try:
+            review_problems, _ = run(ROOT)
+            if not any(expect in p for p in review_problems):
+                failures += 1
+                print(f"WRONG: review plant {rel} did not raise {expect!r}")
+        finally:
+            target.unlink()
+    # The well-formed pass itself must pass, or the shape would forbid the only legal record.
+    target = ROOT / "docs/reviews/2026-01-01-planted-legal-pass.md"
+    target.write_text(REVIEW_TEMPLATE, encoding="utf-8")
+    try:
+        legal_review, _ = run(ROOT)
+        if any("2026-01-01-planted-legal-pass" in p for p in legal_review):
+            failures += 1
+            print(f"WRONG: a well-formed review pass raised {[p for p in legal_review if 'planted-legal-pass' in p][:2]}")
+    finally:
+        target.unlink()
     body = (
         "# {num}. Planted advisory\n\nStatus: {status}\nDate: 2026-01-01\n\n"
         "## Claim\n\nx.\n\n## Evidence\n\n{evidence}\n\n## Threats\n\n- None named.\n"

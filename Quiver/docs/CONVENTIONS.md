@@ -8,7 +8,7 @@ Every technical document is exactly one of two species, and the species dictates
 
 **Living documents** describe the present. They are edited in place, always current, and bounded in size. A living document never contains history: no dates, no "previously", no narration of change. When reality moves, the text is rewritten and the old text disappears; git remembers what it used to say.
 
-**Records** describe one past event. A record is written once, dated, and never edited again, apart from its one legal status edit. When reality moves past a record, a new record supersedes it. This project keeps two kinds of record: decisions, which hold choices, and claims, which hold assertions about the world and the evidence behind them. Any other dated document under `docs/`, a briefing or a progress report, is a record too for the purpose of immutability, though only decisions and claims have a shape the audit holds.
+**Records** describe one past event. A record is written once, dated, and never edited again, apart from its one legal status edit. When reality moves past a record, a new record supersedes it. This project keeps three kinds of record: decisions, which hold choices, claims, which hold assertions about the world and the evidence behind them, and review passes, which hold what was read, within what boundary, and what it changed. Any other dated document under `docs/`, a briefing or a progress report, is a record too for the purpose of immutability, though only decisions, claims, and review passes have a shape the audit holds.
 
 Nearly every documentation failure is a species violation. Never mix the two species in one file.
 
@@ -25,9 +25,10 @@ Nearly every documentation failure is a species violation. Never mix the two spe
 | `docs/BASELINE.md` | Living | The repository baseline: always-present files, never-tracked files, and their modification rules. |
 | `docs/decisions/` | Records | The decision log; the durable home of rationale. |
 | `docs/claims/` | Records | The claim ledger; the durable home of what the inquiry holds true, on what evidence. |
+| `docs/reviews/` | Records | The review ledger; one record per pass over the literature, its boundary and what it changed. |
 | `docs/arrows/` | Living | One manifest per arrow: the style it follows, the part of the question it serves, and the claims resting on it. |
 
-Assistant-specific instruction files do not exist here; every assistant reads `AGENTS.md`. Beyond the spine, documentation grows organically. Further documents are added under `docs/` (UPPERCASE markdown, one subject per file, one species per file) and registered in the index. The one exception in location is a directory whose purpose needs stating where a reader stands, which may carry its own `README.md` beside its contents, registered in the index like any other document. A subfolder under `docs/` is a record folder or `arrows/`, nothing else; living organic documents are flat UPPERCASE files at the top of `docs/`, because the naming and budget rules see only that shape. A record folder beyond `decisions/` and `claims/` holds dated documents named `YYYY-MM-DD-short-kebab-title.md`, ordered by date rather than by number, immutable like every record, and registered by its own row in the index. Growth changes the number of documents, never the species rules of an existing one.
+Assistant-specific instruction files do not exist here; every assistant reads `AGENTS.md`. Beyond the spine, documentation grows organically. Further documents are added under `docs/` (UPPERCASE markdown, one subject per file, one species per file) and registered in the index. The one exception in location is a directory whose purpose needs stating where a reader stands, which may carry its own `README.md` beside its contents, registered in the index like any other document. A subfolder under `docs/` is a record folder or `arrows/`, nothing else; living organic documents are flat UPPERCASE files at the top of `docs/`, because the naming and budget rules see only that shape. A record folder beyond `decisions/`, `claims/`, and `reviews/` holds dated documents named `YYYY-MM-DD-short-kebab-title.md`, ordered by date rather than by number, immutable like every record, and registered by its own row in the index. Growth changes the number of documents, never the species rules of an existing one.
 
 ## The index contract
 
@@ -41,7 +42,7 @@ Assistant-specific instruction files do not exist here; every assistant reads `A
 - A sentence in a living document is a claim, not a fact. Verify a claim before relying on it, and end every change by sweeping `STATE.md`.
 - Rewrite in place; never append-and-preserve.
 - `AGENTS.md`, `docs/ARCHITECTURE.md`, and `docs/BIBLIOGRAPHY.md` grow with the inquiry rather than against a number, saying everything as briefly as it can be said. Every other living document is bounded at 150 lines, the audit fails one that exceeds its bound, and the remedy is fission by subject. `README.md` stands outside both classes, governed by the README schema in BASELINE.md.
-- The mechanical half of freshness is checked by `scripts/audit_inquiry.py`: paths named exist, relative links resolve, no `STATE.md` entry outlives its horizon, no bounded document exceeds its budget, every document under `docs/` is registered or is a dated record in a registered record folder, every root entry has a room in the map or the baseline, a record changes only on its Status line, two claims quoting one figure at one pin agree, each manifest names exactly the current claims on its arrow, names and schemas hold. Records are exempt from every rule in this section; they describe the past, which does not rot.
+- The mechanical half of freshness is checked by `scripts/audit_inquiry.py`: paths named exist, relative links resolve, no `STATE.md` entry outlives its horizon, no bounded document exceeds its budget, every document under `docs/` is registered or is a dated record in a registered record folder, every root entry has a room in the map or the baseline, a record changes only on its Status line, two claims quoting one figure at one pin agree, each manifest names exactly the current claims on its arrow, every review pass carries its shape, its boundary's completeness line, a line per stage, and its prior pass, names and schemas hold. Records are exempt from every rule in this section; they describe the past, which does not rot.
 
 ### The STATE.md schema
 
@@ -61,6 +62,20 @@ A claim is the inquiry's unit of knowledge: one assertion, its evidence, and the
 - **Threats.** The named threats and biases most endangering this claim, each with what was done about it or the concession that nothing was.
 
 A claim record is immutable and the `Status:` line is its only legal edit. The trigger for writing or flipping one is evidence arriving or a claim moving, never work completing. A refuted claim names the evidence that killed it, the condition that would reopen it, and the pin that held the attempt. `Stale` means an arrow moved past a claim's pin in the paths that can change a result, its code, its tests, or its project file, so the claim is no longer backed rather than wrong; a person flips it, prompted by the audit's advisory, and the way back is a re-run at a new pin or a superseding claim. Any completeness assertion inside a claim names the enumerable boundary it exhausted or presents itself as judgment.
+
+## Rules for review records
+
+A review record is the account of one pass over the literature: what slice of the question it served, what it searched and within what bounds, how it read, what it found, and what it changed. Records live in `docs/reviews/`, named `YYYY-MM-DD-short-kebab-title.md`, and follow this template: a `Date:` line, then the sections **Slice**, **Boundary**, **Method**, **Stages**, **Found**, **Changed**, and **Left out**, in that order.
+
+- **Slice.** The part of the question the pass served, and either the words `First pass` or a link to the prior pass record it extends, with the date it extends from.
+- **Boundary.** The catalogs, venues, databases, search terms, and date range covered, enumerably, and a closing line `Completeness: exhausted` or `Completeness: judgment`. Exhausted means the completeness review ran against something published and found nothing more; judgment means the pass claims only what it read.
+- **Method.** How the reading was done, named from the field's own vocabulary; no method is mandated.
+- **Stages.** One line per stage, `- <Stage>: ran, ...` or `- <Stage>: collapsed, <reason>`, for Scouting, Enumeration, Checks, Completeness review, Fold, and Resolution. Checks never collapse, and a pass whose boundary is exhausted ran the completeness review.
+- **Found.** The bibliography keys the pass consulted or added, every one resolving.
+- **Changed.** The conjectures opened or closed and the claims produced, by number, or the statement that the ledger did not move.
+- **Left out.** What the boundary excluded and why, so the next pass knows where to extend.
+
+A review record is immutable like every record and carries no `Status:` line, because a pass is not superseded; a later pass extends it. A `Cost:` line may close the record with what the pass spent, so the next collapse is decided from data.
 
 ## Rules for the bibliography
 
