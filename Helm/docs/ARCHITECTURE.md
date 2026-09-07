@@ -58,7 +58,7 @@ helm/
 
 ## The wire boundary
 
-All HTTP goes through `shared/api`'s `request`, which attaches the bearer token, normalizes failures into `ApiError`, and validates every response body against a zod schema before anything else sees it; a payload that does not match becomes a `WireContractError` instead of a mystery crash three components later. Each entity keeps the boundary in three segments: `dto.ts` describes what the backend actually sends (snake_case, ISO strings), `translate.ts` reshapes it into the domain model (camelCase, real `Date` objects), and `api.ts` composes the two so callers only ever meet domain types. Outbound requests run the same path in reverse through the translators.
+All HTTP goes through `shared/api`'s `request`, which attaches the bearer token, normalizes failures into `ApiError`, and validates every response body against a zod schema before anything else sees it; a payload that does not match becomes a `WireContractError` instead of a mystery crash three components later. A refusal's readable reason is read from `detail`, then `message`, then `title`, so the client understands the family's own server envelope and a plainer backend without a switch. Each entity keeps the boundary in three segments: `dto.ts` describes what the backend actually sends (snake_case, ISO strings), `translate.ts` reshapes it into the domain model (camelCase, real `Date` objects), and `api.ts` composes the two so callers only ever meet domain types. Outbound requests run the same path in reverse through the translators.
 
 ## Server cache versus client state
 
@@ -66,7 +66,7 @@ Server data lives in the TanStack Query cache and nowhere else; each entity defi
 
 ## The demo backend
 
-In mock mode (the default) an MSW service worker answers the same HTTP the client would send anywhere else, with realistic latency, auth checks, and error responses; the handlers speak wire shapes only and share nothing with the client's domain types. Tests run the identical handlers through MSW's node server. Setting `VITE_API_MODE=live` skips the worker entirely and points the client at `VITE_API_BASE_URL`. The trade-offs are recorded in [decision 0005](decisions/0005-run-the-demo-against-an-in-browser-mock-backend.md).
+In mock mode (the default) an MSW service worker answers the same HTTP the client would send anywhere else, with realistic latency, auth checks, and refusals in the family's server envelope; the handlers speak wire shapes only and share nothing with the client's domain types. Tests run the identical handlers through MSW's node server. Setting `VITE_API_MODE=live` skips the worker entirely and points the client at `VITE_API_BASE_URL`. The trade-offs are recorded in [decision 0005](decisions/0005-run-the-demo-against-an-in-browser-mock-backend.md).
 
 ## Theming
 
@@ -76,7 +76,7 @@ In mock mode (the default) an MSW service worker answers the same HTTP the clien
 
 Three rules hold however broad the suite is. Suites live in `tests/`, mirroring the source tree, one suite named after the unit it covers. A collaborator is replaced only at an architectural seam, by the MSW handlers answering at the wire boundary or a hand-written fake satisfying the contract it stands in for, never by mocking a module's internals, since a test bound to an implementation voids the substitutability the layering exists to provide. And no coverage threshold is imposed, because a percentage gate buys assertions that assert nothing, so breadth stays a judgment call while placement and substitution do not.
 
-The suites are characterization tests pinning the seams: the translators (pure), the query hooks (against the mock backend), the HTTP client's failure modes (401 and a broken wire contract), the auth store, and the schedule-arrival form end to end. `tests/setup.ts` starts the node mock server, resets the pretend database between cases, and clears the token provider and storage so no test inherits another's session.
+The suites are characterization tests pinning the seams: the translators (pure), the query hooks (against the mock backend), the HTTP client's failure modes (a refusal in each envelope it reads, a broken wire contract, a body that is not JSON), the auth store, the schedule-arrival form end to end, and the vessel detail page mounted at an address, so it reads its id the way the app's router hands it over. `tests/setup.ts` starts the node mock server, resets the pretend database between cases, and clears the token provider and storage so no test inherits another's session.
 
 ## Exemplars
 
@@ -86,4 +86,5 @@ The map says where things live; these files say how they read. An artifact of a 
 - A feature slice with a store and a guarded route: `src/features/auth/`.
 - The wire boundary: `src/shared/api/client.ts`.
 - A translator suite: `tests/src/entities/vessel/translate.test.ts`, and a boundary suite: `tests/src/shared/api/client.test.ts`.
+- A page suite mounted at an address: `tests/src/pages/vessel-detail/VesselDetailPage.test.tsx`.
 - A decision record: `docs/decisions/0008-check-the-layer-rule-instead-of-reviewing-it.md`.

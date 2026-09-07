@@ -1,6 +1,6 @@
 from uuid import uuid4
 
-from starlette.requests import Request
+from starlette.datastructures import Headers
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from app.core.logging.log_context import request_id_var
@@ -15,11 +15,6 @@ class RequestIDMiddleware:
     For HTTP requests, it sets the ID in a context variable and returns it in the response header.
     For WebSocket requests, it only sets the ID for internal tracing (no response header).
     This enables consistent tracing and correlation across logs regardless of protocol.
-
-
-    Notes
-    -----
-    The Request ID for the WebSocket requests are implemented but not critically tested.
 
 
     Usage
@@ -95,8 +90,9 @@ class RequestIDMiddleware:
             return
 
 
-        request = Request(scope)
-        request_id = request.headers.get("x-request-id", str(uuid4()))
+        # The headers are read off the scope itself, because a Request is http-only and this
+        # middleware admits websocket scopes as well.
+        request_id = Headers(scope=scope).get("x-request-id", str(uuid4()))
         token = request_id_var.set(request_id)
 
         async def send_wrapper(message: Message) -> None:

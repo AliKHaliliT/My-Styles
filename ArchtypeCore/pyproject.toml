@@ -90,4 +90,10 @@ pythonpath = ["."]
 # A deprecation warning is a removal notice at least two releases early, so it gates here
 # rather than scrolling past unread. Any exception is a named ignore for one specific
 # message with a reason beside it, never a blanket.
-filterwarnings = ["error"]
+filterwarnings = [
+    "error",
+    # The in-process test client reaches anyio through a retired alias; the warning is the
+    # client library's to fix, and gating on it would keep the suite from booting the
+    # application at all.
+    "ignore:The anyio.abc.BlockingPortal alias is deprecated:DeprecationWarning",
+]

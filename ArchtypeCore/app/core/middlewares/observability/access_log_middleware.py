@@ -21,11 +21,6 @@ class AccessLogMiddleware:
     Useful for monitoring traffic and debugging.
 
 
-    Notes
-    -----
-    The Logging for the WebSocket requests are implemented but not critically tested.
-
-
     Usage
     -----
     ```python

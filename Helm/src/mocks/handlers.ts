@@ -1,9 +1,10 @@
 /**
  * The demo harbor's API, one MSW handler per endpoint.
  *
- * Handlers enforce auth and answer in wire shapes, with a little latency so
- * the pending states are visible. Swapping this pretend backend for a real
- * one means flipping VITE_API_MODE; no client code changes.
+ * Handlers enforce auth and answer in wire shapes, refusing in the envelope
+ * the family's server uses, with a little latency so the pending states are
+ * visible. Swapping this pretend backend for a real one means flipping
+ * VITE_API_MODE; no client code changes.
  */
 import { HttpResponse, delay, http } from "msw"
 
@@ -23,8 +24,27 @@ function bearerToken(request: Request): string | null {
   return header !== null && header.startsWith("Bearer ") ? header.slice("Bearer ".length) : null
 }
 
+/**
+ * Builds a refusal in the family's server envelope.
+ *
+ * ArchetypeCore answers every error with `title`, `detail`, `status_code`, and
+ * `type`, the reason living in `detail`, so the pretend backend speaks the
+ * same shape and the client's reading of it runs in the demo, not only in a
+ * test.
+ *
+ * @param status - HTTP status of the refusal.
+ * @param title - Short name of the failure.
+ * @param detail - The reason, as the user should read it.
+ * @param type - Machine-readable classification of the failure.
+ *
+ * @returns The JSON response carrying the envelope.
+ */
+function refusal(status: number, title: string, detail: string, type: string): Response {
+  return HttpResponse.json({ title, detail, status_code: status, type }, { status })
+}
+
 function unauthorized(): Response {
-  return HttpResponse.json({ message: "Sign in to reach the harbor office." }, { status: 401 })
+  return refusal(401, "Authentication Failed", "Sign in to reach the harbor office.", "unauthorized")
 }
 
 /** The MSW request handlers answering the same HTTP a real backend would. */
@@ -37,7 +57,7 @@ export const handlers = [
       typeof body.password === "string" ? body.password : "",
     )
     if (session === null) {
-      return HttpResponse.json({ message: "Wrong username or password." }, { status: 401 })
+      return refusal(401, "Authentication Failed", "Wrong username or password.", "unauthorized")
     }
     return HttpResponse.json(session)
   }),
@@ -58,7 +78,7 @@ export const handlers = [
     const id = typeof params["id"] === "string" ? params["id"] : ""
     const vessel = db.getVessel(id)
     if (vessel === undefined) {
-      return HttpResponse.json({ message: "No vessel with that id is on the books." }, { status: 404 })
+      return refusal(404, "Not Found", "No vessel with that id is on the books.", "not_found")
     }
     return HttpResponse.json(vessel)
   }),
@@ -71,14 +91,14 @@ export const handlers = [
     const id = typeof params["id"] === "string" ? params["id"] : ""
     const current = db.getVessel(id)
     if (current === undefined) {
-      return HttpResponse.json({ message: "No vessel with that id is on the books." }, { status: 404 })
+      return refusal(404, "Not Found", "No vessel with that id is on the books.", "not_found")
     }
     if (current.status !== "moored") {
-      return HttpResponse.json({ message: "Only a moored vessel can be recorded as departed." }, { status: 409 })
+      return refusal(409, "Conflict", "Only a moored vessel can be recorded as departed.", "conflict")
     }
     const departed = db.departVessel(id)
     if (departed === undefined) {
-      return HttpResponse.json({ message: "No vessel with that id is on the books." }, { status: 404 })
+      return refusal(404, "Not Found", "No vessel with that id is on the books.", "not_found")
     }
     return HttpResponse.json(departed)
   }),
@@ -110,7 +130,7 @@ export const handlers = [
       typeof body.eta !== "string" ||
       Number.isNaN(Date.parse(body.eta))
     ) {
-      return HttpResponse.json({ message: "The arrival request is missing required fields." }, { status: 422 })
+      return refusal(422, "Validation Error", "The arrival request is missing required fields.", "validation_error")
     }
     const created = db.createArrival({
       vessel_name: body.vessel_name,

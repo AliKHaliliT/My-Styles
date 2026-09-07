@@ -63,6 +63,9 @@ check this folder; the question may already be settled.
 | [0010](decisions/0010-defer-the-frontend-seat-that-ships-its-own-server.md) | The server-rendered frontend seat waits for a public-facing product that needs SEO, streaming, or cookie sessions; until then Helm is the whole frontend answer |
 | [0011](decisions/0011-dispose-of-the-doctoral-repository-s-upstream-report.md) | The first real upstream report, tested entry by entry: four kept, two adapted with corrected diagnoses, one refused, and the adoption gaps it exposed closed in every style |
 | [0012](decisions/0012-anchor-history-reading-checks-to-their-scope.md) | A history-reading check is dated by the sentence that states its scope, never by a name a child's past may carry; kept from the adopting repository's second finding |
+| [0013](decisions/0013-dispose-of-the-arcs-project-s-upstream-report.md) | The second real upstream report, five entries tested on the trees: four kept, one adapted, two diagnoses corrected, and the audit's demo-bound blind spots closed |
+| [0014](decisions/0014-dispose-of-the-planner-project-s-upstream-report.md) | The third real upstream report, three entries: a dead websocket branch proven by reproduction, the 422 rename reported twice, and a typo that brought the family a spell check |
+| [0015](decisions/0015-give-the-upstream-report-a-place-and-a-defect-class.md) | An upstream report is a dated record at `docs/upstream/` with one shape; a workaround of template bytes is an entry never judged, and every delivery gate holds it |
 
 ## Rules of the folder
 

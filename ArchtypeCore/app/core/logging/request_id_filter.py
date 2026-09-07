@@ -52,7 +52,7 @@ class RequestIDFilter(Filter):
         """
 
         if not isinstance(record, LogRecord):
-            raise TypeError(f"record must be an insatnce of the logging.LogRecord. Received: {record} with type {type(record)}")
+            raise TypeError(f"record must be an instance of the logging.LogRecord. Received: {record} with type {type(record)}")
         
 
         record.request_id = request_id_var.get()

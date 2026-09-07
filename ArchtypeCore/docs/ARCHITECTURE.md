@@ -93,7 +93,10 @@ my_project/
 │
 ├── tests/                      # Automated test suite (mirrors the app structure)
 │   ├── conftest.py             # Supplies the required settings values before any app import
+│   ├── test_main.py            # Boots the application and crosses one validation error
 │   └── app/
+│       ├── core/
+│       │   └── middlewares/    # Each observability middleware driven as a plain ASGI callable
 │       └── services/           # Business logic, with fakes at the domain interfaces
 │
 └── util_resources/             # Tracked repository assets
@@ -106,7 +109,7 @@ Three rules hold however broad the suite is. Suites live in `tests/`, mirroring 
 
 `tests/app/services/test_user_service.py` is the worked example. It drives `UserService.create_user_with_device` with hand-written fakes for the unit of work, its three repositories, and the VPN provider, so the real orchestration runs while nothing reaches a database or a network interface. The assertions follow the credentials from the provider into both the stored device and the provisioning call, and one case proves the duplicate-username guard runs before any external effect happens. Each fake is declared against the interface it satisfies rather than against its own class, which is what lets the type checker confirm the substitution is legitimate.
 
-`tests/conftest.py` assigns the four settings values that carry no default, because the settings module builds its instance at import time. They are deliberately fake and assigned rather than defaulted, so a real environment on the machine running the suite cannot leak into a run. Integration tests that speak HTTP would sit beside the unit suites in an api folder of their own under `tests/app`; the breadth of the suite is deliberately narrow here, since this repository is a blueprint rather than a deployment. The WireGuard provider's subprocess paths are proven live by `scripts/wg_smoke.py` inside a NET_ADMIN container; routing under real client traffic is deliberately left to each deployment's own validation, because a template can prove its commands, not a network.
+`tests/conftest.py` assigns the four settings values that carry no default, because the settings module builds its instance at import time. They are deliberately fake and assigned rather than defaulted, so a real environment on the machine running the suite cannot leak into a run. `tests/test_main.py` boots the whole application through the in-process test client and sends one malformed request, so every module under `app` imports under the warnings gate and the validation handler is seen answering in the standard error shape. The suites under `tests/app/core/middlewares/` drive each observability middleware as the plain ASGI callable it is, with an http scope and a websocket scope built by hand, which is how the websocket branch is proven without a socket. Route suites that speak HTTP would sit beside them in an api folder under `tests/app`; the breadth of the suite is deliberately narrow here, since this repository is a blueprint rather than a deployment. The WireGuard provider's subprocess paths are proven live by `scripts/wg_smoke.py` inside a NET_ADMIN container; routing under real client traffic is deliberately left to each deployment's own validation, because a template can prove its commands, not a network.
 
 ## Exemplars
 
@@ -117,4 +120,5 @@ The map says where things live; these files say how they read. An artifact of a 
 - A repository translator pair: `app/repositories/translators/users/db_to_domain.py` and `app/repositories/translators/users/domain_to_db.py`.
 - A middleware class carrying a `Notes` section: `app/core/middlewares/security/content_security_policy_middleware.py`.
 - A suite with fakes at the domain interfaces: `tests/app/services/test_user_service.py`.
+- A suite driving a middleware as an ASGI callable: `tests/app/core/middlewares/observability/test_request_id_middleware.py`.
 - A decision record: `docs/decisions/0023-let-a-check-imply-no-more-than-it-decides.md`.

@@ -54,6 +54,9 @@ STATE_DATE = re.compile(r"\((\d{4}-\d{2}-\d{2})\)")
 # A key is an author name closed by a year, or a standard's designation with
 # its year suffixed, so digits may sit inside the name (ieee754-2019).
 CITE_KEY = re.compile(r"\[([a-z][a-z0-9]*[0-9]{4}[a-z]?|[a-z][a-z0-9]*-[0-9]{4})\](?!\()")
+# A key inside backticks names the form and cites nothing, so code spans are blanked before
+# citations are read; the rulebook's own example of the form is the case that needs this.
+CODE_SPAN = re.compile(r"```.*?```|`[^`\n]*`", re.DOTALL)
 BIB_ENTRY = re.compile(r"^- \*\*([a-z][a-z0-9]*[0-9]{4}[a-z]?|[a-z][a-z0-9]*-[0-9]{4})\*\*:")
 PIN = re.compile(r"arrows/([a-z0-9-]+) at ([0-9a-f]{7,40})\b")
 LINK = re.compile(r"\]\(([^)\s]+)\)")
@@ -381,8 +384,13 @@ def check_reviews(problems: list[str], root: Path) -> None:
             )
 
 
+def prose_only(text: str) -> str:
+    """The text with its code spans blanked, because a key in backticks is a mention, not a citation."""
+    return CODE_SPAN.sub(" ", text)
+
+
 def check_citations(problems: list[str], root: Path) -> None:
-    """Every cited key resolves in the bibliography."""
+    """Every cited key resolves in the bibliography; a key inside backticks is a mention and is not read."""
     bib = root / "docs/BIBLIOGRAPHY.md"
     keys = set()
     if bib.exists():
@@ -397,7 +405,7 @@ def check_citations(problems: list[str], root: Path) -> None:
     for path in sources:
         if not path.exists():
             continue
-        for cited in CITE_KEY.findall(path.read_text(encoding="utf-8")):
+        for cited in CITE_KEY.findall(prose_only(path.read_text(encoding="utf-8"))):
             if cited not in keys:
                 problems.append(f"{path.relative_to(root)}: cited key [{cited}] not in the bibliography")
 
@@ -482,7 +490,7 @@ PLANTS = [
      "# 0009. Planted\n\nStatus: Supported\nDate: 2026-01-01\n\n## Claim\n\nx.\n\n## Evidence\n\nNone.\n\n## Threats\n\n- None named.\n",
      "settled claim has no evidence"),
     ("docs/claims/0008-planted.md",
-     "# 0008. Planted\n\nStatus: Refuted\nDate: 2026-01-01\n\n## Claim\n\nx.\n\n## Evidence\n\nkilled by y at arrows/coinwise at 0123456789ab.\n\n## Threats\n\n- None named.\n",
+     "# 0008. Planted\n\nStatus: Refuted\nDate: 2026-01-01\n\n## Claim\n\nx.\n\n## Evidence\n\nkilled by y at arrows/planted at 0123456789ab.\n\n## Threats\n\n- None named.\n",
      "names no reopening condition"),
     ("docs/claims/0007-planted.md",
      "# 0007. Planted\n\nStatus: Wrong\nDate: 2026-01-01\n\n## Claim\n\nx.\n\n## Evidence\n\nNone.\n\n## Threats\n\n- None named.\n",
@@ -494,9 +502,6 @@ PLANTS = [
      "# 0011. Planted\n\nStatus: Conjecture\nDate: 2026-01-01\n\n## Claim\n\ncites [fake754-2019].\n\n## Evidence\n\nNone.\n\n## Threats\n\n- None named.\n",
      "[fake754-2019] not in the bibliography"),
     ("docs/arrows/ghost.md", "# Arrow: ghost\n", "manifest for an arrow that does not exist"),
-    ("docs/claims/0095-planted-unlisted.md",
-     "# 0095. Planted unlisted\n\nStatus: Supported\nDate: 2026-01-01\n\n## Claim\n\nx.\n\n## Evidence\n\nrun at arrows/coinwise at 0123456789ab.\n\n## Threats\n\n- None named.\n",
-     "does not list 0095-planted-unlisted.md, a current claim pinned to this arrow"),
     ("docs/PLANTED.md", "# Planted\n\nAn organic document nobody registered.\n",
      "docs/PLANTED.md: not registered in the AGENTS.md index"),
     ("docs/PLANTED.md", "# Planted\n\n[gone](ghost/none.md)\n", "links to ghost/none.md, which does not resolve"),
@@ -548,7 +553,7 @@ REVIEW_TEMPLATE = (
     "- Completeness review: collapsed, no completeness is claimed.\n"
     "- Fold: collapsed, the ledger did not move.\n"
     "- Resolution: collapsed, no two sources conflict.\n\n"
-    "## Found\n\n[goldberg1991].\n\n## Changed\n\nNothing in the ledger.\n\n## Left out\n\nEvery database.\n"
+    "## Found\n\n[planted9999].\n\n## Changed\n\nNothing in the ledger.\n\n## Left out\n\nEvery database.\n"
 )
 REVIEW_PLANTS = [
     ("docs/reviews/2026-01-01-planted-no-boundary.md", REVIEW_TEMPLATE.replace("## Boundary", "## Bounds"), "section '## Boundary' missing"),
@@ -569,17 +574,30 @@ TRACKED_PLANTS = [
     ("ROGUE.txt", "nobody named this\n", "ROGUE.txt: sits at the root but neither the map nor the baseline names it"),
 ]
 
+# The well-formed pass cites this key, planted in the bibliography for the review plants alone.
+PLANTED_ENTRY = b"- **planted9999**: Planted, P. 9999. A work entered by the selftest and removed after it.\n"
+
 # A superseded conjecture keeps Evidence None. and must PASS, or this checker
-# would force evidence into an immutable record to earn a clean run.
+# would force evidence into an immutable record to earn a clean run; and a key
+# inside backticks is a mention of the form, so a record explaining the form must PASS too.
 LEGAL_PLANTS = [
     ("docs/claims/0005-planted-legal.md",
      ("# 0005. Planted legal\n\nStatus: Superseded by 0002\nDate: 2026-01-01\n\n"
       "## Claim\n\nx.\n\n## Evidence\n\nNone.\n\n## Threats\n\n- None named.\n")),
+    ("docs/claims/0004-planted-legal-mention.md",
+     ("# 0004. Planted legal mention\n\nStatus: Conjecture\nDate: 2026-01-01\n\n"
+      "## Claim\n\nA key written as `[nobody9999]` names the citation form and cites nothing.\n\n"
+      "## Evidence\n\nNone.\n\n## Threats\n\n- None named.\n")),
 ]
 
 
 def selftest() -> int:
-    """Prove each rule fires against a planted defect, then leave no trace."""
+    """Prove each rule fires against a planted defect, then leave no trace.
+
+    A plant builds whatever it names, an arrow, a manifest, a bibliography entry, rather than
+    naming what this tree happens to carry, so the proof holds in a project built from this
+    template that carries none of the demo.
+    """
     failures = 0
     for rel, content, expect in PLANTS:
         target = ROOT / rel
@@ -601,27 +619,66 @@ def selftest() -> int:
                 print(f"WRONG: legal plant {rel} raised {legal_problems[:2]}")
         finally:
             target.unlink()
+    # The manifest-currency rule judges an arrow against its manifest, so the plant builds both
+    # rather than naming whatever arrow this tree happens to carry.
+    arrows_dir = ROOT / "arrows"
+    manifests_dir = ROOT / "docs/arrows"
+    built = [folder for folder in (manifests_dir, arrows_dir) if not folder.exists()]
+    planted_arrow = arrows_dir / "planted" / "README.md"
+    planted_manifest = manifests_dir / "planted.md"
+    planted_claim = ROOT / "docs/claims/0095-planted-unlisted.md"
+    try:
+        planted_arrow.parent.mkdir(parents=True, exist_ok=True)
+        manifests_dir.mkdir(exist_ok=True)
+        planted_arrow.write_text("# planted\n", encoding="utf-8")
+        planted_manifest.write_text("# Arrow: planted\n", encoding="utf-8")
+        planted_claim.write_text(
+            "# 0095. Planted unlisted\n\nStatus: Supported\nDate: 2026-01-01\n\n## Claim\n\nx.\n\n"
+            "## Evidence\n\nrun at arrows/planted at 0123456789ab.\n\n## Threats\n\n- None named.\n",
+            encoding="utf-8",
+        )
+        unlisted_problems, _ = run(ROOT)
+        if not any("docs/arrows/planted.md: does not list 0095-planted-unlisted.md" in p for p in unlisted_problems):
+            failures += 1
+            print("WRONG: a current claim pinned to an arrow its manifest does not list raised nothing")
+    finally:
+        for target in (planted_claim, planted_manifest, planted_arrow):
+            target.unlink(missing_ok=True)
+        planted_arrow.parent.rmdir()
+        for folder in built:
+            folder.rmdir()
+    # The review plants cite a key, so the key is planted in the bibliography for their duration
+    # and the file's bytes are restored afterwards.
+    bibliography = ROOT / "docs/BIBLIOGRAPHY.md"
+    original_bibliography = bibliography.read_bytes() if bibliography.exists() else None
+    bibliography.write_bytes((original_bibliography or b"# Bibliography\n").rstrip(b"\n") + b"\n" + PLANTED_ENTRY)
     (ROOT / "docs/reviews").mkdir(exist_ok=True)
-    for rel, content, expect in REVIEW_PLANTS:
-        target = ROOT / rel
-        target.write_text(content, encoding="utf-8")
+    try:
+        for rel, content, expect in REVIEW_PLANTS:
+            target = ROOT / rel
+            target.write_text(content, encoding="utf-8")
+            try:
+                review_problems, _ = run(ROOT)
+                if not any(expect in p for p in review_problems):
+                    failures += 1
+                    print(f"WRONG: review plant {rel} did not raise {expect!r}")
+            finally:
+                target.unlink()
+        # The well-formed pass itself must pass, or the shape would forbid the only legal record.
+        target = ROOT / "docs/reviews/2026-01-01-planted-legal-pass.md"
+        target.write_text(REVIEW_TEMPLATE, encoding="utf-8")
         try:
-            review_problems, _ = run(ROOT)
-            if not any(expect in p for p in review_problems):
+            legal_review, _ = run(ROOT)
+            if any("2026-01-01-planted-legal-pass" in p for p in legal_review):
                 failures += 1
-                print(f"WRONG: review plant {rel} did not raise {expect!r}")
+                print(f"WRONG: a well-formed review pass raised {[p for p in legal_review if 'planted-legal-pass' in p][:2]}")
         finally:
             target.unlink()
-    # The well-formed pass itself must pass, or the shape would forbid the only legal record.
-    target = ROOT / "docs/reviews/2026-01-01-planted-legal-pass.md"
-    target.write_text(REVIEW_TEMPLATE, encoding="utf-8")
-    try:
-        legal_review, _ = run(ROOT)
-        if any("2026-01-01-planted-legal-pass" in p for p in legal_review):
-            failures += 1
-            print(f"WRONG: a well-formed review pass raised {[p for p in legal_review if 'planted-legal-pass' in p][:2]}")
     finally:
-        target.unlink()
+        if original_bibliography is None:
+            bibliography.unlink()
+        else:
+            bibliography.write_bytes(original_bibliography)
     body = (
         "# {num}. Planted advisory\n\nStatus: {status}\nDate: 2026-01-01\n\n"
         "## Claim\n\nx.\n\n## Evidence\n\n{evidence}\n\n## Threats\n\n- None named.\n"
@@ -705,7 +762,7 @@ def selftest() -> int:
             target = ROOT / rel
             target.write_text(
                 f"# {num}. Planted figure\n\nStatus: Supported\nDate: 2026-01-01\n\n## Claim\n\nx.\n\n"
-                f"## Evidence\n\nrun at arrows/coinwise at 0123456789ab.\n\nfigure drift: {value}\n\n## Threats\n\n- None named.\n",
+                f"## Evidence\n\nrun at arrows/planted at 0123456789ab.\n\nfigure drift: {value}\n\n## Threats\n\n- None named.\n",
                 encoding="utf-8",
             )
             written.append(target)

@@ -40,23 +40,33 @@ export interface RequestOptions {
 }
 
 /**
+ * Fields a refusal's readable reason may sit in, in the order they are read.
+ *
+ * The family's server answers every refusal with `title`, `detail`,
+ * `status_code`, and `type`, the reason living in `detail`; a plainer backend
+ * answers with `message`; a validation refusal lists its reasons under
+ * `detail` and keeps its readable text in `title`.
+ */
+const ERROR_MESSAGE_FIELDS = ["detail", "message", "title"] as const
+
+/**
  * Extracts a human-readable message from an error response.
  *
  * @param response - The non-2xx response.
  *
- * @returns The body's `message` field when present, and the status text or
- *   code otherwise.
+ * @returns The first of the body's `detail`, `message`, and `title` fields
+ *   that is a non-empty string, and the status text or code otherwise.
  */
 async function readErrorMessage(response: Response): Promise<string> {
   try {
     const payload: unknown = await response.json()
-    if (
-      typeof payload === "object" &&
-      payload !== null &&
-      "message" in payload &&
-      typeof (payload as { message: unknown }).message === "string"
-    ) {
-      return (payload as { message: string }).message
+    if (typeof payload === "object" && payload !== null) {
+      for (const field of ERROR_MESSAGE_FIELDS) {
+        const value: unknown = (payload as Record<string, unknown>)[field]
+        if (typeof value === "string" && value !== "") {
+          return value
+        }
+      }
     }
   } catch {
     // The body was not JSON; the status line is all there is.
