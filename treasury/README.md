@@ -69,6 +69,7 @@ check this folder; the question may already be settled.
 | [0016](decisions/0016-let-re-alignment-resolve-open-upstream-entries-and-keep-the-report-nameless.md) | No reply is owed: re-alignment resolves every open upstream entry itself and records the outcome; a report names nothing that identifies its sender, and an arrow's report is the arrow's own |
 | [0017](decisions/0017-carry-the-template-s-records-in-an-inherited-folder-and-start-a-project-s-own-at-one.md) | A child carries the template's records whole in an inherited folder under docs and numbers its own decisions from 0001, so the two sequences never meet and the carried folder is a pure mirror |
 | [0018](decisions/0018-dispose-of-the-upstream-report-of-2026-09-08-on-the-claim-ledger.md) | The fourth real upstream report, two entries on the claim ledger: supersession reserved for a change of figures, evidence, or belief, with verifications in the manifest, and evidence observed once declared as recorded |
+| [0019](decisions/0019-name-the-resolution-record-and-tell-the-owner-what-went-upstream.md) | A report is written when the work that produced its entries closes, the closing note names what went upstream and what is held, and the resolution record has a name |
 
 ## Rules of the folder
 
