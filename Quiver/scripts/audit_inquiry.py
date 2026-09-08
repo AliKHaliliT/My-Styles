@@ -33,7 +33,7 @@ LIVING = [
     "docs/CONVENTIONS.md",
     "docs/BASELINE.md",
 ]
-FREE_GROWING = {"AGENTS.md", "README.md", "docs/ARCHITECTURE.md", "docs/BIBLIOGRAPHY.md"}
+FREE_GROWING = {"AGENTS.md", "README.md", "docs/ARCHITECTURE.md", "docs/BIBLIOGRAPHY.md", "docs/UPSTREAM.md"}
 BUDGET_LINES = 150
 HORIZON_DAYS = 90
 # In-flight work that has not moved in this long is either finished or stalled, and Now is
@@ -53,6 +53,13 @@ REVIEW_STAGES = ("Scouting", "Enumeration", "Checks", "Completeness review", "Fo
 STAGE_LINE = re.compile(r"^- (Scouting|Enumeration|Checks|Completeness review|Fold|Resolution): (ran|collapsed)\b(.*)$", re.MULTILINE)
 COMPLETENESS = re.compile(r"^Completeness: (exhausted|judgment)\s*$", re.MULTILINE)
 STATE_DATE = re.compile(r"\((\d{4}-\d{2}-\d{2})\)")
+# The upstream file a project built from this template carries: one Open section, entries dated by
+# heading with a kind, a pin, and four labeled parts, expiring on the same horizon as STATE.
+UPSTREAM_ENTRY = re.compile(r"^### (\d{4}-\d{2}-\d{2}) (.+)$", re.MULTILINE)
+UPSTREAM_KIND = re.compile(r"^Kind: (improvement|defect)$", re.MULTILINE)
+UPSTREAM_PIN = re.compile(r"^Pin: [0-9a-f]{7,40}$", re.MULTILINE)
+UPSTREAM_PARTS = ("**What it is", "**How the work surfaced it", "**Records checked")
+UPSTREAM_WHY = ("**Why it is believed better", "**What was worked around")
 # A key is an author name closed by a year, or a standard's designation with
 # its year suffixed, so digits may sit inside the name (ieee754-2019).
 CITE_KEY = re.compile(r"\[([a-z][a-z0-9]*[0-9]{4}[a-z]?|[a-z][a-z0-9]*-[0-9]{4})\](?!\()")
@@ -250,6 +257,42 @@ def check_references(problems: list[str], root: Path) -> None:
             for token in PATH_TOKEN.findall(line):
                 if claims_to_be_path(token, root) and not (root / token).exists():
                     problems.append(f"{rel}:{line_no}: names `{token}`, which does not exist")
+
+
+def check_upstream(problems: list[str], root: Path) -> None:
+    """The upstream file's schema and horizon, where a project carries one."""
+    path = root / "docs/UPSTREAM.md"
+    if not path.exists():
+        return
+    text = path.read_text(encoding="utf-8")
+    if "## Open" not in text:
+        problems.append("docs/UPSTREAM.md: no ## Open section")
+        return
+    body = text.split("## Open", 1)[1]
+    entries = list(UPSTREAM_ENTRY.finditer(body))
+    if not entries and "Nothing open." not in body:
+        problems.append("docs/UPSTREAM.md: Open holds entries or the words Nothing open.")
+    if entries and "Nothing open." in body:
+        problems.append("docs/UPSTREAM.md: says Nothing open. beside open entries")
+    today = datetime.now(timezone.utc).date()
+    for index, entry in enumerate(entries):
+        end = entries[index + 1].start() if index + 1 < len(entries) else len(body)
+        chunk = body[entry.end():end]
+        label = f"docs/UPSTREAM.md: entry {entry.group(1)} {entry.group(2)[:40]}"
+        if not UPSTREAM_KIND.search(chunk):
+            problems.append(f"{label}: no Kind line reading improvement or defect")
+        if not UPSTREAM_PIN.search(chunk):
+            problems.append(f"{label}: no Pin line naming the template commit")
+        for part in UPSTREAM_PARTS:
+            if part not in chunk:
+                problems.append(f"{label}: part {part}** missing")
+        if not any(why in chunk for why in UPSTREAM_WHY):
+            problems.append(f"{label}: neither Why it is believed better nor What was worked around")
+        if (today - date.fromisoformat(entry.group(1))).days > HORIZON_DAYS:
+            problems.append(
+                f"{label}: past the {HORIZON_DAYS}-day horizon; re-verify against the template and re-date,"
+                " or make it the project's own decision and delete it"
+            )
 
 
 def check_rooms(problems: list[str], root: Path) -> None:
@@ -537,6 +580,7 @@ def run(root: Path) -> tuple[list[str], list[str]]:
     check_living(problems, root)
     check_references(problems, root)
     check_rooms(problems, root)
+    check_upstream(problems, root)
     check_records(problems, root)
     check_record_immutability(problems, root)
     check_figures(problems, root)
@@ -899,6 +943,38 @@ def selftest() -> int:
         git("rm", "--cached", "-q", "--", "docs/inherited/0001-planted-inherited.md")
         inherited.unlink()
         inherited.parent.rmdir()
+    # A project built from this template carries an UPSTREAM.md of the same kind as STATE.md, so a
+    # legal one must PASS and each rule of its schema must fire; the plant builds the row too.
+    upstream = ROOT / "docs/UPSTREAM.md"
+    upstream_row = b"| [docs/UPSTREAM.md](docs/UPSTREAM.md) | Planted: what this project has for its style. |\n"
+    head_text = "# Upstream\n\nEvery entry is a lead, not a verdict.\n\n## Open\n\n"
+    today_stamp = datetime.now(timezone.utc).date().isoformat()
+    parts = (
+        "**What it is.** x.\n\n**How the work surfaced it.** x.\n\n"
+        "**Why it is believed better.** x.\n\n**Records checked.** None.\n"
+    )
+    upstream_plants: list[tuple[str, str | None]] = [
+        (head_text + "Nothing open.\n", None),
+        (head_text + f"### {today_stamp} Planted entry\n\nKind: defect\nPin: 0123456789ab\n\n" + parts, None),
+        (head_text + "### 2026-01-01 Planted entry\n\nKind: defect\nPin: 0123456789ab\n\n" + parts, "past the 90-day horizon"),
+        (head_text + f"### {today_stamp} Planted entry\n\nPin: 0123456789ab\n\n" + parts, "no Kind line"),
+        (head_text + f"Nothing open.\n\n### {today_stamp} Planted entry\n\nKind: defect\nPin: 0123456789ab\n\n" + parts, "beside open entries"),
+    ]
+    try:
+        agents_path.write_bytes(original_agents.rstrip(b"\n") + b"\n\n" + upstream_row)
+        for upstream_text, upstream_expect in upstream_plants:
+            upstream.write_text(upstream_text, encoding="utf-8")
+            upstream_problems, _ = run(ROOT)
+            hits = [p for p in upstream_problems if "UPSTREAM" in p]
+            if upstream_expect is None and hits:
+                failures += 1
+                print(f"WRONG: a legal UPSTREAM.md raised {hits[:2]}")
+            if upstream_expect is not None and not any(upstream_expect in p for p in hits):
+                failures += 1
+                print(f"WRONG: an UPSTREAM.md plant did not raise {upstream_expect!r}")
+    finally:
+        agents_path.write_bytes(original_agents)
+        upstream.unlink(missing_ok=True)
     # Two claims quoting one figure at one pin must agree, so the plant is a pair.
     pair = [
         ("docs/claims/0094-planted-figure-a.md", "0094", "5.000"),

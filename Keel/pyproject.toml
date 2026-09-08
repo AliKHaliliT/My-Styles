@@ -107,6 +107,7 @@ source_modules = ["keel.domain", "keel.services"]
 forbidden_modules = [
     "keel.facade",
     "keel.adapters",
+    # Stack binding: the demo's one vendor SDK, kept out of the core by name.
     "google",
 ]
 
@@ -118,14 +119,17 @@ layers = ["keel.facade", "keel.services", "keel.domain"]
 [tool.mypy]
 python_version = "3.14"
 strict = true
+# Stack binding: the demo validates with pydantic.
 plugins = ["pydantic.mypy"]
 implicit_reexport = true
 
+# Stack binding: the demo's vendor SDK ships no types.
 [[tool.mypy.overrides]]
 module = "google.*"
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
+# Stack binding: the demo's suites are async.
 asyncio_mode = "auto"
 testpaths = ["tests"]
 # A deprecation warning is a removal notice at least two releases early, so it gates here

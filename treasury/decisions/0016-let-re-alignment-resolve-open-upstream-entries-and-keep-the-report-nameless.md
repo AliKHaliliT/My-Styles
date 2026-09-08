@@ -1,6 +1,6 @@
 # 0016. Let re-alignment resolve open upstream entries and keep the report nameless
 
-Status: Accepted
+Status: Superseded by 0020
 Date: 2026-09-07
 
 ## Context

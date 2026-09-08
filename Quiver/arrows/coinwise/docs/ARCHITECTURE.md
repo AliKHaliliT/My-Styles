@@ -15,6 +15,7 @@ coinwise/
 │   ├── ARCHITECTURE.md         # This file; the annotated map of the arrow
 │   ├── BASELINE.md             # The repository baseline (always-present files and their rules)
 │   ├── CONVENTIONS.md          # The documentation rulebook (frozen; do not edit)
+│   ├── UPSTREAM.md             # What this arrow has for its style, until re-alignment resolves it
 │   ├── decisions/              # This arrow's own immutable decision records
 │   └── inherited/              # Keel's decision records, carried whole and byte-identical at the pin
 │
@@ -43,7 +44,7 @@ coinwise/
 
 ## Testing
 
-Suites live in `tests/`, mirroring the source tree, one suite named after the unit it covers. Nothing here is substituted, because every collaborator is deterministic and runs in process, so each suite composes the real thing. The seam rule stands unchanged for the day a port reaches outside; a collaborator is then replaced only by a hand-written fake satisfying the port it stands in for, never by patching a module's internals, since a test bound to an implementation voids the substitutability the ports exist to provide. No coverage threshold is imposed, so breadth stays a judgment call while placement and substitution do not.
+Suites live in `tests/`, mirroring the source tree, one suite named after the unit it covers. Nothing here is substituted, because every collaborator is deterministic and runs in process, so each suite composes the real thing. The seam rule stands unchanged for the day a port reaches outside; a collaborator is then replaced only by a hand-written fake satisfying the port it stands in for, never by patching a module's internals, since a test bound to an implementation voids the substitutability the ports exist to provide. No coverage threshold is imposed, so breadth stays a judgment call while placement and substitution do not. And where an optional dependency sits behind a port with a fallback implementation, the suite executes both paths and holds them to a tolerance a decision record states with the measurement that set it, over a fixture on which the two can disagree, because a fallback that only the machines without the dependency ever run is dead code that reviews well.
 
 The strategies suite also carries the property shape (see [Keel's decision 0035](inherited/0035-test-stated-invariants-with-derandomized-properties.md)). The domain's stated invariants, agreement everywhere off ties, at most half a cent of movement, idempotence, and the tie behavior of each rule, hold over generated amounts rather than hand-picked ones. Every property runs derandomized with no example database, so the pinned tree reproduces the same result on every run, and a green property test claims no counterexample in its generated cases, never a proof.
 
@@ -55,4 +56,5 @@ The map says where things live; these files say how they read. An artifact of a 
 - The outbound translator: `src/coinwise/facade/translators/services_to_facade.py`.
 - The service: `src/coinwise/services/accumulation/simulate.py`.
 - A suite with examples and properties side by side: `tests/src/coinwise/domain/rounding/test_strategies.py`.
+- The upstream file: `docs/UPSTREAM.md`.
 - A decision record, in Keel's dialect carried whole: `docs/inherited/0035-test-stated-invariants-with-derandomized-properties.md`; this arrow's own records under `docs/decisions/` follow it.

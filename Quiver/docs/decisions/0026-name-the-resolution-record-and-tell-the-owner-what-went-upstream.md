@@ -1,6 +1,6 @@
 # 0026. Name the resolution record and tell the owner what went upstream
 
-Status: Accepted
+Status: Superseded by 0027
 Date: 2026-09-08
 
 ## Context

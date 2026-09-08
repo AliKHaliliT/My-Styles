@@ -70,6 +70,8 @@ check this folder; the question may already be settled.
 | [0017](decisions/0017-carry-the-template-s-records-in-an-inherited-folder-and-start-a-project-s-own-at-one.md) | A child carries the template's records whole in an inherited folder under docs and numbers its own decisions from 0001, so the two sequences never meet and the carried folder is a pure mirror |
 | [0018](decisions/0018-dispose-of-the-upstream-report-of-2026-09-08-on-the-claim-ledger.md) | The fourth real upstream report, two entries on the claim ledger: supersession reserved for a change of figures, evidence, or belief, with verifications in the manifest, and evidence observed once declared as recorded |
 | [0019](decisions/0019-name-the-resolution-record-and-tell-the-owner-what-went-upstream.md) | A report is written when the work that produced its entries closes, the closing note names what went upstream and what is held, and the resolution record has a name |
+| [0020](decisions/0020-keep-upstream-entries-in-one-living-document-until-they-resolve.md) | Supersedes 0015, 0016, and 0019: a child keeps its upstream entries in one living UPSTREAM.md of STATE's kind, resolved by deletion at re-alignment, no reply owed and none filed |
+| [0021](decisions/0021-dispose-of-the-upstream-report-of-2026-09-08-from-a-keel-project.md) | The fifth real upstream report, three entries kept: both paths of an optional backend tested to a recorded tolerance, stack bindings marked in the tool configuration, and one-sentence summaries in the house rhythm |
 
 ## Rules of the folder
 
