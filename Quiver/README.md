@@ -23,7 +23,7 @@ The demo asks a small, genuinely empirical question: when many monetary amounts 
 1. **The claim chain.** Question to conjecture to evidence to claim, with each claim's evidence quoted in full and pinned to the host commit whose tree produced it. A claim is the only place the inquiry holds a truth.
 2. **Arrows under their own law.** Each embedded codebase is a complete instance of an artifact style, vendored whole under `arrows/`, governed by its own gate and conventions. Quiver's law binds the inquiry layer only, and a thin manifest per arrow is the whole interface.
 3. **The graveyard.** A refuted conjecture is a result. It keeps its record, its killing evidence, its reopening condition, and its pin, which after cleanup is the only surviving proof the attempt existed.
-4. **Staleness as a first-class state.** An arrow moving past a pin flips nothing by itself; it raises an advisory, and a person decides whether the claim is Stale, because only a person can tell whether the movement touched what the claim measured.
+4. **Staleness as a first-class state.** An arrow moving past a pin flips nothing by itself; it raises an advisory, and a person decides whether the claim is Stale, because only a person can tell whether the movement touched what the claim measured. When the figures reproduce, the answer is one verification line in the arrow's manifest, and a claim is superseded only when its figures, its evidence, or the belief behind it change.
 5. **Sources as objects.** Every consulted work is a self-contained citation with its edition named, addressed by key, so no source vanishes by being treated as the frame instead of the thing.
 
 ## Project Structure

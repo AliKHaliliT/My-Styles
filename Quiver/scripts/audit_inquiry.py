@@ -61,6 +61,10 @@ CITE_KEY = re.compile(r"\[([a-z][a-z0-9]*[0-9]{4}[a-z]?|[a-z][a-z0-9]*-[0-9]{4})
 CODE_SPAN = re.compile(r"```.*?```|`[^`\n]*`", re.DOTALL)
 BIB_ENTRY = re.compile(r"^- \*\*([a-z][a-z0-9]*[0-9]{4}[a-z]?|[a-z][a-z0-9]*-[0-9]{4})\*\*:")
 PIN = re.compile(r"arrows/([a-z0-9-]+) at ([0-9a-f]{7,40})\b")
+# A manifest's verification: a claim number and the commit at which its figures reproduced.
+VERIFIED = re.compile(r"\b(\d{4}) at ([0-9a-f]{7,40})\b")
+# Evidence observed once and never re-run declares itself on one line of the Evidence section.
+RECORDED = re.compile(r"^Recorded: (.+)$", re.MULTILINE)
 LINK = re.compile(r"\]\(([^)\s]+)\)")
 PATH_TOKEN = re.compile(r"`([^`\n]+)`")
 # A figure a claim rests on, written on its own line so two records can be held to one value.
@@ -425,9 +429,11 @@ def check_arrows(problems: list[str], root: Path) -> None:
     for name in sorted(manifests - arrows):
         problems.append(f"docs/arrows/{name}.md: manifest for an arrow that does not exist")
     # A manifest is living, so the claims it says rest on the arrow are the current ones: every
-    # claim still standing that pins the arrow is linked, and no superseded claim is.
+    # claim still standing that pins the arrow is linked, no superseded claim is, and every
+    # verification it records names a claim that is current here.
     for name in sorted(arrows & manifests):
         manifest = (root / "docs/arrows" / f"{name}.md").read_text(encoding="utf-8")
+        current: set[str] = set()
         for path in sorted((root / "docs/claims").glob("*.md")) if (root / "docs/claims").exists() else []:
             text = path.read_text(encoding="utf-8")
             if not any(arrow == name for arrow, _ in PIN.findall(text)):
@@ -438,6 +444,11 @@ def check_arrows(problems: list[str], root: Path) -> None:
                 problems.append(f"docs/arrows/{name}.md: still lists {path.name}, which is superseded; a manifest names the current claims")
             if not superseded and not linked:
                 problems.append(f"docs/arrows/{name}.md: does not list {path.name}, a current claim pinned to this arrow")
+            if not superseded and not any(l.startswith("Status: Stale") for l in text.split("\n")):
+                current.add(path.name[:4])
+        for number in sorted(verifications(root, name)):
+            if number not in current:
+                problems.append(f"docs/arrows/{name}.md: verifies {number}, which is not a current claim pinned to this arrow")
 
 
 # The paths inside an arrow that can change what a run produces: the code, the
@@ -447,11 +458,29 @@ def check_arrows(problems: list[str], root: Path) -> None:
 EVIDENCE_PATHS = ("src", "tests", "pyproject.toml")
 
 
+def verifications(root: Path, arrow: str) -> dict[str, str]:
+    """The latest verification pin per claim number that the arrow's manifest records."""
+    manifest = root / "docs/arrows" / f"{arrow}.md"
+    found: dict[str, str] = {}
+    if not manifest.exists():
+        return found
+    for line in manifest.read_text(encoding="utf-8").split("\n"):
+        if line.startswith("- **Verified**:"):
+            for number, pin in VERIFIED.findall(line):
+                found[number] = pin
+    return found
+
+
 def check_pins(problems: list[str], advice: list[str], root: Path) -> None:
-    """Pins exist in history; movement past a pin is advice, never a verdict."""
+    """Pins exist in history; movement past a pin, or past its latest verification, is advice.
+
+    A recorded observation is never advised, because no command's output could have changed;
+    what must hold for it is that everything it says it preserved is still in the tree.
+    """
     for path in sorted((root / "docs/claims").glob("*.md")):
         rel = f"docs/claims/{path.name}"
         text = path.read_text(encoding="utf-8")
+        number = path.name[:4]
         # A claim whose status already says it is not current, Stale or Superseded,
         # leaves the movement advisory nothing to prompt, so only claims still
         # standing as current are advised. The pin must be a real commit either
@@ -459,18 +488,45 @@ def check_pins(problems: list[str], advice: list[str], root: Path) -> None:
         resting = any(
             l.startswith(("Status: Stale", "Status: Superseded by")) for l in text.split("\n")
         )
+        recorded = RECORDED.search(text)
+        if recorded:
+            named = [t for t in PATH_TOKEN.findall(recorded.group(1)) if claims_to_be_path(t, root)]
+            if not named and "nothing preserved" not in recorded.group(1):
+                problems.append(
+                    f"{rel}: recorded evidence names nothing preserved; name the artefact by path or say nothing preserved"
+                )
+            for token in named:
+                if not (root / token.lstrip("./")).exists():
+                    problems.append(f"{rel}: recorded evidence names `{token}`, which does not exist")
         for arrow, pin in PIN.findall(text):
             if not git("rev-parse", "--verify", f"{pin}^{{commit}}"):
                 problems.append(f"{rel}: pin {pin} is not a commit in this history")
                 continue
-            if resting:
+            if resting or recorded:
                 continue
+            # A verification in the arrow's manifest moves the point the movement is measured
+            # from, while the claim keeps the pin that produced its figures. It must be a commit
+            # this history holds and no older than that pin.
+            base, basis = pin, "pin"
+            verified = verifications(root, arrow).get(number)
+            if verified:
+                if not git("rev-parse", "--verify", f"{verified}^{{commit}}"):
+                    problems.append(
+                        f"docs/arrows/{arrow}.md: verifies {number} at {verified}, which is not a commit in this history"
+                    )
+                elif git("rev-list", "--count", f"{verified}..{pin}") != "0":
+                    problems.append(
+                        f"docs/arrows/{arrow}.md: verifies {number} at {verified[:12]}, which is older than the claim's pin {pin[:12]}"
+                    )
+                else:
+                    base, basis = verified, "verification"
             spec = [f"arrows/{arrow}/{part}" for part in EVIDENCE_PATHS]
-            moved = git("log", "--oneline", f"{pin}..HEAD", "--", *spec)
+            moved = git("log", "--oneline", f"{base}..HEAD", "--", *spec)
             if moved:
                 advice.append(
-                    f"{rel}: arrows/{arrow} evidence paths moved past pin {pin[:12]}"
-                    f" ({len(moved.splitlines())} commit(s)); confirm the claim or flip it Stale"
+                    f"{rel}: arrows/{arrow} evidence paths moved past {basis} {base[:12]}"
+                    f" ({len(moved.splitlines())} commit(s)); re-verify it in the manifest if the figures"
+                    " reproduce, supersede it if they do not, or flip it Stale"
                 )
 
 
@@ -508,6 +564,15 @@ PLANTS = [
      "# 0011. Planted\n\nStatus: Conjecture\nDate: 2026-01-01\n\n## Claim\n\ncites [fake754-2019].\n\n## Evidence\n\nNone.\n\n## Threats\n\n- None named.\n",
      "[fake754-2019] not in the bibliography"),
     ("docs/arrows/ghost.md", "# Arrow: ghost\n", "manifest for an arrow that does not exist"),
+    ("docs/claims/0092-planted-recorded-missing.md",
+     ("# 0092. Planted\n\nStatus: Supported\nDate: 2026-01-01\n\n## Claim\n\nx.\n\n## Evidence\n\n"
+      "Recorded: one paid run, preserved as `docs/ghost-artefact.json`.\n\nrun at arrows/planted at 0123456789ab.\n\n"
+      "## Threats\n\n- None named.\n"),
+     "recorded evidence names `docs/ghost-artefact.json`, which does not exist"),
+    ("docs/claims/0091-planted-recorded-bare.md",
+     ("# 0091. Planted\n\nStatus: Supported\nDate: 2026-01-01\n\n## Claim\n\nx.\n\n## Evidence\n\n"
+      "Recorded: one paid run.\n\nrun at arrows/planted at 0123456789ab.\n\n## Threats\n\n- None named.\n"),
+     "recorded evidence names nothing preserved"),
     ("docs/PLANTED.md", "# Planted\n\nAn organic document nobody registered.\n",
      "docs/PLANTED.md: not registered in the AGENTS.md index"),
     ("docs/PLANTED.md", "# Planted\n\n[gone](ghost/none.md)\n", "links to ghost/none.md, which does not resolve"),
@@ -720,6 +785,57 @@ def selftest() -> int:
         finally:
             for target in targets:
                 target.unlink()
+        # A verification in the arrow's manifest answers a movement whose figures reproduced, so
+        # it must silence the advisory; a recorded observation is never advised; a verification
+        # at a commit history lacks, or older than the pin, or of a claim that is not current,
+        # is a verdict. The manifest's bytes are restored afterwards.
+        manifest_path = ROOT / "docs/arrows" / f"{arrow_name}.md"
+        original_manifest = manifest_path.read_bytes()
+        head = git("rev-parse", "HEAD")
+        older = git("rev-parse", f"{old_pin}^")
+        verified_claim = ROOT / "docs/claims/0089-planted-verified.md"
+        recorded_claim = ROOT / "docs/claims/0088-planted-recorded.md"
+        try:
+            verified_claim.write_text(body.format(num="0089", status="Supported", evidence=pinned), encoding="utf-8")
+            recorded_claim.write_text(
+                body.format(
+                    num="0088",
+                    status="Supported",
+                    evidence=f"Recorded: one paid run, preserved as `docs/QUESTION.md`.\n\n{pinned}",
+                ),
+                encoding="utf-8",
+            )
+            listing = "\n- Planted: 0088-planted-recorded.md and 0089-planted-verified.md rest here for the selftest.\n"
+            manifest_path.write_bytes(original_manifest.rstrip(b"\n") + f"{listing}- **Verified**: 0089 at {head}.\n".encode())
+            verified_problems, verified_advice = run(ROOT)
+            if any("0089" in a for a in verified_advice):
+                failures += 1
+                print("WRONG: a claim verified in its manifest at HEAD still raised the movement advisory")
+            if any("0088" in a for a in verified_advice):
+                failures += 1
+                print("WRONG: a recorded observation raised the movement advisory")
+            legal_noise = [p for p in verified_problems if "0089" in p or "0088" in p]
+            if legal_noise:
+                failures += 1
+                print(f"WRONG: a legal verification or recorded claim raised {legal_noise[:2]}")
+            bad_lines = [
+                ("- **Verified**: 0089 at 0123456789ab.\n", "which is not a commit in this history"),
+                (f"- **Verified**: 0087 at {head}.\n", "verifies 0087, which is not a current claim pinned to this arrow"),
+            ]
+            if older:
+                bad_lines.append((f"- **Verified**: 0089 at {older}.\n", "which is older than the claim's pin"))
+            else:
+                print("older-verification plant skipped: the first evidence commit has no parent")
+            for line, expect in bad_lines:
+                manifest_path.write_bytes(original_manifest.rstrip(b"\n") + (listing + line).encode())
+                bad_problems, _ = run(ROOT)
+                if not any(expect in p for p in bad_problems):
+                    failures += 1
+                    print(f"WRONG: manifest line {line.strip()!r} did not raise {expect!r}")
+        finally:
+            manifest_path.write_bytes(original_manifest)
+            verified_claim.unlink(missing_ok=True)
+            recorded_claim.unlink(missing_ok=True)
     quiet_mover = docs_only_moved_pin()
     if quiet_mover is None:
         print("docs-only advisory plant skipped: no arrow has moved in non-evidence bytes alone")

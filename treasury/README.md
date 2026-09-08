@@ -68,6 +68,7 @@ check this folder; the question may already be settled.
 | [0015](decisions/0015-give-the-upstream-report-a-place-and-a-defect-class.md) | An upstream report is a dated record at `docs/upstream/` with one shape; a workaround of template bytes is an entry never judged, and every delivery gate holds it |
 | [0016](decisions/0016-let-re-alignment-resolve-open-upstream-entries-and-keep-the-report-nameless.md) | No reply is owed: re-alignment resolves every open upstream entry itself and records the outcome; a report names nothing that identifies its sender, and an arrow's report is the arrow's own |
 | [0017](decisions/0017-carry-the-template-s-records-in-an-inherited-folder-and-start-a-project-s-own-at-one.md) | A child carries the template's records whole in an inherited folder under docs and numbers its own decisions from 0001, so the two sequences never meet and the carried folder is a pure mirror |
+| [0018](decisions/0018-dispose-of-the-upstream-report-of-2026-09-08-on-the-claim-ledger.md) | The fourth real upstream report, two entries on the claim ledger: supersession reserved for a change of figures, evidence, or belief, with verifications in the manifest, and evidence observed once declared as recorded |
 
 ## Rules of the folder
 

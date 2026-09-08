@@ -34,7 +34,7 @@ Closing a task follows one loop: run the checking commands above, weigh the chan
 
 - **Claim honesty**: every claim states its assertion plainly and names who it must convince, or names itself Conjecture; nothing ships as fact with an empty Evidence section.
 - **Evidence honesty**: results are quoted in the record in full, with how they were produced, never pointed at, so the record stays accurate after the tree moves on.
-- **Pin honesty**: evidence names the pinned commit of every arrow involved, and a claim whose arrow's evidence paths moved is flipped Stale or superseded, never left implying it is current.
+- **Pin honesty**: evidence names the pinned commit of every arrow involved, and a claim whose arrow's evidence paths moved past its pin or its latest verification is re-verified in the arrow's manifest when its figures reproduce, superseded when they do not, or flipped Stale, never left implying it is current; a recorded observation names what it preserved and is never re-verified.
 - **Boundary honesty**: any completeness assertion, a literature search, a parameter sweep, an ablation, names the enumerable boundary it exhausted, or is offered as judgment.
 - **Threat naming**: every claim names the threats most endangering it, from the field's own vocabulary; naming is free, and no method, design, or standard is ever mandated, because those are priced.
 - **Graveyard honesty**: a dead end that cost real effort or could plausibly be retried gets its Refuted record with killing evidence and reopening condition, in the same change that abandons it.

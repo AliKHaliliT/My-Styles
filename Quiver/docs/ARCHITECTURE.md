@@ -22,9 +22,11 @@ docs/BIBLIOGRAPHY.md                 arrows/<name>/   (that style's law)
 
 A conjecture is written before its experiment. Evidence flips it to Supported
 or Refuted, quoting the results and pinning the commit whose tree produced
-them. Movement of an arrow past a pin raises the audit's advisory, and a
-person answers it by re-running at a new pin, superseding, or flipping to
-Stale.
+them. Movement of an arrow past a pin, or past a claim's latest verification,
+raises the audit's advisory, and a person answers it by re-verifying in the
+arrow's manifest when the figures reproduce, superseding when they do not, or
+flipping to Stale. A recorded observation is never advised, because no command
+could have changed it.
 
 ## The arrows
 
