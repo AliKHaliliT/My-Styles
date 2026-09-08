@@ -40,7 +40,9 @@ HORIZON_DAYS = 90
 # for neither; the shorter horizon is what makes the sweep mechanical where it can be.
 NOW_HORIZON_DAYS = 30
 NOW_CAP = 5
-RECORD_FOLDERS = ("docs/decisions", "docs/claims")
+# The numbered record folders; inherited/ exists only in a project built from this template and
+# carries the template's own records whole, keeping their numbers.
+RECORD_FOLDERS = ("docs/decisions", "docs/inherited", "docs/claims")
 
 CLAIM_STATUS = re.compile(r"^Status: (Conjecture|Supported|Refuted|Stale|Superseded by \d{4})$")
 DECISION_STATUS = re.compile(r"^Status: (Accepted|Superseded by .+)$")
@@ -156,7 +158,7 @@ def check_living(problems: list[str], root: Path) -> None:
     # a subdirectory is registered by its own path or by its directory's row in the index; a
     # file that is not markdown has no species and no room here at all.
     # Below the top level, docs/ holds the record folders and the arrow manifests only. A
-    # record folder beyond decisions and claims holds dated documents, registered by its own
+    # record folder beyond the numbered ones holds dated documents, registered by its own
     # row; a living document belongs at the top as a flat UPPERCASE file, where the naming and
     # budget rules can see it, so anything else below a subfolder fails.
     for tracked in tracked_files() if root == ROOT else []:
@@ -169,7 +171,7 @@ def check_living(problems: list[str], root: Path) -> None:
         folder = "/".join(tracked.split("/")[:2])
         if f"({folder}/)" not in rows:
             problems.append(f"{tracked}: {folder}/ has no row in the AGENTS.md index; a subfolder of docs/ is a registered record folder or it does not exist")
-        if not DATED_RECORD_NAME.match(tracked.rsplit("/", 1)[-1]):
+        if folder != "docs/inherited" and not DATED_RECORD_NAME.match(tracked.rsplit("/", 1)[-1]):
             problems.append(
                 f"{tracked}: a file below a docs/ subfolder is a dated record named YYYY-MM-DD-short-kebab-title.md; "
                 f"a living document is a flat UPPERCASE file at the top of docs/"
@@ -177,8 +179,12 @@ def check_living(problems: list[str], root: Path) -> None:
 
 
 def check_records(problems: list[str], root: Path) -> None:
-    """Names and status lines for both record kinds, and claim shapes."""
-    for folder, status in (("docs/decisions", DECISION_STATUS), ("docs/claims", CLAIM_STATUS)):
+    """Names and status lines for every numbered record folder, and claim shapes."""
+    for folder, status in (
+        ("docs/decisions", DECISION_STATUS),
+        ("docs/inherited", DECISION_STATUS),
+        ("docs/claims", CLAIM_STATUS),
+    ):
         for path in sorted((root / folder).glob("*.md")):
             rel = f"{folder}/{path.name}"
             if not RECORD_NAME.match(path.name):
@@ -569,6 +575,8 @@ REVIEW_PLANTS = [
 TRACKED_PLANTS = [
     ("docs/legacy/OLD.md", "# Old\n", "docs/legacy/ has no row in the AGENTS.md index"),
     ("docs/legacy/GUIDE.md", "# Guide\n", "a living document is a flat UPPERCASE file at the top of docs/"),
+    ("docs/inherited/0002-planted.md", "# 0002. Planted\n\nNo status line here.\n",
+     "docs/inherited/0002-planted.md: no legal Status line"),
     ("docs/diagram.png", "not a document\n", "docs/ holds markdown documents only"),
     ("stray/note.txt", "nobody gave this a room\n", "stray/: exists in the tree but has no room"),
     ("ROGUE.txt", "nobody named this\n", "ROGUE.txt: sits at the root but neither the map nor the baseline names it"),
@@ -751,6 +759,30 @@ def selftest() -> int:
             target.unlink()
             if target.parent != ROOT and not any(target.parent.iterdir()):
                 target.parent.rmdir()
+    # A project built from this template carries the template's records in an inherited folder,
+    # numbered and registered by one row, so a legal one must PASS; the plant builds the row too.
+    agents_path = ROOT / "AGENTS.md"
+    original_agents = agents_path.read_bytes()
+    inherited = ROOT / "docs/inherited/0001-planted-inherited.md"
+    inherited.parent.mkdir(exist_ok=True)
+    inherited.write_text(
+        "# 0001. Planted inherited\n\nStatus: Accepted\nDate: 2026-01-01\n\n"
+        "## Context\n\nx.\n\n## Decision\n\nx.\n\n## Consequences\n\nx.\n",
+        encoding="utf-8",
+    )
+    git("add", "-N", "--", "docs/inherited/0001-planted-inherited.md")
+    row = b"| [docs/inherited/](docs/inherited/) | Planted: the style's records, carried whole. |\n"
+    try:
+        agents_path.write_bytes(original_agents.rstrip(b"\n") + b"\n\n" + row)
+        inherited_problems, _ = run(ROOT)
+        if any("inherited" in p for p in inherited_problems):
+            failures += 1
+            print(f"WRONG: a legal inherited record raised {[p for p in inherited_problems if 'inherited' in p][:2]}")
+    finally:
+        agents_path.write_bytes(original_agents)
+        git("rm", "--cached", "-q", "--", "docs/inherited/0001-planted-inherited.md")
+        inherited.unlink()
+        inherited.parent.rmdir()
     # Two claims quoting one figure at one pin must agree, so the plant is a pair.
     pair = [
         ("docs/claims/0094-planted-figure-a.md", "0094", "5.000"),

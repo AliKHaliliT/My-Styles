@@ -45,6 +45,10 @@ const LINK = /\[[^\]]*\]\(([^)\s]+)\)/g;
 const STATE_DATE = /\((\d{4}-\d{2}-\d{2})\)/g;
 const RECORD_NAME = /^\d{4}-[a-z0-9-]+\.md$/;
 const DATED_RECORD_NAME = /^\d{4}-\d{2}-\d{2}-[a-z0-9-]+\.md$/;
+// The numbered record folders: decisions/, this project's own, and inherited/, the template's own
+// carried whole in a project built from it, keeping the template's numbers so the two sequences
+// never meet. A template has no inherited folder.
+const NUMBERED_RECORD_FOLDERS = ["decisions", "inherited"];
 const RAW_PALETTE =
   /\b(?:bg|text|border|ring|fill|stroke|from|via|to)-(?:red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose|slate|gray|zinc|neutral|stone)-\d{2,3}\b/;
 const FENCE = /```[^\n]*\n([\s\S]*?)```/g;
@@ -228,26 +232,31 @@ if (existsSync(docsDir)) {
       }
     }
   }
-  const decisions = join(docsDir, "decisions");
-  if (existsSync(decisions)) {
+  for (const folderName of NUMBERED_RECORD_FOLDERS) {
+    const records = join(docsDir, folderName);
+    if (!existsSync(records)) continue;
+    // Numbers are unique within a folder and never compared across the two, which is the point
+    // of the split; a duplicate in the inherited folder means the copy is no longer the
+    // template's folder.
+    const advice = folderName === "decisions" ? "renumber the newer record" : "recopy the folder whole from the template";
     const numbers = new Map();
-    for (const entry of readdirSync(decisions)) {
+    for (const entry of readdirSync(records)) {
       if (!entry.endsWith(".md")) continue;
       if (!RECORD_NAME.test(entry)) {
-        problems.push(`docs/decisions/${entry}: records are named NNNN-short-kebab-title.md`);
+        problems.push(`docs/${folderName}/${entry}: records are named NNNN-short-kebab-title.md`);
         continue;
       }
       const num = entry.slice(0, 4);
       if (numbers.has(num)) {
-        problems.push(`docs/decisions/: ${numbers.get(num)} and ${entry} share the number ${num}; renumber the newer record`);
+        problems.push(`docs/${folderName}/: ${numbers.get(num)} and ${entry} share the number ${num}; ${advice}`);
       }
       numbers.set(num, entry);
     }
   }
-  // Below the top level, docs/ holds record folders only: decisions/ with its numbered records,
-  // and dated folders such as briefings or progress reports, each registered by its own row. A
-  // living document belongs at the top as a flat UPPERCASE file, where the naming and budget
-  // rules can see it, so anything else below a subfolder fails.
+  // Below the top level, docs/ holds record folders only: the numbered folders above, and dated
+  // folders such as briefings or progress reports, each registered by its own row. A living
+  // document belongs at the top as a flat UPPERCASE file, where the naming and budget rules can
+  // see it, so anything else below a subfolder fails.
   for (const path of trackedFiles()) {
     if (!path.startsWith("docs/") || path.startsWith("docs/decisions/")) continue;
     if (path.split("/").length === 2) {
@@ -260,7 +269,7 @@ if (existsSync(docsDir)) {
     if (!agents.includes(`(${folder}/)`)) {
       problems.push(`${path}: ${folder}/ has no row in the AGENTS.md index; a subfolder of docs/ is a registered record folder or it does not exist`);
     }
-    if (!DATED_RECORD_NAME.test(path.split("/").pop())) {
+    if (folder !== "docs/inherited" && !DATED_RECORD_NAME.test(path.split("/").pop())) {
       problems.push(
         `${path}: a file below a docs/ subfolder is a dated record named YYYY-MM-DD-short-kebab-title.md; ` +
           `a living document is a flat UPPERCASE file at the top of docs/`,

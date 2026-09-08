@@ -29,7 +29,7 @@ coinwise enforces the **Dependency Rule**: inner layers (Business Logic) must no
 1. **A Machine-Checked Dependency Rule**
    import-linter holds the layer order, `facade` over `services` over `domain`, on every lint run, so the rule survives contributors who never read this file.
 2. **Strict Translators**
-   Service results never leak through the public surface; `DriftResult` is flattened into the facade's `StrategyReport` by an outbound translator, per the inherited boundary ruling ([decision 0005](docs/decisions/0005-translate-only-outward-at-the-facade-boundary.md)).
+   Service results never leak through the public surface; `DriftResult` is flattened into the facade's `StrategyReport` by an outbound translator, per the inherited boundary ruling ([Keel's decision 0005](docs/inherited/0005-translate-only-outward-at-the-facade-boundary.md)).
 3. **Determinism as a Feature**
    The grid is fixed by construction, every multiple of a tenth of a cent, so tie density is exactly one in ten, no seed exists to lose, and any run of the same count reproduces the same numbers anywhere.
 4. **Library Citizenship**
@@ -97,7 +97,7 @@ print((report.half_up.drift, report.half_even.drift))
 
 ## Conventions
 
-The project's conventions live in one place, the rulebook at [docs/CONVENTIONS.md](docs/CONVENTIONS.md). It holds the documentation system (a vendor-neutral [AGENTS.md](AGENTS.md) as the agent entry point and the single index of every document, [STATE.md](STATE.md) as the living project state, [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) as the current map, and immutable decision records under [docs/decisions/](docs/decisions/) as the reasoning behind every settled choice), the docstring convention in its code-level section, and the prose law in its Prose section. That file is normative and must not be modified; the rationale behind the system itself is recorded in [its founding decision record](docs/decisions/0001-adopt-the-documentation-system.md).
+The project's conventions live in one place, the rulebook at [docs/CONVENTIONS.md](docs/CONVENTIONS.md). It holds the documentation system (a vendor-neutral [AGENTS.md](AGENTS.md) as the agent entry point and the single index of every document, [STATE.md](STATE.md) as the living project state, [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) as the current map, and immutable decision records under [docs/decisions/](docs/decisions/) as the reasoning behind every settled choice), the docstring convention in its code-level section, and the prose law in its Prose section. That file is normative and must not be modified; the rationale behind the system itself is recorded in the style's founding decision record, 0001.
 
 The rulebook is owned at the style level. A project built from this template never changes it locally, and an improvement discovered while refactoring against the template is not kept as a private advantage; [AGENTS.md](AGENTS.md) describes the upstream report that carries it back to the template, where it is verified and, if it holds, adopted for every project that follows the style.
 

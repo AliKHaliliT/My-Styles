@@ -90,19 +90,23 @@ BLOCKS = [
 ]
 
 # What each arrow carries verbatim from its style: (name, original, copy, start
-# anchor or None for the whole file). The original is canonical; a divergence
-# is fixed by rewriting the copy, never the original.
+# anchor, end anchor), None standing for the file's edge. The guide's tail stops
+# before the documentation index, because the index lists the arrow's own
+# documents. The original is canonical; a divergence is fixed by rewriting the
+# copy, never the original.
 CARRIES = [
     (
         "agent guide shared tail",
         "Keel/AGENTS.md",
         "Quiver/arrows/coinwise/AGENTS.md",
         "The checks report at two levels",
+        "## Documentation index",
     ),
     (
         "rulebook",
         "Keel/docs/CONVENTIONS.md",
         "Quiver/arrows/coinwise/docs/CONVENTIONS.md",
+        None,
         None,
     ),
     (
@@ -110,11 +114,13 @@ CARRIES = [
         "Keel/docs/BASELINE.md",
         "Quiver/arrows/coinwise/docs/BASELINE.md",
         None,
+        None,
     ),
     (
         "docs audit",
         "Keel/scripts/audit_docs.py",
         "Quiver/arrows/coinwise/scripts/audit_docs.py",
+        None,
         None,
     ),
     (
@@ -122,11 +128,13 @@ CARRIES = [
         "Keel/.gitignore",
         "Quiver/arrows/coinwise/.gitignore",
         None,
+        None,
     ),
     (
         ".gitattributes",
         "Keel/.gitattributes",
         "Quiver/arrows/coinwise/.gitattributes",
+        None,
         None,
     ),
     (
@@ -134,23 +142,25 @@ CARRIES = [
         "Keel/.editorconfig",
         "Quiver/arrows/coinwise/.editorconfig",
         None,
+        None,
     ),
     (
         "inert workflow",
         "Keel/.github/workflows/ci.yml",
         "Quiver/arrows/coinwise/.github/workflows/ci.yml",
         None,
+        None,
     ),
 ]
 
-# Inherited record folders: every record in the original folder must exist in
-# the copy byte-identically. The copy may hold records of its own on top,
-# because a full adaptation records its own decisions in its own sequence.
+# Inherited record folders: the copy is the original folder whole, every record
+# byte-identical and nothing else beside them, because an arrow's own decisions
+# live in its own decisions folder from 0001 and never mix with the style's.
 CARRIED_TREES = [
     (
         "decision records",
         "Keel/docs/decisions",
-        "Quiver/arrows/coinwise/docs/decisions",
+        "Quiver/arrows/coinwise/docs/inherited",
     ),
 ]
 
@@ -183,12 +193,12 @@ def main() -> int:
             copies = "; ".join(", ".join(v) for v in digests.values())
             problems.append(f"{name}: the copies diverge ({copies}); align them, they are one law")
 
-    for name, original, copy, start in CARRIES:
+    for name, original, copy, start, end in CARRIES:
         texts: dict[str, str] = {}
         for rel in (original, copy):
             path = ROOT / rel
             try:
-                texts[rel] = cut(path.read_text(encoding="utf-8"), start, None).replace("\r\n", "\n")
+                texts[rel] = cut(path.read_text(encoding="utf-8"), start, end).replace("\r\n", "\n")
             except FileNotFoundError:
                 problems.append(f"carried {name}: {rel} is missing")
             except ValueError:
@@ -213,6 +223,13 @@ def main() -> int:
                 problems.append(
                     f"carried {name}: {copy_dir}/{path.name} does not match its original;"
                     " an inherited record is immutable in the copy"
+                )
+        originals = {p.name for p in (ROOT / original_dir).glob("*.md")}
+        for extra in sorted((ROOT / copy_dir).glob("*.md")):
+            if extra.name not in originals:
+                problems.append(
+                    f"carried {name}: {copy_dir}/{extra.name} is not a record of {original_dir};"
+                    " the inherited folder is the original whole, and the copy's own records live in its decisions folder"
                 )
 
     for problem in problems:
