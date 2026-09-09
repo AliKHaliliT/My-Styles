@@ -72,6 +72,7 @@ check this folder; the question may already be settled.
 | [0019](decisions/0019-name-the-resolution-record-and-tell-the-owner-what-went-upstream.md) | A report is written when the work that produced its entries closes, the closing note names what went upstream and what is held, and the resolution record has a name |
 | [0020](decisions/0020-keep-upstream-entries-in-one-living-document-until-they-resolve.md) | Supersedes 0015, 0016, and 0019: a child keeps its upstream entries in one living UPSTREAM.md of STATE's kind, resolved by deletion at re-alignment, no reply owed and none filed |
 | [0021](decisions/0021-dispose-of-the-upstream-report-of-2026-09-08-from-a-keel-project.md) | The fifth real upstream report, three entries kept: both paths of an optional backend tested to a recorded tolerance, stack bindings marked in the tool configuration, and one-sentence summaries in the house rhythm |
+| [0022](decisions/0022-write-the-readme-for-the-product-and-keep-the-pin-in-the-upstream-file.md) | A child's README states its users' problem, its domain's corners, a few decisions, and what is; the alignment pin moves to the first line of the upstream file |
 
 ## Rules of the folder
 

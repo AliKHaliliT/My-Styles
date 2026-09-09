@@ -60,6 +60,7 @@ UPSTREAM_KIND = re.compile(r"^Kind: (improvement|defect)$", re.MULTILINE)
 UPSTREAM_PIN = re.compile(r"^Pin: [0-9a-f]{7,40}$", re.MULTILINE)
 UPSTREAM_PARTS = ("**What it is", "**How the work surfaced it", "**Records checked")
 UPSTREAM_WHY = ("**Why it is believed better", "**What was worked around")
+UPSTREAM_ALIGNED = re.compile(r"^Aligned to .+ at (`?[0-9a-f]{7,40}`?|the host's own commit)\.?$", re.MULTILINE)
 # A key is an author name closed by a year, or a standard's designation with
 # its year suffixed, so digits may sit inside the name (ieee754-2019).
 CITE_KEY = re.compile(r"\[([a-z][a-z0-9]*[0-9]{4}[a-z]?|[a-z][a-z0-9]*-[0-9]{4})\](?!\()")
@@ -265,6 +266,8 @@ def check_upstream(problems: list[str], root: Path) -> None:
     if not path.exists():
         return
     text = path.read_text(encoding="utf-8")
+    if not UPSTREAM_ALIGNED.search(text):
+        problems.append("docs/UPSTREAM.md: no Aligned line naming the template and the commit the project is aligned to")
     if "## Open" not in text:
         problems.append("docs/UPSTREAM.md: no ## Open section")
         return
@@ -947,7 +950,7 @@ def selftest() -> int:
     # legal one must PASS and each rule of its schema must fire; the plant builds the row too.
     upstream = ROOT / "docs/UPSTREAM.md"
     upstream_row = b"| [docs/UPSTREAM.md](docs/UPSTREAM.md) | Planted: what this project has for its style. |\n"
-    head_text = "# Upstream\n\nEvery entry is a lead, not a verdict.\n\n## Open\n\n"
+    head_text = "# Upstream\n\nAligned to Planted at 0123456789ab.\n\nEvery entry is a lead, not a verdict.\n\n## Open\n\n"
     today_stamp = datetime.now(timezone.utc).date().isoformat()
     parts = (
         "**What it is.** x.\n\n**How the work surfaced it.** x.\n\n"
@@ -955,6 +958,7 @@ def selftest() -> int:
     )
     upstream_plants: list[tuple[str, str | None]] = [
         (head_text + "Nothing open.\n", None),
+        ("# Upstream\n\nEvery entry is a lead, not a verdict.\n\n## Open\n\nNothing open.\n", "no Aligned line"),
         (head_text + f"### {today_stamp} Planted entry\n\nKind: defect\nPin: 0123456789ab\n\n" + parts, None),
         (head_text + "### 2026-01-01 Planted entry\n\nKind: defect\nPin: 0123456789ab\n\n" + parts, "past the 90-day horizon"),
         (head_text + f"### {today_stamp} Planted entry\n\nPin: 0123456789ab\n\n" + parts, "no Kind line"),

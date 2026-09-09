@@ -18,22 +18,18 @@ It is also the host's first arrow, which makes it the exemplar future arrows are
 
 Monetary code rounds to whole cents constantly, and the two common tie rules, round half up and round half even, differ only on amounts sitting exactly halfway between two cents. Whether that disagreement matters at ledger scale is the hosting inquiry's question, and this library is the instrument that answers it.
 
-Small as the domain is, it still exercises the layers honestly. The strategies and the tie test stay pure and framework-free in `domain`, the measurement logic in `services` knows nothing about how experiments are surfaced, and the public answer crosses the boundary only through the facade's own schemas.
+The awkward part is the tie. On the grid the experiment walks, every tenth amount sits exactly halfway between two cents, so tie density is a property of the grid rather than a random outcome, and a strategy is judged on what it does there and nowhere else; the drift a rule accumulates is then a count of ties times what the rule does to one, which is why the numbers reproduce anywhere.
 
 ---
 
 ## Core Architectural Pillars
 
-coinwise enforces the **Dependency Rule**: inner layers (Business Logic) must not depend on outer layers (Public Surface).
+coinwise keeps Keel's Dependency Rule, inner layers never depending on outer ones, and four decisions carry the rest; [the map](docs/ARCHITECTURE.md) has the detail.
 
-1. **A Machine-Checked Dependency Rule**
-   import-linter holds the layer order, `facade` over `services` over `domain`, on every lint run, so the rule survives contributors who never read this file.
-2. **Strict Translators**
-   Service results never leak through the public surface; `DriftResult` is flattened into the facade's `StrategyReport` by an outbound translator, per the inherited boundary ruling ([Keel's decision 0005](docs/inherited/0005-translate-only-outward-at-the-facade-boundary.md)).
-3. **Determinism as a Feature**
-   The grid is fixed by construction, every multiple of a tenth of a cent, so tie density is exactly one in ten, no seed exists to lose, and any run of the same count reproduces the same numbers anywhere.
-4. **Library Citizenship**
-   No global mutable state, no environment reads at import time, a `NullHandler` on the package logger, curated `__init__` exports, and a `py.typed` marker, so the package behaves the same embedded in the inquiry, a notebook, or a server.
+1. **A machine-checked layer order.** import-linter holds `facade` over `services` over `domain` on every lint run.
+2. **Translation only outward.** Service results are flattened into the facade's own schemas before a caller sees them, per [Keel's decision 0005](docs/inherited/0005-translate-only-outward-at-the-facade-boundary.md).
+3. **Determinism by construction.** The grid fixes tie density at one in ten with no seed to lose, so any run of the same count reproduces the same numbers anywhere.
+4. **Library citizenship.** No global state, no environment reads at import, a `NullHandler` on the package logger, curated `__init__` exports, and a `py.typed` marker.
 
 ---
 
@@ -99,5 +95,5 @@ print((report.half_up.drift, report.half_even.drift))
 
 The project's conventions live in one place, the rulebook at [docs/CONVENTIONS.md](docs/CONVENTIONS.md). It holds the documentation system (a vendor-neutral [AGENTS.md](AGENTS.md) as the agent entry point and the single index of every document, [STATE.md](STATE.md) as the living project state, [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) as the current map, and immutable decision records under [docs/decisions/](docs/decisions/) as the reasoning behind every settled choice), the docstring convention in its code-level section, and the prose law in its Prose section. That file is normative and must not be modified; the rationale behind the system itself is recorded in the style's founding decision record, 0001.
 
-The rulebook is owned at the style level. A project built from this template never changes it locally, and an improvement discovered while refactoring against the template is not kept as a private advantage; [AGENTS.md](AGENTS.md) describes the upstream report that carries it back to the template, where it is verified and, if it holds, adopted for every project that follows the style.
+The rulebook is owned at the style level. A project built from this template never changes it locally, and an improvement discovered while refactoring against the template is not kept as a private advantage; the project's `UPSTREAM.md` carries it back to the template as [AGENTS.md](AGENTS.md) describes, where it is verified and, if it holds, adopted for every project that follows the style.
 

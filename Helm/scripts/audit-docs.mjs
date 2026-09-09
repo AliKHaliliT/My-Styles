@@ -56,6 +56,7 @@ const UPSTREAM_KIND = /^Kind: (improvement|defect)$/m;
 const UPSTREAM_PIN = /^Pin: [0-9a-f]{7,40}$/m;
 const UPSTREAM_PARTS = ["**What it is", "**How the work surfaced it", "**Records checked"];
 const UPSTREAM_WHY = ["**Why it is believed better", "**What was worked around"];
+const UPSTREAM_ALIGNED = /^Aligned to .+ at (`?[0-9a-f]{7,40}`?|the host's own commit)\.?$/m;
 const RAW_PALETTE =
   /\b(?:bg|text|border|ring|fill|stroke|from|via|to)-(?:red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose|slate|gray|zinc|neutral|stone)-\d{2,3}\b/;
 const FENCE = /```[^\n]*\n([\s\S]*?)```/g;
@@ -290,6 +291,9 @@ function checkUpstream() {
   const path = join(ROOT, "docs", "UPSTREAM.md");
   if (!existsSync(path)) return;
   const text = readFileSync(path, "utf-8");
+  if (!UPSTREAM_ALIGNED.test(text)) {
+    problems.push("docs/UPSTREAM.md: no Aligned line naming the template and the commit the project is aligned to");
+  }
   if (!text.includes("## Open")) {
     problems.push("docs/UPSTREAM.md: no ## Open section");
     return;

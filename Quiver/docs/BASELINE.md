@@ -23,15 +23,19 @@ own baseline per its own style.
 
 The README's sections appear in this order, each with a content contract:
 title and badges, the one-line pitch and expansion (a derived project's
-expansion carries one sentence linking this template and naming the template
-commit it was cut from or last aligned to), The Philosophy, The
-Domain (headed `The Domain Example: ...` here because the demo inquiry is a
+expansion carries one sentence linking this template, the commit it is
+aligned to standing on the first line of `UPSTREAM.md` instead), The
+Philosophy, The Domain (headed `The Domain Example: ...` here because the demo inquiry is a
 demo, and `The Domain: ...` in a project whose question is real), Core
 Architectural Pillars, Project Structure, Key Features, Getting Started,
 Conventions (canonical paragraphs inherited verbatim with truth-preserving
 edits only), and License (public repositories only, one line). Internal links
 are always relative. Badges must state something true about this repository,
-never inherited from the template's own.
+never inherited from the template's own. The Philosophy states the problem the
+project solves for the people who use it, the Domain what about it is harder
+than it looks, the Pillars a few load-bearing decisions in a sentence each with
+a link into the map, and a feature states what is, never what changed since a
+release.
 
 ## Present when the trigger exists
 
