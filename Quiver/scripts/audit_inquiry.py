@@ -123,12 +123,15 @@ def added_dates(prefix: str) -> dict[str, date]:
     """The date each tracked file under the prefix was first added, from one walk of history."""
     dates: dict[str, date] = {}
     current: date | None = None
+    # Names in the log are relative to the repository top, while this audit may run from a folder
+    # below it, so the folder prefix is stripped before the names are compared.
+    top_prefix = git("rev-parse", "--show-prefix").strip()
     log = git("log", "--reverse", "--no-renames", "--diff-filter=A", "--format=@@%cs", "--name-only", "--", prefix)
     for line in log.split("\n"):
         if line.startswith("@@"):
             current = date.fromisoformat(line[2:])
         elif line and current is not None:
-            dates.setdefault(line, current)
+            dates.setdefault(line.removeprefix(top_prefix), current)
     return dates
 
 

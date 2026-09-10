@@ -360,9 +360,15 @@ function checkUpstream() {
 function addedDates(prefix) {
   const dates = new Map();
   let current = null;
+  // Names in the log are relative to the repository top, while this audit may run from a folder
+  // below it, so the folder prefix is stripped before the names are compared.
+  const topPrefix = git("rev-parse", "--show-prefix").trim();
   for (const line of git("log", "--reverse", "--no-renames", "--diff-filter=A", "--format=@@%cs", "--name-only", "--", prefix).split("\n")) {
     if (line.startsWith("@@")) current = new Date(`${line.slice(2)}T00:00:00`);
-    else if (line && current !== null && !dates.has(line)) dates.set(line, current);
+    else if (line && current !== null) {
+      const name = line.startsWith(topPrefix) ? line.slice(topPrefix.length) : line;
+      if (!dates.has(name)) dates.set(name, current);
+    }
   }
   return dates;
 }
