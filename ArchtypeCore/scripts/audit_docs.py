@@ -78,6 +78,13 @@ TRIO = ("Parameters", "Returns", "Raises")
 # the check searches for, never the function's name, which a child's past may already carry.
 # Changing what the check covers changes this sentence, and the anchor moves forward with it.
 IMMUTABILITY_SCOPE = "records held immutable beyond their Status line: every file below a subfolder of docs/"
+# A queued, deferred, or blocked entry that stands unchanged for two horizons is a decision
+# record trying to be born, and the file cannot show it, because a date is the entry's
+# last-verified stamp rather than its birthday; so the age is read from history, from the first
+# commit that carried the entry's text, and like every history-reading check this one binds
+# from the arrival of its own scope sentence, counting no entry's age from before it.
+STATE_AGE_SCOPE = "entries of Next, Deferred, and Blocked held to two horizons of unchanged text"
+STATE_TEXT = re.compile(r"\s*\(\d{4}-\d{2}-\d{2}\)\s*$")
 
 
 def git(*args: str) -> str:
@@ -139,6 +146,12 @@ def python_roots() -> list[Path]:
     if src.is_dir():
         return [p for p in src.iterdir() if p.is_dir() and not p.name.startswith(".")]
     return []
+
+
+def first_commit_date(needle: str, path: str) -> date | None:
+    """The committer date of the first commit whose diff of the path carries the needle, or None."""
+    stamp = git("log", "--reverse", "--format=%cs", "-S", needle, "--", path).split("\n")[0]
+    return date.fromisoformat(stamp) if stamp else None
 
 
 def check_documents(problems: list[str]) -> None:
@@ -209,6 +222,7 @@ def check_documents(problems: list[str]) -> None:
         if sections != ["Now", "Next", "Deferred", "Blocked"]:
             problems.append(f"STATE.md: sections are {sections}, not the four the schema fixes")
         section = ""
+        binding = first_commit_date(STATE_AGE_SCOPE, "scripts/audit_docs.py")
         for line_no, raw in enumerate(text.split("\n"), 1):
             if raw.startswith("## "):
                 section = raw[3:].strip()
@@ -223,6 +237,14 @@ def check_documents(problems: list[str]) -> None:
                     f"STATE.md:{line_no}: entry last verified {stamp.group(1)}, {age} days ago against the "
                     f"{horizon}-day horizon of {section}; re-verify it against reality, then re-date or remove it"
                 )
+            if section != "Now" and binding is not None:
+                born = first_commit_date(STATE_TEXT.sub("", raw).strip(), "STATE.md")
+                standing = (today - max(born, binding)).days if born is not None else 0
+                if standing > HORIZON_DAYS * 2:
+                    problems.append(
+                        f"STATE.md:{line_no}: entry has stood unchanged in {section} for {standing} days, two horizons; "
+                        "promote it to Now, write it as a decision record, or drop it"
+                    )
         now_section = re.search(r"^## Now\n(.*?)(?=^## )", text, re.MULTILINE | re.DOTALL)
         if now_section:
             entries = len(re.findall(r"^- ", now_section.group(1), re.MULTILINE))

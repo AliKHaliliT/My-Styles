@@ -78,6 +78,12 @@ const ILLEGAL_RECORD_EDIT = /^[-+](?![-+])(?!Status: )/;
  * Changing what the check covers changes this sentence, and the anchor moves forward with it.
  */
 const IMMUTABILITY_SCOPE = "records held immutable beyond their Status line: every file below a subfolder of docs/";
+// A queued, deferred, or blocked entry that stands unchanged for two horizons is a decision record
+// trying to be born, and the file cannot show it, because a date is the entry's last-verified stamp
+// rather than its birthday; so the age is read from history, from the first commit that carried the
+// entry's text, and like every history-reading check this one binds from the arrival of its own
+// scope sentence, counting no entry's age from before it.
+const STATE_AGE_SCOPE = "entries of Next, Deferred, and Blocked held to two horizons of unchanged text";
 
 /** One git call against the repository this file lives in; empty when git says no. */
 function git(...args) {
@@ -188,6 +194,12 @@ for (const rel of LIVING) {
   }
 }
 
+// The committer date of the first commit whose diff of the path carries the needle, or null.
+function firstCommitDate(needle, path) {
+  const stamp = git("log", "--reverse", "--format=%cs", "-S", needle, "--", path).split(/\s+/).filter(Boolean)[0];
+  return stamp ? new Date(`${stamp}T00:00:00`) : null;
+}
+
 const statePath = resolve(ROOT, "STATE.md");
 if (existsSync(statePath)) {
   const text = readFileSync(statePath, "utf-8");
@@ -196,6 +208,7 @@ if (existsSync(statePath)) {
     problems.push(`STATE.md: sections are [${sections.join(", ")}], not the four the schema fixes`);
   }
   let section = "";
+  const binding = firstCommitDate(STATE_AGE_SCOPE, "scripts/audit-docs.mjs");
   text.split("\n").forEach((raw, offset) => {
     if (raw.startsWith("## ")) {
       section = raw.slice(3).trim();
@@ -210,6 +223,16 @@ if (existsSync(statePath)) {
         `STATE.md:${offset + 1}: entry last verified ${stamp[1]}, ${age} days ago against the ` +
           `${horizon}-day horizon of ${section}; re-verify it against reality, then re-date or remove it`,
       );
+    }
+    if (section !== "Now" && binding !== null) {
+      const born = firstCommitDate(raw.replace(/\s*\(\d{4}-\d{2}-\d{2}\)\s*$/, "").trim(), "STATE.md");
+      const standing = born === null ? 0 : Math.floor((today - Math.max(born, binding)) / 86_400_000);
+      if (standing > HORIZON_DAYS * 2) {
+        problems.push(
+          `STATE.md:${offset + 1}: entry has stood unchanged in ${section} for ${standing} days, two horizons; ` +
+            "promote it to Now, write it as a decision record, or drop it",
+        );
+      }
     }
   });
   const nowSection = text.match(/^## Now\r?\n([\s\S]*?)(?=^## )/m);

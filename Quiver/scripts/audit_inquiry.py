@@ -86,6 +86,13 @@ HOUSED = re.compile(r"([A-Za-z0-9_.-]+)/")
 # the check searches for, never the function's name, which a child's past may already carry.
 # Changing what the check covers changes this sentence, and the anchor moves forward with it.
 IMMUTABILITY_SCOPE = "records held immutable beyond their Status line: every file below a subfolder of docs/ except the arrow manifests"
+# A queued, deferred, or blocked entry that stands unchanged for two horizons is a decision
+# record trying to be born, and the file cannot show it, because a date is the entry's
+# last-verified stamp rather than its birthday; so the age is read from history, from the first
+# commit that carried the entry's text, and like every history-reading check this one binds
+# from the arrival of its own scope sentence, counting no entry's age from before it.
+STATE_AGE_SCOPE = "entries of Next, Deferred, and Blocked held to two horizons of unchanged text"
+STATE_TEXT = re.compile(r"\s*\(\d{4}-\d{2}-\d{2}\)\s*$")
 
 
 def git(*args: str) -> str:
@@ -99,6 +106,12 @@ def git(*args: str) -> str:
 def tracked_files() -> list[str]:
     """Every tracked path, posix and relative to the root, so untracked local clutter never fires a check."""
     return [p for p in git("ls-files", "-z").split("\0") if p]
+
+
+def first_commit_date(needle: str, path: str) -> date | None:
+    """The committer date of the first commit whose diff of the path carries the needle, or None."""
+    stamp = git("log", "--reverse", "--format=%cs", "-S", needle, "--", path).split("\n")[0]
+    return date.fromisoformat(stamp) if stamp else None
 
 
 def living_documents(root: Path) -> list[str]:
@@ -154,6 +167,7 @@ def check_living(problems: list[str], root: Path) -> None:
             problems.append(f"STATE.md: Now holds {len(entries)} entries, cap is {NOW_CAP}")
         section = ""
         today = datetime.now(timezone.utc).date()
+        binding = first_commit_date(STATE_AGE_SCOPE, "scripts/audit_inquiry.py") if root == ROOT else None
         for raw in text.split("\n"):
             if raw.startswith("## "):
                 section = raw[3:].strip()
@@ -166,6 +180,14 @@ def check_living(problems: list[str], root: Path) -> None:
                 problems.append(f"STATE.md: entry lacks a date: {raw.strip()[:60]}")
             elif (today - date.fromisoformat(stamp.group(1))).days > horizon:
                 problems.append(f"STATE.md: entry past the {horizon}-day horizon of {section}: {raw.strip()[:60]}")
+            if section != "Now" and binding is not None:
+                born = first_commit_date(STATE_TEXT.sub("", raw).strip(), "STATE.md")
+                standing = (today - max(born, binding)).days if born is not None else 0
+                if standing > HORIZON_DAYS * 2:
+                    problems.append(
+                        f"STATE.md: entry has stood unchanged in {section} for {standing} days, two horizons; "
+                        f"promote it to Now, write it as a decision record, or drop it: {raw.strip()[:60]}"
+                    )
     # Everything else under docs/ is a document with a room or it does not exist. A file below
     # a subdirectory is registered by its own path or by its directory's row in the index; a
     # file that is not markdown has no species and no room here at all.
@@ -1021,6 +1043,32 @@ def selftest() -> int:
                 print(f"WRONG: a Status flip on {record.name} was reported as an illegal edit")
         finally:
             record.write_bytes(original)
+    # A queued entry written today has no history to age it, so it must PASS; an entry that has
+    # stood for two horizons cannot be planted without commits, so the firing case runs only where
+    # this tree carries one and says so otherwise.
+    state_path = ROOT / "STATE.md"
+    original_state = state_path.read_bytes()
+    fresh = original_state.replace(
+        b"## Next\n\n- Nothing queued.\n",
+        f"## Next\n\n- Planted queued work, written today ({datetime.now(timezone.utc).date().isoformat()}).\n".encode(),
+        1,
+    )
+    if fresh == original_state:
+        print("queue age plant skipped: Next is not empty in this tree")
+    else:
+        try:
+            state_path.write_bytes(fresh)
+            fresh_problems, _ = run(ROOT)
+            if any("stood unchanged" in p for p in fresh_problems):
+                failures += 1
+                print("WRONG: a queued entry written today was reported as standing for two horizons")
+        finally:
+            state_path.write_bytes(original_state)
+    print("queue age firing case skipped: no queued entry in this tree has two horizons of history")
+    age_arrival = git("log", "--reverse", "--format=%H", "-S", STATE_AGE_SCOPE, "--", "scripts/audit_inquiry.py").split()
+    if age_arrival and STATE_AGE_SCOPE in git("show", f"{age_arrival[0]}^:scripts/audit_inquiry.py"):
+        failures += 1
+        print("WRONG: the queue age anchor is older than the commit that introduced the current scope")
     # The immutability rule is dated by its scope sentence, so the commit the search finds must
     # be the one that introduced that sentence: its parent must not contain it. A history without
     # the sentence yet has nothing to prove and says so.
