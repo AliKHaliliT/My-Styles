@@ -87,7 +87,9 @@ STATE_AGE_SCOPE = "entries of Next, Deferred, and Blocked held to two horizons o
 STATE_TEXT = re.compile(r"\s*\(\d{4}-\d{2}-\d{2}\)\s*$")
 # A record's filename stays within this many characters, because the folders it lives under are
 # deep and a Windows clone has a path limit; like every history-reading check, the cap binds from
-# the arrival of its own scope sentence, so a record added before it is never judged.
+# the arrival of its own scope sentence, so a record added in a commit before that arrival is
+# never judged. Before means an earlier commit, never an earlier date, because two commits on
+# one day are ordered by the history and not by the calendar.
 RECORD_NAME_SCOPE = "record filenames held to seventy-two characters"
 NAME_CAP = 72
 
@@ -153,26 +155,36 @@ def python_roots() -> list[Path]:
     return []
 
 
-def first_commit_date(needle: str, path: str) -> date | None:
-    """The committer date of the first commit whose diff of the path carries the needle, or None."""
-    stamp = git("log", "--reverse", "--format=%cs", "-S", needle, "--", path).split("\n")[0]
-    return date.fromisoformat(stamp) if stamp else None
+def first_commit(needle: str, path: str) -> str | None:
+    """The first commit whose diff of the path carries the needle, or None."""
+    found = git("log", "--reverse", "--format=%H", "-S", needle, "--", path).split("\n")[0].strip()
+    return found or None
 
 
-def added_dates(prefix: str) -> dict[str, date]:
-    """The date each tracked file under the prefix was first added, from one walk of history."""
-    dates: dict[str, date] = {}
-    current: date | None = None
+def commit_date(commit: str) -> date:
+    """The committer date of one commit."""
+    return date.fromisoformat(git("show", "-s", "--format=%cs", commit).strip())
+
+
+def is_before(commit: str, other: str) -> bool:
+    """Whether the first commit is a proper ancestor of the second, which is what before means in a history."""
+    return commit != other and git("rev-list", "--count", f"{other}..{commit}").strip() == "0"
+
+
+def added_commits(prefix: str) -> dict[str, str]:
+    """The commit that first added each tracked file under the prefix, from one walk of history."""
+    commits: dict[str, str] = {}
+    current: str | None = None
     # Names in the log are relative to the repository top, while this audit may run from a folder
     # below it, so the folder prefix is stripped before the names are compared.
     top_prefix = git("rev-parse", "--show-prefix").strip()
-    log = git("log", "--reverse", "--no-renames", "--diff-filter=A", "--format=@@%cs", "--name-only", "--", prefix)
+    log = git("log", "--reverse", "--no-renames", "--diff-filter=A", "--format=@@%H", "--name-only", "--", prefix)
     for line in log.split("\n"):
         if line.startswith("@@"):
-            current = date.fromisoformat(line[2:])
+            current = line[2:].strip()
         elif line and current is not None:
-            dates.setdefault(line.removeprefix(top_prefix), current)
-    return dates
+            commits.setdefault(line.removeprefix(top_prefix), current)
+    return commits
 
 
 def check_record_names(problems: list[str]) -> None:
@@ -180,15 +192,17 @@ def check_record_names(problems: list[str]) -> None:
     docs = ROOT / "docs"
     if not docs.is_dir():
         return
-    arrival = first_commit_date(RECORD_NAME_SCOPE, "scripts/audit_docs.py")
-    added = added_dates("docs")
+    arrival = first_commit(RECORD_NAME_SCOPE, "scripts/audit_docs.py")
+    added = added_commits("docs")
     for path in sorted(docs.rglob("*.md")):
         rel = path.relative_to(ROOT).as_posix()
         if rel.count("/") < 2 or rel.startswith("docs/inherited/"):
             continue
+        if len(path.name) <= NAME_CAP:
+            continue
         born = added.get(rel)
-        judged = born is None or (arrival is not None and born >= arrival)
-        if judged and len(path.name) > NAME_CAP:
+        judged = born is None or (arrival is not None and not is_before(born, arrival))
+        if judged:
             problems.append(
                 f"{rel}: filename is {len(path.name)} characters, the cap is {NAME_CAP}; "
                 "a title is short, and the folders above it are not"
@@ -263,7 +277,7 @@ def check_documents(problems: list[str]) -> None:
         if sections != ["Now", "Next", "Deferred", "Blocked"]:
             problems.append(f"STATE.md: sections are {sections}, not the four the schema fixes")
         section = ""
-        binding = first_commit_date(STATE_AGE_SCOPE, "scripts/audit_docs.py")
+        binding = first_commit(STATE_AGE_SCOPE, "scripts/audit_docs.py")
         for line_no, raw in enumerate(text.split("\n"), 1):
             if raw.startswith("## "):
                 section = raw[3:].strip()
@@ -279,8 +293,9 @@ def check_documents(problems: list[str]) -> None:
                     f"{horizon}-day horizon of {section}; re-verify it against reality, then re-date or remove it"
                 )
             if section != "Now" and binding is not None:
-                born = first_commit_date(STATE_TEXT.sub("", raw).strip(), "STATE.md")
-                standing = (today - max(born, binding)).days if born is not None else 0
+                born = first_commit(STATE_TEXT.sub("", raw).strip(), "STATE.md")
+                start = None if born is None else commit_date(binding if is_before(born, binding) else born)
+                standing = (today - start).days if start is not None else 0
                 if standing > HORIZON_DAYS * 2:
                     problems.append(
                         f"STATE.md:{line_no}: entry has stood unchanged in {section} for {standing} days, two horizons; "

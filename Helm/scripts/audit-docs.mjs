@@ -86,7 +86,9 @@ const IMMUTABILITY_SCOPE = "records held immutable beyond their Status line: eve
 const STATE_AGE_SCOPE = "entries of Next, Deferred, and Blocked held to two horizons of unchanged text";
 // A record's filename stays within this many characters, because the folders it lives under are deep
 // and a Windows clone has a path limit; like every history-reading check, the cap binds from the
-// arrival of its own scope sentence, so a record added before it is never judged.
+// arrival of its own scope sentence, so a record added in a commit before that arrival is never
+// judged. Before means an earlier commit, never an earlier date, because two commits on one day
+// are ordered by the history and not by the calendar.
 const RECORD_NAME_SCOPE = "record filenames held to seventy-two characters";
 const NAME_CAP = 72;
 
@@ -199,10 +201,19 @@ for (const rel of LIVING) {
   }
 }
 
-// The committer date of the first commit whose diff of the path carries the needle, or null.
-function firstCommitDate(needle, path) {
-  const stamp = git("log", "--reverse", "--format=%cs", "-S", needle, "--", path).split(/\s+/).filter(Boolean)[0];
-  return stamp ? new Date(`${stamp}T00:00:00`) : null;
+// The first commit whose diff of the path carries the needle, or null.
+function firstCommit(needle, path) {
+  return git("log", "--reverse", "--format=%H", "-S", needle, "--", path).split(/\s+/).filter(Boolean)[0] ?? null;
+}
+
+// The committer date of one commit.
+function commitDate(commit) {
+  return new Date(`${git("show", "-s", "--format=%cs", commit).trim()}T00:00:00`);
+}
+
+// Whether the first commit is a proper ancestor of the second, which is what before means in a history.
+function isBefore(commit, other) {
+  return commit !== other && git("rev-list", "--count", `${other}..${commit}`).trim() === "0";
 }
 
 const statePath = resolve(ROOT, "STATE.md");
@@ -213,7 +224,7 @@ if (existsSync(statePath)) {
     problems.push(`STATE.md: sections are [${sections.join(", ")}], not the four the schema fixes`);
   }
   let section = "";
-  const binding = firstCommitDate(STATE_AGE_SCOPE, "scripts/audit-docs.mjs");
+  const binding = firstCommit(STATE_AGE_SCOPE, "scripts/audit-docs.mjs");
   text.split("\n").forEach((raw, offset) => {
     if (raw.startsWith("## ")) {
       section = raw.slice(3).trim();
@@ -230,8 +241,9 @@ if (existsSync(statePath)) {
       );
     }
     if (section !== "Now" && binding !== null) {
-      const born = firstCommitDate(raw.replace(/\s*\(\d{4}-\d{2}-\d{2}\)\s*$/, "").trim(), "STATE.md");
-      const standing = born === null ? 0 : Math.floor((today - Math.max(born, binding)) / 86_400_000);
+      const born = firstCommit(raw.replace(/\s*\(\d{4}-\d{2}-\d{2}\)\s*$/, "").trim(), "STATE.md");
+      const start = born === null ? null : commitDate(isBefore(born, binding) ? binding : born);
+      const standing = start === null ? 0 : Math.floor((today - start) / 86_400_000);
       if (standing > HORIZON_DAYS * 2) {
         problems.push(
           `STATE.md:${offset + 1}: entry has stood unchanged in ${section} for ${standing} days, two horizons; ` +
@@ -356,37 +368,38 @@ function checkUpstream() {
   });
 }
 
-// The date each tracked file under the prefix was first added, from one walk of history.
-function addedDates(prefix) {
-  const dates = new Map();
+// The commit that first added each tracked file under the prefix, from one walk of history.
+function addedCommits(prefix) {
+  const commits = new Map();
   let current = null;
   // Names in the log are relative to the repository top, while this audit may run from a folder
   // below it, so the folder prefix is stripped before the names are compared.
   const topPrefix = git("rev-parse", "--show-prefix").trim();
-  for (const line of git("log", "--reverse", "--no-renames", "--diff-filter=A", "--format=@@%cs", "--name-only", "--", prefix).split("\n")) {
-    if (line.startsWith("@@")) current = new Date(`${line.slice(2)}T00:00:00`);
+  for (const line of git("log", "--reverse", "--no-renames", "--diff-filter=A", "--format=@@%H", "--name-only", "--", prefix).split("\n")) {
+    if (line.startsWith("@@")) current = line.slice(2).trim();
     else if (line && current !== null) {
       const name = line.startsWith(topPrefix) ? line.slice(topPrefix.length) : line;
-      if (!dates.has(name)) dates.set(name, current);
+      if (!commits.has(name)) commits.set(name, current);
     }
   }
-  return dates;
+  return commits;
 }
 
 // Records written after the cap arrived keep their filenames within it; carried folders are exempt.
 function checkRecordNames() {
   const docsRoot = join(ROOT, "docs");
   if (!existsSync(docsRoot)) return;
-  const arrival = firstCommitDate(RECORD_NAME_SCOPE, "scripts/audit-docs.mjs");
-  const added = addedDates("docs");
+  const arrival = firstCommit(RECORD_NAME_SCOPE, "scripts/audit-docs.mjs");
+  const added = addedCommits("docs");
   for (const full of walkAll(docsRoot)) {
     if (!full.endsWith(".md")) continue;
     const rel = relative(ROOT, full).split(/[\\/]/).join("/");
     if (rel.split("/").length < 3 || rel.startsWith("docs/inherited/")) continue;
     const name = rel.split("/").pop();
+    if (name.length <= NAME_CAP) continue;
     const born = added.get(rel);
-    const judged = born === undefined || (arrival !== null && born >= arrival);
-    if (judged && name.length > NAME_CAP) {
+    const judged = born === undefined || (arrival !== null && !isBefore(born, arrival));
+    if (judged) {
       problems.push(`${rel}: filename is ${name.length} characters, the cap is ${NAME_CAP}; a title is short, and the folders above it are not`);
     }
   }
