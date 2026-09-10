@@ -77,6 +77,7 @@ check this folder; the question may already be settled.
 | [0024](decisions/0024-make-the-shapes-copyable-and-the-questions-answerable.md) | The upstream entry's shape as bytes in every guide, questions to the owner as numbered options with any other reply restated first, and record filenames capped at seventy-two characters going forward |
 | [0025](decisions/0025-dispose-of-the-upstream-entry-of-2026-09-10-on-the-selftest.md) | A selftest plant builds only what the tree lacks, removes only what it built, restores what the project owns, and selects an unbuildable subject by property; proven in a child-shaped tree |
 | [0026](decisions/0026-dispose-of-the-upstream-entry-of-2026-09-10-on-same-day-arrival.md) | History-reading checks compare commits by ancestry, never by date, so a rule never reaches behind its own commit; the selftest reports a red tree as a red tree |
+| [0027](decisions/0027-rehearse-adoption-before-a-check-lands.md) | The family workflow builds a child from each template, shaped the way adoption shapes it, and requires its gate to pass, so a check is never green only where its preconditions are absent |
 
 ## Rules of the folder
 

@@ -810,6 +810,11 @@ def selftest() -> int:
         for p in baseline[:5]:
             print(f"  {p}")
         return 1
+    # Plants write into record folders a project may not have yet, a fresh inquiry among them, so
+    # the folders the plants need are built here and removed again once every plant is gone.
+    built_folders = [ROOT / rel for rel in ("docs/claims", "docs/arrows", "docs/reviews") if not (ROOT / rel).exists()]
+    for folder in built_folders:
+        folder.mkdir()
     for rel, content, expect in PLANTS:
         target = ROOT / rel
         target.write_text(content, encoding="utf-8")
@@ -1187,6 +1192,9 @@ def selftest() -> int:
         if not any("missing living document" in p for p in empty):
             failures += 1
             print("WRONG: an empty tree raised no missing-document problem")
+    for folder in built_folders:
+        if not any(folder.iterdir()):
+            folder.rmdir()
     print("every rule fires" if not failures else f"{failures} rule(s) do not work")
     return 1 if failures else 0
 
