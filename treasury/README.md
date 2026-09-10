@@ -75,6 +75,7 @@ check this folder; the question may already be settled.
 | [0022](decisions/0022-write-the-readme-for-the-product-and-keep-the-pin-in-the-upstream-file.md) | A child's README states its users' problem, its domain's corners, a few decisions, and what is; the alignment pin moves to the first line of the upstream file |
 | [0023](decisions/0023-dispose-of-the-upstream-entry-of-2026-09-09-on-the-state-queue.md) | The first entry in the living-file form: a queued, deferred, or blocked STATE entry unchanged for two horizons is promoted, recorded, or dropped, and the audits read its age from history |
 | [0024](decisions/0024-make-the-shapes-copyable-and-the-questions-answerable.md) | The upstream entry's shape as bytes in every guide, questions to the owner as numbered options with any other reply restated first, and record filenames capped at seventy-two characters going forward |
+| [0025](decisions/0025-dispose-of-the-upstream-entry-of-2026-09-10-on-the-selftest.md) | A selftest plant builds only what the tree lacks, removes only what it built, restores what the project owns, and selects an unbuildable subject by property; proven in a child-shaped tree |
 
 ## Rules of the folder
 

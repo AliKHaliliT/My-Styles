@@ -839,7 +839,9 @@ def selftest() -> int:
     bibliography = ROOT / "docs/BIBLIOGRAPHY.md"
     original_bibliography = bibliography.read_bytes() if bibliography.exists() else None
     bibliography.write_bytes((original_bibliography or b"# Bibliography\n").rstrip(b"\n") + b"\n" + PLANTED_ENTRY)
-    (ROOT / "docs/reviews").mkdir(exist_ok=True)
+    reviews = ROOT / "docs/reviews"
+    reviews_existed = reviews.exists()
+    reviews.mkdir(exist_ok=True)
     try:
         for rel, content, expect in REVIEW_PLANTS:
             target = ROOT / rel
@@ -866,6 +868,8 @@ def selftest() -> int:
             bibliography.unlink()
         else:
             bibliography.write_bytes(original_bibliography)
+        if not reviews_existed and not any(reviews.iterdir()):
+            reviews.rmdir()
     body = (
         "# {num}. Planted advisory\n\nStatus: {status}\nDate: 2026-01-01\n\n"
         "## Claim\n\nx.\n\n## Evidence\n\n{evidence}\n\n## Threats\n\n- None named.\n"
@@ -990,32 +994,43 @@ def selftest() -> int:
             if target.parent != ROOT and not any(target.parent.iterdir()):
                 target.parent.rmdir()
     # A project built from this template carries the template's records in an inherited folder,
-    # numbered and registered by one row, so a legal one must PASS; the plant builds the row too.
+    # numbered and registered by one row, so a legal one must PASS. In such a project the folder
+    # is full, the row exists, and the low numbers are taken, so the plant builds only what the
+    # tree lacks, takes the lowest free number, and removes only what it built.
     agents_path = ROOT / "AGENTS.md"
     original_agents = agents_path.read_bytes()
-    inherited = ROOT / "docs/inherited/0001-planted-inherited.md"
-    inherited.parent.mkdir(exist_ok=True)
+    inherited_dir = ROOT / "docs/inherited"
+    inherited_existed = inherited_dir.exists()
+    inherited_dir.mkdir(exist_ok=True)
+    taken = {p.name[:4] for p in inherited_dir.glob("*.md")}
+    free = next(f"{n:04d}" for n in range(1, 10000) if f"{n:04d}" not in taken)
+    inherited_rel = f"docs/inherited/{free}-planted-inherited.md"
+    inherited = ROOT / inherited_rel
     inherited.write_text(
-        "# 0001. Planted inherited\n\nStatus: Accepted\nDate: 2026-01-01\n\n"
+        f"# {free}. Planted inherited\n\nStatus: Accepted\nDate: 2026-01-01\n\n"
         "## Context\n\nx.\n\n## Decision\n\nx.\n\n## Consequences\n\nx.\n",
         encoding="utf-8",
     )
-    git("add", "-N", "--", "docs/inherited/0001-planted-inherited.md")
+    git("add", "-N", "--", inherited_rel)
     row = b"| [docs/inherited/](docs/inherited/) | Planted: the style's records, carried whole. |\n"
     try:
-        agents_path.write_bytes(original_agents.rstrip(b"\n") + b"\n\n" + row)
+        if "(docs/inherited/)" not in index_rows(original_agents.decode("utf-8")):
+            agents_path.write_bytes(original_agents.rstrip(b"\n") + b"\n\n" + row)
         inherited_problems, _ = run(ROOT)
         if any("inherited" in p for p in inherited_problems):
             failures += 1
             print(f"WRONG: a legal inherited record raised {[p for p in inherited_problems if 'inherited' in p][:2]}")
     finally:
         agents_path.write_bytes(original_agents)
-        git("rm", "--cached", "-q", "--", "docs/inherited/0001-planted-inherited.md")
+        git("rm", "--cached", "-q", "--", inherited_rel)
         inherited.unlink()
-        inherited.parent.rmdir()
+        if not inherited_existed:
+            inherited_dir.rmdir()
     # A project built from this template carries an UPSTREAM.md of the same kind as STATE.md, so a
-    # legal one must PASS and each rule of its schema must fire; the plant builds the row too.
+    # legal one must PASS and each rule of its schema must fire. The project's own file and row
+    # are kept and written back, because the plant borrows the path rather than owning it.
     upstream = ROOT / "docs/UPSTREAM.md"
+    original_upstream = upstream.read_bytes() if upstream.exists() else None
     upstream_row = b"| [docs/UPSTREAM.md](docs/UPSTREAM.md) | Planted: what this project has for its style. |\n"
     head_text = "# Upstream\n\nAligned to Planted at 0123456789ab.\n\nEvery entry is a lead, not a verdict.\n\n## Open\n\n"
     today_stamp = datetime.now(timezone.utc).date().isoformat()
@@ -1032,7 +1047,8 @@ def selftest() -> int:
         (head_text + f"Nothing open.\n\n### {today_stamp} Planted entry\n\nKind: defect\nPin: 0123456789ab\n\n" + parts, "beside open entries"),
     ]
     try:
-        agents_path.write_bytes(original_agents.rstrip(b"\n") + b"\n\n" + upstream_row)
+        if "(docs/UPSTREAM.md)" not in index_rows(original_agents.decode("utf-8")):
+            agents_path.write_bytes(original_agents.rstrip(b"\n") + b"\n\n" + upstream_row)
         for upstream_text, upstream_expect in upstream_plants:
             upstream.write_text(upstream_text, encoding="utf-8")
             upstream_problems, _ = run(ROOT)
@@ -1045,7 +1061,10 @@ def selftest() -> int:
                 print(f"WRONG: an UPSTREAM.md plant did not raise {upstream_expect!r}")
     finally:
         agents_path.write_bytes(original_agents)
-        upstream.unlink(missing_ok=True)
+        if original_upstream is None:
+            upstream.unlink(missing_ok=True)
+        else:
+            upstream.write_bytes(original_upstream)
     # Two claims quoting one figure at one pin must agree, so the plant is a pair.
     pair = [
         ("docs/claims/0094-planted-figure-a.md", "0094", "5.000"),
@@ -1069,10 +1088,19 @@ def selftest() -> int:
         for target in written:
             target.unlink()
     # A record edited beyond its Status line must fail, and a Status flip alone must pass, or
-    # the check would forbid the one edit the rulebook allows.
-    record = next(iter(sorted((ROOT / "docs/decisions").glob("0001-*.md"))), None)
+    # the check would forbid the one edit the rulebook allows. Immutability is a fact about a
+    # record's history, so this is the one plant that cannot build its subject; it selects the
+    # lowest-numbered accepted record of the project's own by that property, never by a number
+    # written here, because a project that kept its numbers after the inherited ones has no 0001.
+    record = next(
+        (
+            p for p in sorted((ROOT / "docs/decisions").glob("*.md"))
+            if "\nStatus: Accepted\n" in p.read_text(encoding="utf-8")
+        ),
+        None,
+    )
     if record is None:
-        print("immutability plants skipped: no record 0001 to plant on")
+        print("immutability plants skipped: no accepted record of this project's own to plant on")
     else:
         original = record.read_bytes()
         try:
@@ -1093,16 +1121,17 @@ def selftest() -> int:
     # this tree carries one and says so otherwise.
     state_path = ROOT / "STATE.md"
     original_state = state_path.read_bytes()
-    fresh = original_state.replace(
-        b"## Next\n\n- Nothing queued.\n",
-        f"## Next\n\n- Planted queued work, written today ({datetime.now(timezone.utc).date().isoformat()}).\n".encode(),
+    state_text = original_state.decode("utf-8").replace("\r\n", "\n")
+    fresh = state_text.replace(
+        "## Next\n\n- Nothing queued.\n",
+        f"## Next\n\n- Planted queued work, written today ({datetime.now(timezone.utc).date().isoformat()}).\n",
         1,
     )
-    if fresh == original_state:
+    if fresh == state_text:
         print("queue age plant skipped: Next is not empty in this tree")
     else:
         try:
-            state_path.write_bytes(fresh)
+            state_path.write_bytes(fresh.encode("utf-8"))
             fresh_problems, _ = run(ROOT)
             if any("stood unchanged" in p for p in fresh_problems):
                 failures += 1
