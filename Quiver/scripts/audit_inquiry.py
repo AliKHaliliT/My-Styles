@@ -93,6 +93,11 @@ IMMUTABILITY_SCOPE = "records held immutable beyond their Status line: every fil
 # from the arrival of its own scope sentence, counting no entry's age from before it.
 STATE_AGE_SCOPE = "entries of Next, Deferred, and Blocked held to two horizons of unchanged text"
 STATE_TEXT = re.compile(r"\s*\(\d{4}-\d{2}-\d{2}\)\s*$")
+# A record's filename stays within this many characters, because the folders it lives under are
+# deep and a Windows clone has a path limit; like every history-reading check, the cap binds from
+# the arrival of its own scope sentence, so a record added before it is never judged.
+RECORD_NAME_SCOPE = "record filenames held to seventy-two characters"
+NAME_CAP = 72
 
 
 def git(*args: str) -> str:
@@ -112,6 +117,39 @@ def first_commit_date(needle: str, path: str) -> date | None:
     """The committer date of the first commit whose diff of the path carries the needle, or None."""
     stamp = git("log", "--reverse", "--format=%cs", "-S", needle, "--", path).split("\n")[0]
     return date.fromisoformat(stamp) if stamp else None
+
+
+def added_dates(prefix: str) -> dict[str, date]:
+    """The date each tracked file under the prefix was first added, from one walk of history."""
+    dates: dict[str, date] = {}
+    current: date | None = None
+    log = git("log", "--reverse", "--no-renames", "--diff-filter=A", "--format=@@%cs", "--name-only", "--", prefix)
+    for line in log.split("\n"):
+        if line.startswith("@@"):
+            current = date.fromisoformat(line[2:])
+        elif line and current is not None:
+            dates.setdefault(line, current)
+    return dates
+
+
+def check_record_names(problems: list[str], root: Path) -> None:
+    """Records written after the cap arrived keep their filenames within it; carried folders are exempt."""
+    docs = root / "docs"
+    if root != ROOT or not docs.is_dir():
+        return
+    arrival = first_commit_date(RECORD_NAME_SCOPE, "scripts/audit_inquiry.py")
+    added = added_dates("docs")
+    for path in sorted(docs.rglob("*.md")):
+        rel = path.relative_to(root).as_posix()
+        if rel.count("/") < 2 or rel.startswith("docs/inherited/"):
+            continue
+        born = added.get(rel)
+        judged = born is None or (arrival is not None and born >= arrival)
+        if judged and len(path.name) > NAME_CAP:
+            problems.append(
+                f"{rel}: filename is {len(path.name)} characters, the cap is {NAME_CAP}; "
+                "a title is short, and the folders above it are not"
+            )
 
 
 def living_documents(root: Path) -> list[str]:
@@ -606,6 +644,7 @@ def run(root: Path) -> tuple[list[str], list[str]]:
     check_references(problems, root)
     check_rooms(problems, root)
     check_upstream(problems, root)
+    check_record_names(problems, root)
     check_records(problems, root)
     check_record_immutability(problems, root)
     check_figures(problems, root)
@@ -633,6 +672,9 @@ PLANTS = [
      "# 0011. Planted\n\nStatus: Conjecture\nDate: 2026-01-01\n\n## Claim\n\ncites [fake754-2019].\n\n## Evidence\n\nNone.\n\n## Threats\n\n- None named.\n",
      "[fake754-2019] not in the bibliography"),
     ("docs/arrows/ghost.md", "# Arrow: ghost\n", "manifest for an arrow that does not exist"),
+    ("docs/claims/0093-planted-with-a-title-so-long-that-it-runs-past-the-seventy-two-character-cap.md",
+     "# 0093. Planted\n\nStatus: Conjecture\nDate: 2026-01-01\n\n## Claim\n\nx.\n\n## Evidence\n\nNone.\n\n## Threats\n\n- None named.\n",
+     "the cap is 72"),
     ("docs/claims/0092-planted-recorded-missing.md",
      ("# 0092. Planted\n\nStatus: Supported\nDate: 2026-01-01\n\n## Claim\n\nx.\n\n## Evidence\n\n"
       "Recorded: one paid run, preserved as `docs/ghost-artefact.json`.\n\nrun at arrows/planted at 0123456789ab.\n\n"
@@ -1065,6 +1107,10 @@ def selftest() -> int:
         finally:
             state_path.write_bytes(original_state)
     print("queue age firing case skipped: no queued entry in this tree has two horizons of history")
+    name_arrival = git("log", "--reverse", "--format=%H", "-S", RECORD_NAME_SCOPE, "--", "scripts/audit_inquiry.py").split()
+    if name_arrival and RECORD_NAME_SCOPE in git("show", f"{name_arrival[0]}^:scripts/audit_inquiry.py"):
+        failures += 1
+        print("WRONG: the filename cap anchor is older than the commit that introduced the current scope")
     age_arrival = git("log", "--reverse", "--format=%H", "-S", STATE_AGE_SCOPE, "--", "scripts/audit_inquiry.py").split()
     if age_arrival and STATE_AGE_SCOPE in git("show", f"{age_arrival[0]}^:scripts/audit_inquiry.py"):
         failures += 1

@@ -85,6 +85,11 @@ IMMUTABILITY_SCOPE = "records held immutable beyond their Status line: every fil
 # from the arrival of its own scope sentence, counting no entry's age from before it.
 STATE_AGE_SCOPE = "entries of Next, Deferred, and Blocked held to two horizons of unchanged text"
 STATE_TEXT = re.compile(r"\s*\(\d{4}-\d{2}-\d{2}\)\s*$")
+# A record's filename stays within this many characters, because the folders it lives under are
+# deep and a Windows clone has a path limit; like every history-reading check, the cap binds from
+# the arrival of its own scope sentence, so a record added before it is never judged.
+RECORD_NAME_SCOPE = "record filenames held to seventy-two characters"
+NAME_CAP = 72
 
 
 def git(*args: str) -> str:
@@ -152,6 +157,39 @@ def first_commit_date(needle: str, path: str) -> date | None:
     """The committer date of the first commit whose diff of the path carries the needle, or None."""
     stamp = git("log", "--reverse", "--format=%cs", "-S", needle, "--", path).split("\n")[0]
     return date.fromisoformat(stamp) if stamp else None
+
+
+def added_dates(prefix: str) -> dict[str, date]:
+    """The date each tracked file under the prefix was first added, from one walk of history."""
+    dates: dict[str, date] = {}
+    current: date | None = None
+    log = git("log", "--reverse", "--no-renames", "--diff-filter=A", "--format=@@%cs", "--name-only", "--", prefix)
+    for line in log.split("\n"):
+        if line.startswith("@@"):
+            current = date.fromisoformat(line[2:])
+        elif line and current is not None:
+            dates.setdefault(line, current)
+    return dates
+
+
+def check_record_names(problems: list[str]) -> None:
+    """Records written after the cap arrived keep their filenames within it; carried folders are exempt."""
+    docs = ROOT / "docs"
+    if not docs.is_dir():
+        return
+    arrival = first_commit_date(RECORD_NAME_SCOPE, "scripts/audit_docs.py")
+    added = added_dates("docs")
+    for path in sorted(docs.rglob("*.md")):
+        rel = path.relative_to(ROOT).as_posix()
+        if rel.count("/") < 2 or rel.startswith("docs/inherited/"):
+            continue
+        born = added.get(rel)
+        judged = born is None or (arrival is not None and born >= arrival)
+        if judged and len(path.name) > NAME_CAP:
+            problems.append(
+                f"{rel}: filename is {len(path.name)} characters, the cap is {NAME_CAP}; "
+                "a title is short, and the folders above it are not"
+            )
 
 
 def check_documents(problems: list[str]) -> None:
@@ -659,6 +697,7 @@ def main() -> int:
     problems: list[str] = []
     check_documents(problems)
     check_docs_zone(problems)
+    check_record_names(problems)
     check_upstream(problems)
     check_rooms(problems)
     held = check_layout(problems)

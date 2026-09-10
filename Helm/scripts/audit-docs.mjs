@@ -13,7 +13,7 @@
 
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
-import { dirname, join, resolve } from "node:path";
+import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -84,6 +84,11 @@ const IMMUTABILITY_SCOPE = "records held immutable beyond their Status line: eve
 // entry's text, and like every history-reading check this one binds from the arrival of its own
 // scope sentence, counting no entry's age from before it.
 const STATE_AGE_SCOPE = "entries of Next, Deferred, and Blocked held to two horizons of unchanged text";
+// A record's filename stays within this many characters, because the folders it lives under are deep
+// and a Windows clone has a path limit; like every history-reading check, the cap binds from the
+// arrival of its own scope sentence, so a record added before it is never judged.
+const RECORD_NAME_SCOPE = "record filenames held to seventy-two characters";
+const NAME_CAP = 72;
 
 /** One git call against the repository this file lives in; empty when git says no. */
 function git(...args) {
@@ -351,6 +356,37 @@ function checkUpstream() {
   });
 }
 
+// The date each tracked file under the prefix was first added, from one walk of history.
+function addedDates(prefix) {
+  const dates = new Map();
+  let current = null;
+  for (const line of git("log", "--reverse", "--no-renames", "--diff-filter=A", "--format=@@%cs", "--name-only", "--", prefix).split("\n")) {
+    if (line.startsWith("@@")) current = new Date(`${line.slice(2)}T00:00:00`);
+    else if (line && current !== null && !dates.has(line)) dates.set(line, current);
+  }
+  return dates;
+}
+
+// Records written after the cap arrived keep their filenames within it; carried folders are exempt.
+function checkRecordNames() {
+  const docsRoot = join(ROOT, "docs");
+  if (!existsSync(docsRoot)) return;
+  const arrival = firstCommitDate(RECORD_NAME_SCOPE, "scripts/audit-docs.mjs");
+  const added = addedDates("docs");
+  for (const full of walkAll(docsRoot)) {
+    if (!full.endsWith(".md")) continue;
+    const rel = relative(ROOT, full).split(/[\\/]/).join("/");
+    if (rel.split("/").length < 3 || rel.startsWith("docs/inherited/")) continue;
+    const name = rel.split("/").pop();
+    const born = added.get(rel);
+    const judged = born === undefined || (arrival !== null && born >= arrival);
+    if (judged && name.length > NAME_CAP) {
+      problems.push(`${rel}: filename is ${name.length} characters, the cap is ${NAME_CAP}; a title is short, and the folders above it are not`);
+    }
+  }
+}
+
+checkRecordNames();
 checkUpstream();
 
 // Every tracked directory at the root and one level below src/, and every root file, has a room

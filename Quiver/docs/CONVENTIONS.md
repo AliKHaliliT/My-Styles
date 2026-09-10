@@ -95,7 +95,7 @@ A "why" that fits in a sentence and explains one change goes in the commit messa
 
 ## Naming
 
-Spine and organic documents use UPPERCASE basenames at predictable locations. Decision and claim records use `NNNN-short-kebab-title.md`, each sequence numbered independently, because they are many, ordered, and cited by number. Arrow manifests are lowercase, named exactly after the arrow directory they describe. Other record folders name their files `YYYY-MM-DD-short-kebab-title.md`, since a briefing or a progress report is ordered by when it happened.
+Spine and organic documents use UPPERCASE basenames at predictable locations. Decision and claim records use `NNNN-short-kebab-title.md`, each sequence numbered independently, because they are many, ordered, and cited by number. A record's filename stays within seventy-two characters, because the folders a record lives under are deep and a Windows clone has a path limit; the audit holds the cap for records written after it arrived. Arrow manifests are lowercase, named exactly after the arrow directory they describe. Other record folders name their files `YYYY-MM-DD-short-kebab-title.md`, since a briefing or a progress report is ordered by when it happened.
 
 ## Code inside arrows
 

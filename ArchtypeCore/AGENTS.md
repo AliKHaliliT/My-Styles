@@ -30,7 +30,7 @@ silenced with a suppression comment to make a run look clean. The advisory check
 - An em dash is legal where it clearly beats the comma, the parenthesis, or the period it replaces, and it counts as its paragraph's one flourish. A tracked file carries at most two; CI counts that boundary, while the judgment of fit and commit messages stay with review.
 - Commit history speaks in the owner's voice alone: no attribution trailers, no Co-Authored-By lines, nothing naming a tool or an assistant in a commit message. Held in review, like every commit-message rule.
 - A check may never imply more than it decides. A green run is a claim, so a check is named for the question it actually settles, and a check that cannot settle its question advises rather than gates. Whatever it leaves undecided is stated beside the rule as review's work, never left to look automated, because the half no tool reaches is the half that rots and it rots faster behind a passing signal. This is why the family carries no coverage threshold, no maturity score, and no metric standing in for a rule it cannot decide. A check that reads history binds from the arrival of its own scope, found in the tree's own history and dated by the sentence that states the scope, never by a name or a date a child's past could already carry, because a commit cannot be unmade and a rule that reaches behind its arrival can never go green; when the scope changes, the sentence changes with it.
-- A check that makes a worker damage the work is worse than no check. When a rule fights something real, neither bend the work to earn a green run nor rewrite the rule. Pause the work in a state it can resume from, report the conflict, propose the change, and wait for the owner's explicit approval, because a rule change slipped into a busy diff is a decision nobody made. A length rule cuts filler and never information, a repair is verified for its side effects rather than for its intent, and a warning is answered rather than avoided, since an advisory a worker silences has become a gate.
+- A check that makes a worker damage the work is worse than no check. When a rule fights something real, neither bend the work to earn a green run nor rewrite the rule. Pause the work in a state it can resume from, report the conflict, propose the change, and wait for the owner's explicit approval, because a rule change slipped into a busy diff is a decision nobody made. A length rule cuts filler and never information, a repair is verified for its side effects rather than for its intent, and a warning is answered rather than avoided, since an advisory a worker silences has become a gate. A question to the owner, here or in a closing note, is posed as numbered options, each stating in one sentence what the agent will do if it is chosen, with the recommended one marked, so the answer can be a number or a word; a reply that matches no option is restated in one sentence at the top of the next message, as what was understood and is about to be done, before anything is done.
 - A completeness claim names its boundary. Saying that every caller was updated or every usage fixed is a fact only when it names the enumerable list it exhausted, a grep, a file list, a suite run, that a reader can re-derive. A claim over a region the claimant drew itself, such as every edge case considered, is offered as judgment rather than fact, because no boundary exists for it to have reached and the claim reports only that the claimant stopped finding things. Review probes the second kind, and trusts the first only as far as its boundary reaches.
 - A rule binds only where its own text claims to bind. A length budget governs the document whose budget it is, the prose law governs a tracked byte, and a stage's cap governs that stage; outside that reach a rule does not apply at all. So nothing is spent applying a convention to material it never named, such as trimming or restyling an untracked working file that will never ship, and a count taken of such material is a measurement rather than a finding to fix.
 - All prose must read as if a person wrote it. Never write the clause-colon splice, a sentence shaped as claim, colon, elaboration; in prose a colon may only introduce a list, a quote, or a label. The softer language-model tells (balanced semicolon antitheses, triadic lists, not-X-but-Y reversals) are fine one at a time and forbidden stacked, so allow at most one flourish per paragraph and keep the rest plain declarative sentences. No tool can judge these, so they are held in review, agent and human alike. The full catalog of tells, the vocabulary, and the portability test live in the rulebook's Prose section ([docs/CONVENTIONS.md](docs/CONVENTIONS.md#prose)).
@@ -69,6 +69,31 @@ Closing a task follows one loop: run the checking commands above, weigh the chan
 This template is the style's single statement of its form, and it only stays that way if what a child learns flows back to it. When work against this template surfaces something the template itself should have had, the improvement belongs in the template first and in the project second; an improvement kept privately by one child is a quiet fork of the style. The same road carries defects. A child that works around something in the template's own bytes or behavior and tells nobody leaves every later child to hit it, so the road is also where a workaround is confessed.
 
 A project built from this template carries one living document for this, `UPSTREAM.md` at the top of `docs/`, registered by one index row and present from adoption on; the template itself has none, being the style. It is a document of the same kind as `STATE.md`: it holds what is pending between the project and its style, an entry is written when the work that produced it closes, and an entry is deleted when it is resolved, with anything worth keeping written into a decision record. Its schema is fixed. The file opens with its title, one line naming the template and the commit the project is aligned to, `Aligned to <template> at <commit>`, or at the host's own commit for an arrow carried inside its style's repository, and one sentence saying that every entry is a lead and not a verdict, to be verified against the template's own tree before it is adopted. One section, `## Open`, holds either the words `Nothing open.` or entries. Each entry is a heading of the form `### YYYY-MM-DD` followed by a title, then a `Kind:` line reading `improvement` or `defect`, a `Pin:` line naming the template commit the entry was written against, and four parts under the bold labels **What it is**, **How the work surfaced it**, **Why it is believed better** or **What was worked around**, and **Records checked**. An entry names nothing that identifies the project, no project name, no person, no host, no path or address that points at the project, and no fact about its domain beyond what the entry needs, because the file is handed to the template's public repository and may be quoted verbatim into its records, whatever the visibility of the project that wrote it.
+
+The shape, as bytes to copy rather than a sentence to interpret:
+
+```markdown
+# Upstream
+
+Aligned to <template> at <commit>.
+
+Every entry below is a lead, not a verdict; verify it against the template's own tree before adopting it.
+
+## Open
+
+### 2026-09-09 A title in plain words
+
+Kind: improvement
+Pin: <commit>
+
+**What it is.** One paragraph.
+
+**How the work surfaced it.** One paragraph.
+
+**Why it is believed better.** One paragraph, or **What was worked around.** for a defect.
+
+**Records checked.** One paragraph.
+```
 
 Entries come in two kinds, and only the first is judged:
 

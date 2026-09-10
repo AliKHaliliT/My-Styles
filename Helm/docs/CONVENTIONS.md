@@ -99,7 +99,7 @@ Chronology itself is never documented. Git already is the complete log, and any 
 
 ## Naming
 
-Spine and organic technical documents use UPPERCASE basenames at predictable locations (`STATE.md`, `docs/ARCHITECTURE.md`), matching the ecosystem convention that uppercase markdown means "meta-document about the project". Decision records use `NNNN-short-kebab-title.md` because they are many, ordered, and cited by number. The inherited folder keeps the template's numbers untouched and a project's own records start at 0001, so a number is unique within its folder and the two sequences never meet. Other record folders name their files `YYYY-MM-DD-short-kebab-title.md`, since a briefing or a progress report is ordered by when it happened.
+Spine and organic technical documents use UPPERCASE basenames at predictable locations (`STATE.md`, `docs/ARCHITECTURE.md`), matching the ecosystem convention that uppercase markdown means "meta-document about the project". Decision records use `NNNN-short-kebab-title.md` because they are many, ordered, and cited by number. The inherited folder keeps the template's numbers untouched and a project's own records start at 0001, so a number is unique within its folder and the two sequences never meet. A record's filename stays within seventy-two characters, because the folders a record lives under are deep and a Windows clone has a path limit; the docs audit holds the cap for records written after it arrived. Other record folders name their files `YYYY-MM-DD-short-kebab-title.md`, since a briefing or a progress report is ordered by when it happened.
 
 ## Code-level documentation
 
