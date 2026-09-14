@@ -11,7 +11,7 @@ target-version = "py314"
 # The D codes check docstring presence only, never format, because the docstring rhythm is
 # the house's own; the shape rules live in the README's Conventions section. PGH keeps every
 # ignore honest: a suppression names the exact code it silences, never a blanket.
-select = ["E", "F", "B", "UP", "Q", "PGH", "PERF", "C4", "S", "RET504", "D101", "D102", "D103", "D107"]
+select = ["E", "F", "B", "UP", "Q", "PGH", "PERF", "C4", "S", "RET504", "D101", "D102", "D103", "D107", "C901", "PLR0915", "PLR1702"]
 # Line length is left to the reader, and a function call in an argument default is how
 # FastAPI's Depends() is meant to be written.
 # The credential heuristics read any suggestive string as a possible secret, so they
@@ -19,6 +19,20 @@ select = ["E", "F", "B", "UP", "Q", "PGH", "PERF", "C4", "S", "RET504", "D101", 
 # run as advice instead, through `ruff check --select S105,S106 .`; decision 0023 carries
 # the principle and AGENTS.md states what a warning obliges.
 ignore = ["E501", "B008", "S105", "S106"]
+# The nesting-depth rule still sits in ruff's preview set. Naming it above enables it alone;
+# explicit-preview-rules keeps every other preview rule out of the selection.
+preview = true
+explicit-preview-rules = true
+
+# The three function-shape limits, gated because a count decides itself: ten paths through a
+# function, five nested blocks, fifty statements. Decision 0050 carries why these three and
+# why ten.
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.ruff.lint.pylint]
+max-nested-blocks = 5
+max-statements = 50
 
 [tool.ruff.lint.per-file-ignores]
 # An __init__.py exists here only where it re-exports, which reads as unused to a linter.
@@ -30,7 +44,9 @@ ignore = ["E501", "B008", "S105", "S106"]
 "tests/**" = ["D101", "D102", "D103", "D107", "S101"]
 # The operational scripts and the Alembic environment put the repository root on sys.path
 # before importing from it, and Alembic needs the models imported for their side effect.
-"scripts/*.py" = ["E402", "S101"]
+# A check function carries one branch per rule it checks, so its path count is its rule
+# count; the scripts stand outside the shape limits, a debt STATE.md names.
+"scripts/*.py" = ["E402", "S101", "C901", "PLR0915", "PLR1702"]
 "db/migrations/env.py" = ["E402", "F401"]
 # The field filter is written as compact one-line guards on purpose.
 "app/utils/reorder_fields.py" = ["E701"]

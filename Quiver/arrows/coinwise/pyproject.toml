@@ -56,13 +56,30 @@ target-version = "py314"
 # The D codes check docstring presence only, never format, because the docstring rhythm is
 # the house's own; the shape rules live in Keel's README Conventions, which this arrow
 # follows. PGH keeps every ignore honest: a suppression names the exact code it silences.
-select = ["E", "F", "B", "UP", "Q", "PGH", "PERF", "C4", "S", "RET504", "D101", "D102", "D103", "D107"]
+select = ["E", "F", "B", "UP", "Q", "PGH", "PERF", "C4", "S", "RET504", "D101", "D102", "D103", "D107", "C901", "PLR0915", "PLR1702"]
 # The credential heuristics cannot decide their own question and may not gate; they run as
 # advice through `ruff check --select S105,S106 .` per the family's checking rules.
 ignore = ["E501", "S105", "S106"]
+# The nesting-depth rule still sits in ruff's preview set. Naming it above enables it alone;
+# explicit-preview-rules keeps every other preview rule out of the selection.
+preview = true
+explicit-preview-rules = true
+
+# The three function-shape limits, gated because a count decides itself: ten paths through a
+# function, five nested blocks, fifty statements. The inherited record 0053 carries why these
+# three and why ten.
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.ruff.lint.pylint]
+max-nested-blocks = 5
+max-statements = 50
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]
+# A check function carries one branch per rule it checks, so its path count is its rule
+# count; the audit script stands outside the shape limits, a debt STATE.md names.
+"scripts/*.py" = ["C901", "PLR0915", "PLR1702"]
 # Suites document themselves through case names and assertions, and assert for a living.
 "tests/**" = ["D101", "D102", "D103", "D107", "S101"]
 
