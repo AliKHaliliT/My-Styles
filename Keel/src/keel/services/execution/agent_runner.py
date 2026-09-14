@@ -5,8 +5,9 @@ from uuid import uuid4
 
 from keel.core.config import EngineConfig
 from keel.core.logging import get_logger
-from keel.domain.exceptions import (ReasoningError, StepLimitExceededError,
-                                    ToolExecutionError, ToolNotFoundError)
+from keel.domain.exceptions import (EngineException, ReasoningError,
+                                    StepLimitExceededError, ToolExecutionError,
+                                    ToolNotFoundError)
 from keel.domain.interfaces import (IEventSink, IMemory, IReasoner,
                                     IToolRegistry)
 from keel.domain.schemas.actions import Finish, ToolCall
@@ -240,9 +241,7 @@ class AgentRunner:
         try:
             tool = self.registry.get(action.tool_name)
         except ToolNotFoundError as error:
-            if self.config.halt_on_tool_error:
-                raise
-            return ToolResult(content=str(error), is_error=True)
+            return self._fail(str(error), error)
 
         try:
             if self.config.step_timeout_seconds is not None:
@@ -251,26 +250,56 @@ class AgentRunner:
                 content = await tool.execute(action.arguments)
         except TimeoutError as error:
             message = f"Tool '{action.tool_name}' timed out after {self.config.step_timeout_seconds} seconds"
-            if self.config.halt_on_tool_error:
-                raise ToolExecutionError(message) from error
-            return ToolResult(content=message, is_error=True)
+            return self._fail(message, ToolExecutionError(message), cause=error)
         except ToolExecutionError as error:
-            if self.config.halt_on_tool_error:
-                raise
-            return ToolResult(content=str(error), is_error=True)
+            return self._fail(str(error), error)
         except Exception as error:
             message = f"Tool '{action.tool_name}' raised an unexpected error: {error}"
-            if self.config.halt_on_tool_error:
-                raise ToolExecutionError(message) from error
-            return ToolResult(content=message, is_error=True)
+            return self._fail(message, ToolExecutionError(message), cause=error)
 
         if not isinstance(content, str):
             message = f"Tool '{action.tool_name}' returned a non-string result. Received: {content} with type {type(content)}"
-            if self.config.halt_on_tool_error:
-                raise ToolExecutionError(message)
-            return ToolResult(content=message, is_error=True)
+            return self._fail(message, ToolExecutionError(message))
 
         return ToolResult(content=content)
+
+    def _fail(self, message: str, error: EngineException, cause: BaseException | None = None) -> ToolResult:
+
+        """
+
+        Applies the error policy to one tool failure, raising it or returning it as data.
+
+
+        Parameters
+        ----------
+        message : str
+            The failure description the reasoner will read.
+
+        error : EngineException
+            The exception to raise when halt_on_tool_error is configured.
+
+        cause : BaseException | None
+            The underlying exception chained onto the raised error, when there is one.
+
+
+        Returns
+        -------
+        ToolResult
+            The error result carrying the message, when halting is not configured.
+
+
+        Raises
+        ------
+        EngineException
+            The given error, if halt_on_tool_error is configured.
+
+        """
+
+        if not self.config.halt_on_tool_error:
+            return ToolResult(content=message, is_error=True)
+        if cause is None:
+            raise error
+        raise error from cause
 
 
     async def _emit(self, event_type: str, run_id: str, payload: dict[str, Any]) -> None:

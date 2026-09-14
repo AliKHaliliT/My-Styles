@@ -111,91 +111,103 @@ def generate_example_from_pydantic(model: type[BaseModel]) -> dict[str, Any]:
         raise TypeError(
             f"Input must be a Pydantic model class (subclass of BaseModel). Received: {model} with type {type(model)}"
         )
-    
-
-    def _example_from_schema(props: dict[str, Any], defs: dict[str, Any]) -> dict[str, Any]:
-
-        """
-
-        Recursively generates example values for a given set of schema properties.
-
-        """
-
-        if not isinstance(props, dict):
-            raise TypeError(f"props must be a dictionary. Received: {props} with type {type(props)}")
-        if not isinstance(defs, dict):
-            raise TypeError(f"defs must be a dictionary. Received: {defs} with type {type(defs)}")
-
-
-        result = {}
-        for key, val in props.items():
-            if "$ref" in val:
-                ref_key = val["$ref"].split("/")[-1]
-                ref_schema = defs.get(ref_key, {})
-                result[key] = _example_from_schema(ref_schema.get("properties", {}), defs)
-            else:
-                result[key] = _placeholder_from_type(val, defs)
-
-
-        return result
-
-
-    def _placeholder_from_type(field: dict[str, Any], defs: dict[str, Any]) -> Any:
-
-        """
-
-        Generates a placeholder example value for a field based on its type.
-
-        """
-
-        if not isinstance(field, dict):
-            raise TypeError(f"field must be a dictionary. Received: {field} with type {type(field)}")
-        if not isinstance(defs, dict):
-            raise TypeError(f"defs must be a dictionary. Received: {defs} with type {type(defs)}")
-        
-
-        for key in ("anyOf", "oneOf", "allOf"):
-            if key in field:
-                options = field[key]
-                if isinstance(options, list) and options:
-                    opt = options[0]
-                    if "$ref" in opt:
-                        ref_key = opt["$ref"].split("/")[-1]
-                        ref_schema = defs.get(ref_key, {})
-                        return _example_from_schema(ref_schema.get("properties", {}), defs)
-                    elif "type" in opt or "properties" in opt:
-                        return _placeholder_from_type(opt, defs)
-                return None
-
-        t = field.get("type")
-        if t == "string":
-            return "string"
-        if t == "integer":
-            return 1
-        if t == "number":
-            return 1.0
-        if t == "boolean":
-            return True
-
-        if t == "array":
-            item = field.get("items", {})
-            if "$ref" in item:
-                ref_key = item["$ref"].split("/")[-1]
-                item_schema = defs.get(ref_key, {})
-                return [_example_from_schema(item_schema.get("properties", {}), defs)]
-            else:
-                return [_placeholder_from_type(item, defs)]
-
-        if t == "object":
-            return _example_from_schema(field.get("properties", {}), defs)
-
-        if "$ref" in field:
-            ref_key = field["$ref"].split("/")[-1]
-            ref_schema = defs.get(ref_key, {})
-            return _example_from_schema(ref_schema.get("properties", {}), defs)
-
-        return None
 
 
     schema = model.model_json_schema()
     return _example_from_schema(schema.get("properties", {}), schema.get("$defs", {}))
+
+
+_SCALAR_EXAMPLES: dict[str, Any] = {"string": "string", "integer": 1, "number": 1.0, "boolean": True}
+
+
+def _example_from_schema(props: dict[str, Any], defs: dict[str, Any]) -> dict[str, Any]:
+
+    """
+
+    Recursively generates example values for a given set of schema properties.
+
+    """
+
+    if not isinstance(props, dict):
+        raise TypeError(f"props must be a dictionary. Received: {props} with type {type(props)}")
+    if not isinstance(defs, dict):
+        raise TypeError(f"defs must be a dictionary. Received: {defs} with type {type(defs)}")
+
+
+    result = {}
+    for key, val in props.items():
+        if "$ref" in val:
+            result[key] = _example_from_reference(val["$ref"], defs)
+        else:
+            result[key] = _placeholder_from_type(val, defs)
+
+
+    return result
+
+
+def _example_from_reference(ref: str, defs: dict[str, Any]) -> dict[str, Any]:
+
+    """
+
+    Generates the example of the schema a `$ref` points at, empty when the reference is unknown.
+
+    """
+
+    ref_key = ref.split("/")[-1]
+    ref_schema = defs.get(ref_key, {})
+    return _example_from_schema(ref_schema.get("properties", {}), defs)
+
+
+def _placeholder_from_union(options: Any, defs: dict[str, Any]) -> Any:
+
+    """
+
+    Generates the example of the first usable member of an anyOf, oneOf, or allOf list.
+
+    """
+
+    if isinstance(options, list) and options:
+        opt = options[0]
+        if "$ref" in opt:
+            return _example_from_reference(opt["$ref"], defs)
+        elif "type" in opt or "properties" in opt:
+            return _placeholder_from_type(opt, defs)
+    return None
+
+
+def _placeholder_from_type(field: dict[str, Any], defs: dict[str, Any]) -> Any:
+
+    """
+
+    Generates a placeholder example value for a field based on its type.
+
+    """
+
+    if not isinstance(field, dict):
+        raise TypeError(f"field must be a dictionary. Received: {field} with type {type(field)}")
+    if not isinstance(defs, dict):
+        raise TypeError(f"defs must be a dictionary. Received: {defs} with type {type(defs)}")
+
+
+    for key in ("anyOf", "oneOf", "allOf"):
+        if key in field:
+            return _placeholder_from_union(field[key], defs)
+
+    t = field.get("type")
+    if isinstance(t, str) and t in _SCALAR_EXAMPLES:
+        return _SCALAR_EXAMPLES[t]
+
+    if t == "array":
+        item = field.get("items", {})
+        if "$ref" in item:
+            return [_example_from_reference(item["$ref"], defs)]
+        else:
+            return [_placeholder_from_type(item, defs)]
+
+    if t == "object":
+        return _example_from_schema(field.get("properties", {}), defs)
+
+    if "$ref" in field:
+        return _example_from_reference(field["$ref"], defs)
+
+    return None

@@ -6,7 +6,8 @@ from keel.adapters.events import CollectingEventSink
 from keel.adapters.memory import InMemoryMemory
 from keel.adapters.registry import ToolRegistry
 from keel.core.config import EngineConfig
-from keel.domain.exceptions import StepLimitExceededError, ToolExecutionError
+from keel.domain.exceptions import (StepLimitExceededError, ToolExecutionError,
+                                    ToolNotFoundError)
 from keel.domain.schemas.actions import Action, Finish, ToolCall
 from keel.domain.schemas.events import EngineEvent
 from keel.domain.schemas.runs import RunSpec, RunState
@@ -138,6 +139,30 @@ async def test_a_failing_tool_halts_the_run_when_the_config_says_so() -> None:
 
     with pytest.raises(ToolExecutionError):
         await runner.run(RunSpec(goal="halt on a failure"))
+
+
+async def test_an_unknown_tool_halts_the_run_with_its_own_error_when_the_config_says_so() -> None:
+    runner, reasoner, memory, events = build_runner(
+        ToolCall(tool_name="missing"),
+        halt_on_tool_error=True,
+    )
+
+    with pytest.raises(ToolNotFoundError):
+        await runner.run(RunSpec(goal="halt on a tool that is not there"))
+
+
+async def test_an_unexpected_tool_error_halts_the_run_with_the_cause_chained() -> None:
+    tool = ScriptedTool(raises=RuntimeError("the wire snapped"))
+    runner, reasoner, memory, events = build_runner(
+        ToolCall(tool_name="echo"),
+        tool=tool,
+        halt_on_tool_error=True,
+    )
+
+    with pytest.raises(ToolExecutionError, match="unexpected error") as raised:
+        await runner.run(RunSpec(goal="halt on a surprise"))
+
+    assert isinstance(raised.value.__cause__, RuntimeError)
 
 
 async def test_an_unknown_tool_is_reported_without_ending_the_run() -> None:
