@@ -102,12 +102,27 @@ RECORD_NAME_SCOPE = "record filenames held to seventy-two characters"
 NAME_CAP = 72
 
 
+# Questions about committed history have one answer for the life of a process, because nothing
+# here commits: a plant writes a file or adds it to the index and history stays as it was. So
+# these subcommands are asked once and remembered, and the selftest's forty runs stop repeating
+# the same walks. A question that reads the working tree or the index, diff, ls-files, status,
+# is never remembered, since the plants change exactly that between runs.
+HISTORY_COMMANDS = ("log", "show", "rev-list", "rev-parse")
+HISTORY_ANSWERS: dict[tuple[str, ...], str] = {}
+
+
 def git(*args: str) -> str:
-    """One git call against the repository this file lives in."""
+    """One git call against the repository this file lives in; answers about committed history are kept."""
+    remembered = bool(args) and args[0] in HISTORY_COMMANDS
+    if remembered and args in HISTORY_ANSWERS:
+        return HISTORY_ANSWERS[args]
     done = subprocess.run(
         ["git", *args], cwd=ROOT, capture_output=True, text=True, check=False
     )
-    return done.stdout.strip() if done.returncode == 0 else ""
+    answer = done.stdout.strip() if done.returncode == 0 else ""
+    if remembered:
+        HISTORY_ANSWERS[args] = answer
+    return answer
 
 
 def tracked_files() -> list[str]:
@@ -302,10 +317,18 @@ def check_records(problems: list[str], root: Path) -> None:
         ("docs/inherited", DECISION_STATUS),
         ("docs/claims", CLAIM_STATUS),
     ):
+        # Numbers are unique within a folder and never compared across them; two sessions that
+        # each wrote the next number merge without a textual conflict, and this is where it shows.
+        advice = "recopy the folder whole from the template" if folder == "docs/inherited" else "renumber the newer record"
+        numbers: dict[str, str] = {}
         for path in sorted((root / folder).glob("*.md")):
             rel = f"{folder}/{path.name}"
             if not RECORD_NAME.match(path.name):
                 problems.append(f"{rel}: name breaks NNNN-kebab-title.md")
+            number = path.name[:4]
+            if number in numbers:
+                problems.append(f"{folder}/: {numbers[number]} and {path.name} share the number {number}; {advice}")
+            numbers[number] = path.name
             text = path.read_text(encoding="utf-8")
             lines = text.split("\n")
             if not any(status.match(l) for l in lines):
@@ -468,11 +491,14 @@ def record_diffs() -> list[tuple[str, str]]:
     arrivals = git("log", "--reverse", "--format=%H", "-S", IMMUTABILITY_SCOPE, "--", "scripts/audit_inquiry.py").split()
     diffs = [("the working tree", git("diff", "HEAD", "--unified=0", "--diff-filter=M", "--", "docs"))]
     if arrivals:
-        commits = [arrivals[0], *git("log", "--format=%H", f"{arrivals[0]}..HEAD", "--diff-filter=M", "--", "docs").split()]
-        diffs.extend(
-            (sha[:12], git("show", sha, "--format=", "--unified=0", "-M", "--diff-filter=M", "--", "docs"))
-            for sha in commits
-        )
+        diffs.append((arrivals[0][:12], git("show", arrivals[0], "--format=", "--unified=0", "-M", "--diff-filter=M", "--", "docs")))
+        # One walk prints every later commit's patch behind its own marker line, instead of one
+        # process per commit, so the cost stays flat as the history grows; a merge shows what its
+        # resolution changed, as show does.
+        log = git("log", "-p", "--cc", "--format=%x01%H", "--unified=0", "-M", "--diff-filter=M", f"{arrivals[0]}..HEAD", "--", "docs")
+        for chunk in log.split("\x01")[1:]:
+            sha, _, patch = chunk.partition("\n")
+            diffs.append((sha.strip()[:12], patch))
     return diffs
 
 
@@ -861,12 +887,14 @@ PLANTED_ENTRY = b"- **planted9999**: Planted, P. 9999. A work entered by the sel
 # A superseded conjecture keeps Evidence None. and must PASS, or this checker
 # would force evidence into an immutable record to earn a clean run; and a key
 # inside backticks is a mention of the form, so a record explaining the form must PASS too.
+# Their numbers sit above any a young project's ledger reaches, so a legal plant never shares
+# a number with a real claim and fails the check written for two sessions.
 LEGAL_PLANTS = [
-    ("docs/claims/0005-planted-legal.md",
-     ("# 0005. Planted legal\n\nStatus: Superseded by 0002\nDate: 2026-01-01\n\n"
+    ("docs/claims/0086-planted-legal.md",
+     ("# 0086. Planted legal\n\nStatus: Superseded by 0002\nDate: 2026-01-01\n\n"
       "## Claim\n\nx.\n\n## Evidence\n\nNone.\n\n## Threats\n\n- None named.\n")),
-    ("docs/claims/0004-planted-legal-mention.md",
-     ("# 0004. Planted legal mention\n\nStatus: Conjecture\nDate: 2026-01-01\n\n"
+    ("docs/claims/0085-planted-legal-mention.md",
+     ("# 0085. Planted legal mention\n\nStatus: Conjecture\nDate: 2026-01-01\n\n"
       "## Claim\n\nA key written as `[nobody9999]` names the citation form and cites nothing.\n\n"
       "## Evidence\n\nNone.\n\n## Threats\n\n- None named.\n")),
 ]
@@ -1255,6 +1283,26 @@ def prove_figure_pair() -> int:
     return failures
 
 
+def prove_duplicate_numbers() -> int:
+    """Two records sharing one number in a folder are reported, naming both."""
+    twins = [ROOT / "docs/claims/0090-planted-twin-a.md", ROOT / "docs/claims/0090-planted-twin-b.md"]
+    try:
+        for twin in twins:
+            twin.write_text(
+                f"# 0090. {twin.stem[5:]}\n\nStatus: Conjecture\nDate: 2026-01-01\n\n## Claim\n\nx.\n\n"
+                "## Evidence\n\nNone.\n\n## Threats\n\n- None named.\n",
+                encoding="utf-8",
+            )
+        twin_problems, _ = run(ROOT)
+        if not any("share the number 0090" in p for p in twin_problems):
+            print("WRONG: two claims sharing the number 0090 raised nothing")
+            return 1
+    finally:
+        for twin in twins:
+            twin.unlink(missing_ok=True)
+    return 0
+
+
 def prove_immutability() -> int:
     """A body edit to an accepted record fails and a Status flip alone passes.
 
@@ -1389,6 +1437,7 @@ def selftest() -> int:
         prove_inherited_record,
         prove_upstream_plants,
         prove_figure_pair,
+        prove_duplicate_numbers,
         prove_immutability,
         prove_queue_age,
         prove_anchors,
