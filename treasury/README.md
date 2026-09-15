@@ -79,6 +79,7 @@ check this folder; the question may already be settled.
 | [0026](decisions/0026-dispose-of-the-upstream-entry-of-2026-09-10-on-same-day-arrival.md) | History-reading checks compare commits by ancestry, never by date, so a rule never reaches behind its own commit; the selftest reports a red tree as a red tree |
 | [0027](decisions/0027-rehearse-adoption-before-a-check-lands.md) | The family workflow builds a child from each template, shaped the way adoption shapes it, and requires its gate to pass, so a check is never green only where its preconditions are absent |
 | [0028](decisions/0028-adopt-three-shape-limits-and-refuse-the-other-slop-metrics.md) | Every seat's linter gates three function-shape limits, ten paths, five nested blocks, fifty statements, with audit scripts exempt as named debt; dead code, clones, blended scores, and churn hotspots refused for the template on measurement |
+| [0029](decisions/0029-speed-the-gate-without-loosening-it-and-land-through-a-branch.md) | The gate runs concurrently, the audits gather history in one call and remember it for a process, the host audit names shared record numbers, and every seat lands through a branch merged with main and gated whole; skipping unchanged checks, a type-check daemon, and lighter proofs refused |
 
 ## Rules of the folder
 
