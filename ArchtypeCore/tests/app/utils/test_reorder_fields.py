@@ -1,7 +1,7 @@
 import warnings
 
 import pytest
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from app.utils.reorder_fields import reorder_fields
 
@@ -10,12 +10,13 @@ from app.utils.reorder_fields import reorder_fields
 
 
 class StampMixin(BaseModel):
-    created_at: int
     updated_at: int
+    created_at: int
 
 
 class Identified(BaseModel):
     id: int
+    labels: list[str] = Field(default_factory=list, description="free-form labels")
 
 
 def field_names(model: type[BaseModel]) -> list[str]:
@@ -27,11 +28,30 @@ def test_inherited_fields_lead_own_fields_follow_and_the_last_classes_close_the_
     class Thing(Identified, StampMixin):
         name: str = "unnamed"
 
-    names = field_names(Thing)
-
-    assert names[:2] == ["id", "name"]
-    assert set(names[2:]) == {"created_at", "updated_at"}
+    assert field_names(Thing) == ["id", "labels", "name", "created_at", "updated_at"]
     assert Thing.__name__ == "Thing"
+
+
+def test_defaults_and_factories_survive_the_rebuild_wherever_the_field_came_from() -> None:
+    @reorder_fields(StampMixin)
+    class Thing(Identified, StampMixin):
+        name: str = "unnamed"
+        count: int
+
+    thing = Thing(id=1, count=2, created_at=3, updated_at=4)
+
+    assert thing.name == "unnamed"
+    assert thing.labels == []
+    assert Thing.model_fields["labels"].description == "free-form labels"
+    assert Thing.model_fields["count"].is_required()
+
+
+def test_moved_fields_without_an_interleave_order_fall_alphabetically() -> None:
+    @reorder_fields(StampMixin)
+    class Thing(Identified, StampMixin):
+        name: str
+
+    assert field_names(Thing)[-2:] == ["created_at", "updated_at"]
 
 
 def test_interleave_last_fixes_the_order_of_the_moved_fields() -> None:
@@ -39,7 +59,7 @@ def test_interleave_last_fixes_the_order_of_the_moved_fields() -> None:
     class Thing(Identified, StampMixin):
         name: str
 
-    assert field_names(Thing) == ["id", "name", "updated_at", "created_at"]
+    assert field_names(Thing) == ["id", "labels", "name", "updated_at", "created_at"]
 
 
 def test_include_and_exclude_sets_filter_every_source_of_fields() -> None:
@@ -56,7 +76,7 @@ def test_fields_to_move_last_moves_only_the_named_fields_and_warns_about_unknown
         class Thing(Identified, StampMixin):
             name: str
 
-    assert field_names(Thing) == ["id", "name", "created_at"]
+    assert field_names(Thing) == ["id", "labels", "name", "created_at"]
 
 
 def test_the_last_classes_may_be_named_as_strings() -> None:
@@ -64,7 +84,7 @@ def test_the_last_classes_may_be_named_as_strings() -> None:
     class Thing(Identified, StampMixin):
         name: str
 
-    assert field_names(Thing) == ["id", "name", "created_at", "updated_at"]
+    assert field_names(Thing) == ["id", "labels", "name", "created_at", "updated_at"]
 
 
 def test_a_last_class_missing_from_the_bases_is_refused() -> None:
@@ -89,4 +109,4 @@ def test_a_clean_call_raises_no_warning() -> None:
         class Thing(Identified, StampMixin):
             name: str
 
-    assert field_names(Thing) == ["id", "name", "created_at"]
+    assert field_names(Thing) == ["id", "labels", "name", "created_at"]

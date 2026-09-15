@@ -171,7 +171,7 @@ def _collect_fields_recursively(base_cls: type) -> dict[str, tuple[type, object]
             continue
         if hasattr(base, "model_fields"):
             for fname, field in base.model_fields.items():
-                collected[fname] = (field.annotation, getattr(field, "default", ...))
+                collected[fname] = (field.annotation, field)
 
 
     return collected
@@ -236,7 +236,7 @@ def _add_inherited_fields(cls: type, last_class_names_set: set[str], order: _Fie
         if hasattr(base, "model_fields"):
             for fname, field in base.model_fields.items():
                 if order.allowed(fname):
-                    order.add(fname, field.annotation, getattr(field, "default", ...))
+                    order.add(fname, field.annotation, field)
                 elif order.verbose:
                     print(f"Skipping field '{fname}' (not allowed)")
 
@@ -250,9 +250,11 @@ def _add_own_fields(cls: type, order: _FieldOrder, debug: bool) -> None:
     """
 
     if debug: print(f"\n[{cls.__name__}] Adding own fields...")
+    # A model keeps its defaults on the field, not on the class, so the field is what carries them.
+    declared = getattr(cls, "model_fields", {})
     for fname, annotation in getattr(cls, "__annotations__", {}).items():
         if order.allowed(fname):
-            order.add(fname, annotation, getattr(cls, fname, ...))
+            order.add(fname, annotation, declared[fname] if fname in declared else getattr(cls, fname, ...))
         elif order.verbose:
             print(f"Skipping field '{fname}' (not allowed)")
 
@@ -282,7 +284,8 @@ def _collect_last_fields(
         if invalid_fields:
             warnings.warn(f"fields_to_move_last for class {class_name} contains invalid fields: {invalid_fields}", stacklevel=3)
 
-        for fname in move_fields & set(all_fields.keys()):
+        # Alphabetical, as the decorator's contract says; a set's own order would change between runs.
+        for fname in sorted(move_fields & set(all_fields.keys())):
             if order.allowed(fname):
                 last_fields_collected[fname] = all_fields[fname]
 
