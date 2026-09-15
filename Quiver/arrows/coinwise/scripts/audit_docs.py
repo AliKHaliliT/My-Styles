@@ -602,11 +602,14 @@ def record_diffs() -> list[tuple[str, str]]:
     arrivals = git("log", "--reverse", "--format=%H", "-S", IMMUTABILITY_SCOPE, "--", "scripts/audit_docs.py").split()
     diffs = [("the working tree", git("diff", "HEAD", "--unified=0", "--diff-filter=M", "--", "docs"))]
     if arrivals:
-        commits = [arrivals[0], *git("log", "--format=%H", f"{arrivals[0]}..HEAD", "--diff-filter=M", "--", "docs").split()]
-        diffs.extend(
-            (sha[:12], git("show", sha, "--format=", "--unified=0", "-M", "--diff-filter=M", "--", "docs"))
-            for sha in commits
-        )
+        diffs.append((arrivals[0][:12], git("show", arrivals[0], "--format=", "--unified=0", "-M", "--diff-filter=M", "--", "docs")))
+        # One walk prints every later commit's patch behind its own marker line, instead of one
+        # process per commit, so the cost stays flat as the history grows; a merge shows what its
+        # resolution changed, as show does.
+        log = git("log", "-p", "--cc", "--format=%x01%H", "--unified=0", "-M", "--diff-filter=M", f"{arrivals[0]}..HEAD", "--", "docs")
+        for chunk in log.split("\x01")[1:]:
+            sha, _, patch = chunk.partition("\n")
+            diffs.append((sha.strip()[:12], patch))
     return diffs
 
 

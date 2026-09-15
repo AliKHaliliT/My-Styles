@@ -482,9 +482,15 @@ if (existsSync(resolve(ROOT, "docs"))) {
     const arrivals = git("log", "--reverse", "--format=%H", "-S", IMMUTABILITY_SCOPE, "--", "scripts/audit-docs.mjs").split(/\s+/).filter(Boolean);
     const diffs = [["the working tree", git("diff", "HEAD", "--unified=0", "--diff-filter=M", "--", "docs")]];
     if (arrivals.length > 0) {
-      const later = git("log", "--format=%H", `${arrivals[0]}..HEAD`, "--diff-filter=M", "--", "docs").split(/\s+/).filter(Boolean);
-      for (const sha of [arrivals[0], ...later]) {
-        diffs.push([sha.slice(0, 12), git("show", sha, "--format=", "--unified=0", "-M", "--diff-filter=M", "--", "docs")]);
+      diffs.push([arrivals[0].slice(0, 12), git("show", arrivals[0], "--format=", "--unified=0", "-M", "--diff-filter=M", "--", "docs")]);
+      // One walk prints every later commit's patch behind its own marker line, instead of one
+      // process per commit, so the cost stays flat as the history grows; a merge shows what its
+      // resolution changed, as show does.
+      const log = git("log", "-p", "--cc", "--format=%x01%H", "--unified=0", "-M", "--diff-filter=M", `${arrivals[0]}..HEAD`, "--", "docs");
+      for (const chunk of log.split("\x01").slice(1)) {
+        const newline = chunk.indexOf("\n");
+        const sha = newline === -1 ? chunk : chunk.slice(0, newline);
+        diffs.push([sha.trim().slice(0, 12), newline === -1 ? "" : chunk.slice(newline + 1)]);
       }
     }
     for (const [where, diff] of diffs) {
