@@ -10,6 +10,7 @@ Keel is a strict, AI-ready Clean Architecture template for installable Python pa
 - Lint: `ruff check . && lint-imports` (ruff checks style, docstring presence, and the function-shape limits; import-linter checks the Dependency Rule)
 - Type-check: `mypy src tests` (strict mode is configured in `pyproject.toml`)
 - Docs: `python scripts/audit_docs.py` (the living documents against the tree and the calendar)
+- Prove the audit itself: `python scripts/audit_docs.py --selftest` (every rule against a planted defect, because a check that never fires and a check that cannot fire look identical)
 
 The checks report at two levels. A failure is a verdict, it stops the
 command, and it means a rule the tool fully decides has been broken. A warning is

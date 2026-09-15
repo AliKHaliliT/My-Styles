@@ -1,0 +1,299 @@
+/**
+ * Prove each rule of the docs audit fires against a planted defect, then leave no trace.
+ *
+ * The audit is one script that reads the tree and prints its findings, so the proof runs it as
+ * a child process over a planted tree, once per group of plants that cannot disturb each other,
+ * and looks for the finding each plant was written to raise. A plant builds what it needs and
+ * removes what it built, a tracked plant enters the index by intent-to-add and leaves it again,
+ * and a borrowed living file comes back byte for byte, so the proof holds in a project built
+ * from this template as well as in the template. A rule that only history can plant is named
+ * as skipped rather than counted as proven. The unplanted tree is checked first, because a
+ * plant proves nothing in a tree that already fails.
+ */
+
+import { execFileSync, spawnSync } from "node:child_process";
+import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, unlinkSync, writeFileSync } from "node:fs";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const AUDIT = join(ROOT, "scripts", "audit-docs.mjs");
+const BUDGET_LINES = 150;
+const HORIZON_DAYS = 90;
+const NOW_CAP = 5;
+const NAME_CAP = 72;
+const TODAY = new Date().toISOString().slice(0, 10);
+
+/** One git call against the repository this file lives in; empty when git says no. */
+function git(...args) {
+  try {
+    return execFileSync("git", args, { cwd: ROOT, encoding: "utf-8", stdio: ["ignore", "pipe", "ignore"] });
+  } catch {
+    return "";
+  }
+}
+
+/** The audit's findings on the tree as it stands, one per line, the verdict line excluded. */
+function audit() {
+  const done = spawnSync(process.execPath, [AUDIT], { cwd: ROOT, encoding: "utf-8" });
+  return `${done.stdout}${done.stderr}`.split("\n").filter((line) => line && !line.startsWith("The tree") && !line.includes("problem(s)."));
+}
+
+let failures = 0;
+
+/** Report one broken rule and count it. */
+function wrong(message) {
+  console.log(`WRONG: ${message}`);
+  failures += 1;
+}
+
+/** Fail unless a finding carries the needle. */
+function expect(problems, needle, label) {
+  if (!problems.some((p) => p.includes(needle))) wrong(`${label} did not raise ${JSON.stringify(needle)}`);
+}
+
+/** Write a plant, creating the directories it needs. */
+function plant(rel, content) {
+  const path = join(ROOT, rel);
+  mkdirSync(dirname(path), { recursive: true });
+  writeFileSync(path, content);
+}
+
+/** Remove a plant and every directory it emptied below the root. */
+function unplant(rel) {
+  const path = join(ROOT, rel);
+  if (existsSync(path)) unlinkSync(path);
+  let parent = dirname(path);
+  while (parent !== ROOT && existsSync(parent) && readdirSync(parent).length === 0) {
+    rmSync(parent, { recursive: true });
+    parent = dirname(parent);
+  }
+}
+
+/** Run one group of plants against the audit and check each expected finding. */
+function proveGroup(label, plants, expected, tracked = false) {
+  for (const [rel, content] of plants) {
+    plant(rel, content);
+    if (tracked) git("add", "-N", "--", rel);
+  }
+  try {
+    const problems = audit();
+    for (const needle of expected) expect(problems, needle, label);
+  } finally {
+    for (const [rel] of plants) {
+      if (tracked) git("rm", "--cached", "-q", "--", rel);
+      unplant(rel);
+    }
+  }
+}
+
+/** Append to living files, run the audit, check the findings, and restore every byte. */
+function proveAppended(label, appended, expected) {
+  const originals = new Map();
+  for (const [rel, text] of appended) {
+    const path = join(ROOT, rel);
+    if (!existsSync(path)) {
+      console.log(`append plant skipped: ${rel} is not in this tree`);
+      continue;
+    }
+    originals.set(path, readFileSync(path));
+    writeFileSync(path, Buffer.concat([originals.get(path), Buffer.from(text, "utf-8")]));
+  }
+  try {
+    const problems = audit();
+    for (const needle of expected) expect(problems, needle, label);
+  } finally {
+    for (const [path, bytes] of originals) writeFileSync(path, bytes);
+  }
+}
+
+/** Replace a living file's text for one run, then restore its bytes. */
+function proveReplaced(label, rel, text, expected, mustPass = false) {
+  const path = join(ROOT, rel);
+  const original = existsSync(path) ? readFileSync(path) : null;
+  writeFileSync(path, text);
+  try {
+    const problems = audit().filter((p) => !mustPass || p.includes("UPSTREAM"));
+    if (mustPass && problems.length > 0) wrong(`${label} raised ${JSON.stringify(problems.slice(0, 2))}`);
+    for (const needle of expected) expect(problems, needle, label);
+  } finally {
+    if (original === null) unlinkSync(path);
+    else writeFileSync(path, original);
+  }
+}
+
+/** The lowest record number no record under docs/decisions uses, from nine hundred up. */
+function freeNumber() {
+  const taken = new Set(readdirSync(join(ROOT, "docs", "decisions")).map((name) => name.slice(0, 4)));
+  for (let n = 900; n < 10000; n += 1) {
+    const candidate = String(n).padStart(4, "0");
+    if (!taken.has(candidate)) return candidate;
+  }
+  return "9999";
+}
+
+function proveFilePlants() {
+  const twin = freeNumber();
+  const record = "Status: Accepted\nDate: 2026-01-01\n";
+  proveGroup(
+    "an untracked plant",
+    [
+      ["docs/lowercase-planted.md", "# Planted\n"],
+      ["docs/PLANTED.md", `# Planted\n${"line\n".repeat(150)}`],
+      ["docs/decisions/bad-name-planted.md", "# Bad\n"],
+      ["docs/decisions/0093-planted-with-a-title-so-long-that-it-runs-past-the-seventy-two-character-cap.md", `# 0093. Planted\n\n${record}`],
+      [`docs/decisions/${twin}-planted-twin-a.md`, `# ${twin}. Planted twin\n\n${record}`],
+      [`docs/decisions/${twin}-planted-twin-b.md`, `# ${twin}. Planted twin\n\n${record}`],
+    ],
+    [
+      "docs/lowercase-planted.md: organic documents are UPPERCASE markdown",
+      "docs/PLANTED.md: not registered in the AGENTS.md index",
+      `docs/PLANTED.md: 152 lines against the ${BUDGET_LINES}-line budget`,
+      "docs/decisions/bad-name-planted.md: records are named NNNN-short-kebab-title.md",
+      `the cap is ${NAME_CAP}`,
+      `share the number ${twin}`,
+    ],
+  );
+}
+
+function proveTrackedPlants() {
+  proveGroup(
+    "a tracked plant",
+    [
+      ["stray-planted/note.txt", "nobody gave this a room\n"],
+      ["src/planted-layer/note.ts", "export const planted = 1;\n"],
+      ["ROGUE-PLANTED.txt", "nobody named this\n"],
+      ["docs/planted.png", "not a document\n"],
+      ["docs/planted-folder/GUIDE.md", "# Guide\n"],
+    ],
+    [
+      "stray-planted/: exists in the tree but has no room",
+      "src/planted-layer/: exists in the tree but has no room",
+      "ROGUE-PLANTED.txt: sits at the root but neither the map nor the baseline names it",
+      "docs/planted.png: docs/ holds markdown documents only",
+      "docs/planted-folder/ has no row in the AGENTS.md index",
+      "a file below a docs/ subfolder is a dated record named YYYY-MM-DD-short-kebab-title.md",
+    ],
+    true,
+  );
+}
+
+function proveAppendedPlants() {
+  const engines = JSON.parse(readFileSync(join(ROOT, "package.json"), "utf-8")).engines?.node?.match(/>=\s*(\d+(?:\.\d+)*)/)?.[1];
+  const claimed = engines === "18" ? "20" : "18";
+  proveAppended(
+    "a plant on a living document",
+    [
+      ["AGENTS.md", "\nNames `docs/GHOST-PLANTED.md` and links [nowhere](docs/NOWHERE-PLANTED.md) in passing.\n"],
+      ["docs/ARCHITECTURE.md", "\n```text\nplanted/\n└── ghost_planted_file.ts\n```\n"],
+      ["docs/BASELINE.md", "line\n".repeat(160)],
+      ["README.md", `\nRequires Node ${claimed}+ here.\n`],
+    ],
+    [
+      "names `docs/GHOST-PLANTED.md`, which does not exist",
+      "links to docs/NOWHERE-PLANTED.md, which does not resolve",
+      "the tree names ghost_planted_file.ts, which exists nowhere in this repository",
+      `docs/BASELINE.md: `,
+      `lines against the ${BUDGET_LINES}-line budget; split by fission`,
+      ...(engines ? [`claims Node ${claimed}+ while engines declares ${engines}`] : []),
+    ],
+  );
+  if (!engines) console.log("version plant skipped: package.json declares no engines floor");
+}
+
+function proveStatePlants() {
+  const path = join(ROOT, "STATE.md");
+  if (!existsSync(path)) {
+    console.log("STATE plants skipped: no STATE.md in this tree");
+    return;
+  }
+  const text = readFileSync(path, "utf-8").replace(/\r\n/g, "\n");
+  const six = Array.from({ length: 6 }, (_, n) => `- Planted in-flight work ${n} (${TODAY})\n`).join("");
+  const planted = text
+    .replace("## Next", "## Queue")
+    .replace("## Blocked\n", "## Blocked\n\n- Planted stale blocked work (2025-01-01)\n")
+    .replace("## Now\n", `## Now\n\n${six}`);
+  proveReplaced("a STATE plant", "STATE.md", planted, [
+    "not the four the schema fixes",
+    `against the ${HORIZON_DAYS}-day horizon of Blocked`,
+    `entries against the cap of ${NOW_CAP}`,
+  ]);
+  console.log("queue age firing case skipped: no queued entry in this tree has two horizons of history");
+}
+
+const UPSTREAM_HEAD = "# Upstream\n\nAligned to Planted at 0123456789ab.\n\nEvery entry is a lead, not a verdict.\n\n## Open\n\n";
+const UPSTREAM_PARTS = "**What it is.** x.\n\n**How the work surfaced it.** x.\n\n**Why it is believed better.** x.\n\n**Records checked.** None.\n";
+
+function proveUpstreamPlants() {
+  const entry = `### ${TODAY} Planted entry\n\nKind: defect\nPin: 0123456789ab\n\n`;
+  proveReplaced("a legal UPSTREAM.md", "docs/UPSTREAM.md", `${UPSTREAM_HEAD}Nothing open.\n`, [], true);
+  proveReplaced("a legal UPSTREAM.md entry", "docs/UPSTREAM.md", UPSTREAM_HEAD + entry + UPSTREAM_PARTS, [], true);
+  const variants = [
+    ["# Upstream\n\nEvery entry is a lead, not a verdict.\n\n## Open\n\nNothing open.\n", "no Aligned line"],
+    ["# Upstream\n\nAligned to Planted at 0123456789ab.\n\nNo section.\n", "no ## Open section"],
+    [`${UPSTREAM_HEAD}Nothing here.\n`, "Open holds entries or the words Nothing open."],
+    [`${UPSTREAM_HEAD}Nothing open.\n\n${entry}${UPSTREAM_PARTS}`, "beside open entries"],
+    [`${UPSTREAM_HEAD}### ${TODAY} Planted entry\n\nPin: 0123456789ab\n\n${UPSTREAM_PARTS}`, "no Kind line"],
+    [`${UPSTREAM_HEAD}### ${TODAY} Planted entry\n\nKind: defect\n\n${UPSTREAM_PARTS}`, "no Pin line"],
+    [`${UPSTREAM_HEAD}${entry}**What it is.** x.\n\n**Why it is believed better.** x.\n`, "part **How the work surfaced it** missing"],
+    [`${UPSTREAM_HEAD}${entry}**What it is.** x.\n\n**How the work surfaced it.** x.\n\n**Records checked.** None.\n`, "neither Why it is believed better"],
+    [`${UPSTREAM_HEAD}### 2026-01-01 Planted entry\n\nKind: defect\nPin: 0123456789ab\n\n${UPSTREAM_PARTS}`, `past the ${HORIZON_DAYS}-day horizon`],
+  ];
+  for (const [text, needle] of variants) proveReplaced("an UPSTREAM.md plant", "docs/UPSTREAM.md", text, [needle]);
+}
+
+function provePalettePlant() {
+  if (!existsSync(join(ROOT, "src"))) {
+    console.log("palette plant skipped: this tree has no src/");
+    return;
+  }
+  proveGroup(
+    "the raw palette plant",
+    [["src/planted-selftest.tsx", 'export const Planted = () => <div className="bg-red-500" />;\n']],
+    ['raw palette class "bg-red-500"; colors come from the token utilities'],
+  );
+}
+
+function proveImmutability() {
+  const folder = join(ROOT, "docs", "decisions");
+  const name = readdirSync(folder).sort().find((entry) => readFileSync(join(folder, entry), "utf-8").includes("\nStatus: Accepted\n"));
+  if (!name) {
+    console.log("immutability plants skipped: no accepted record of this project's own to plant on");
+    return;
+  }
+  const path = join(folder, name);
+  const original = readFileSync(path);
+  try {
+    writeFileSync(path, Buffer.concat([original, Buffer.from("\nplanted body edit\n")]));
+    expect(audit(), "edited beyond its Status line", `a body edit to ${name}`);
+    writeFileSync(path, Buffer.from(original.toString("utf-8").replace("Status: Accepted", "Status: Superseded by 0999")));
+    if (audit().some((p) => p.includes("edited beyond its Status line"))) wrong(`a Status flip on ${name} was reported as an illegal edit`);
+  } finally {
+    writeFileSync(path, original);
+  }
+}
+
+function proveAnchors() {
+  const scopes = [
+    ["immutability", "records held immutable beyond their Status line: every file below a subfolder of docs/"],
+    ["queue age", "entries of Next, Deferred, and Blocked held to two horizons of unchanged text"],
+    ["filename cap", "record filenames held to seventy-two characters"],
+  ];
+  for (const [label, scope] of scopes) {
+    const arrival = git("log", "--reverse", "--format=%H", "-S", scope, "--", "scripts/audit-docs.mjs").split(/\s+/).filter(Boolean)[0];
+    if (!arrival) console.log(`anchor plant skipped: the ${label} scope sentence has not reached history yet`);
+    else if (git("show", `${arrival}^:scripts/audit-docs.mjs`).includes(scope)) wrong(`the ${label} anchor is older than the commit that introduced the current scope`);
+  }
+}
+
+const baseline = audit();
+if (baseline.length > 0) {
+  console.log("the unplanted tree is not clean, so nothing can be proven until the audit passes:");
+  for (const p of baseline.slice(0, 5)) console.log(`  ${p}`);
+  process.exit(1);
+}
+for (const proof of [proveFilePlants, proveTrackedPlants, proveAppendedPlants, proveStatePlants, proveUpstreamPlants, provePalettePlant, proveImmutability, proveAnchors]) {
+  proof();
+}
+console.log(failures === 0 ? "every rule fires" : `${failures} rule(s) do not work`);
+process.exit(failures === 0 ? 0 : 1);

@@ -10,6 +10,7 @@ ArchetypeCore is a strict, AI-ready Clean Architecture template for FastAPI serv
 - Lint: `ruff check . && lint-imports` (ruff checks style, docstring presence, and the function-shape limits; import-linter checks the Dependency Rule)
 - Type-check: `mypy app main.py db scripts tests`
 - Docs: `python scripts/audit_docs.py` (the living documents against the tree and the calendar)
+- Prove the audit itself: `python scripts/audit_docs.py --selftest` (every rule against a planted defect, because a check that never fires and a check that cannot fire look identical)
 - Migrate: `alembic upgrade head`
 - Docker: `docker-compose up --build -d`
 

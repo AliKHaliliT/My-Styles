@@ -41,6 +41,8 @@ jobs:
           cache: npm
       - name: Install
         run: npm ci
+      - name: Audit selftest
+        run: node scripts/audit-docs-selftest.mjs
       - name: Docs
         run: node scripts/audit-docs.mjs
       - name: Lint

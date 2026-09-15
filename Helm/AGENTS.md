@@ -10,6 +10,7 @@ Helm is a strict, AI-ready template for client-side web applications (React, Vit
 - Lint: `npm run lint` (ESLint holds the layer rule and the function-shape limits; never auto-fix `jsdoc/require-jsdoc`; its generated stubs come out mangled, so doc comments are written by hand)
 - Type-check: `npm run typecheck` (it runs `tsc -b`, because the root tsconfig is solution-style and a plain `tsc --noEmit` would check nothing)
 - Docs: `npm run docs` (the living documents against the tree and the calendar)
+- Prove the audit itself: `npm run docs:selftest` (every rule against a planted defect, because a check that never fires and a check that cannot fire look identical)
 - Build: `npm run build`
 - Preview the build: `npm run preview`
 

@@ -9,6 +9,9 @@ coverage of the import graph the Dependency Rule contract runs over, the immutab
 records, and the decidable half of the docstring convention. Decision records are exempt from
 the freshness rules because they describe the past, which does not rot; what is held about
 them is that nobody rewrites the past.
+
+Run with --selftest first on any change to this file, because a check that never fires and a
+check that cannot fire look identical.
 """
 
 import ast
@@ -843,8 +846,8 @@ def check_version_story(problems: list[str]) -> None:
         )
 
 
-def main() -> int:
-    """Run every check and report each disagreement between the tree and its conventions."""
+def run() -> tuple[list[str], list[Path]]:
+    """Every disagreement between the tree and its conventions, and the package roots the layout was held over."""
     problems: list[str] = []
     check_documents(problems)
     check_docs_zone(problems)
@@ -856,7 +859,402 @@ def main() -> int:
     check_record_immutability(problems)
     check_docstrings(problems)
     check_version_story(problems)
+    return problems, held
 
+
+# Plants, each an untracked file the glob-reading checks see, and the finding it must raise.
+FILE_PLANTS = [
+    ("docs/lowercase-planted.md", "# Planted\n", "organic documents are UPPERCASE markdown"),
+    ("docs/PLANTED.md", "# Planted\n", "docs/PLANTED.md: not registered in the AGENTS.md index"),
+    ("docs/PLANTED.md", "# Planted\n" + "line\n" * 150, f"docs/PLANTED.md: 152 lines against the {BUDGET_LINES}-line budget"),
+    ("docs/decisions/bad-name-planted.md", "# Bad\n", "records are named NNNN-short-kebab-title.md"),
+    (
+        "docs/decisions/0093-planted-with-a-title-so-long-that-it-runs-past-the-seventy-two-character-cap.md",
+        "# 0093. Planted\n\nStatus: Accepted\nDate: 2026-01-01\n",
+        f"the cap is {NAME_CAP}",
+    ),
+]
+
+# Plants appended to a living document, whose bytes are restored afterwards.
+APPEND_PLANTS = [
+    ("AGENTS.md", "\nNames `docs/GHOST-PLANTED.md` in passing.\n", "names `docs/GHOST-PLANTED.md`, which does not exist"),
+    ("AGENTS.md", "\nLinks [nowhere](docs/NOWHERE-PLANTED.md) in passing.\n", "links to docs/NOWHERE-PLANTED.md, which does not resolve"),
+    (
+        "docs/ARCHITECTURE.md",
+        "\n```text\nplanted/\n└── ghost_planted_file.py\n```\n",
+        "the tree names ghost_planted_file.py, which exists nowhere in this repository",
+    ),
+    ("docs/BASELINE.md", "line\n" * 160, f"lines against the {BUDGET_LINES}-line budget; split by fission"),
+]
+
+# Plants the tracked-tree checks can see; each is intent-to-added for one run.
+TRACKED_PLANTS = [
+    ("stray-planted/note.txt", "nobody gave this a room\n", "stray-planted/: exists in the tree but has no room"),
+    ("ROGUE-PLANTED.txt", "nobody named this\n", "ROGUE-PLANTED.txt: sits at the root but neither the map nor the baseline names it"),
+    ("docs/planted.png", "not a document\n", "docs/planted.png: docs/ holds markdown documents only"),
+    ("docs/planted-folder/GUIDE.md", "# Guide\n", "docs/planted-folder/ has no row in the AGENTS.md index"),
+    ("docs/planted-folder/GUIDE.md", "# Guide\n", "a file below a docs/ subfolder is a dated record named YYYY-MM-DD-short-kebab-title.md"),
+]
+
+# A source file carrying one defect per docstring rule, planted under the first package root.
+DOCSTRING_PLANT = (
+    '"""A module docstring where none belongs."""\n\n\n'
+    "def only_parameters(a: int, b: int) -> int:\n\n"
+    '    """\n\n    Adds.\n\n\n    Parameters\n    ----------\n    a : int\n        One.\n\n    b\n        Two.\n\n    c : int\n        Three.\n\n    """\n\n'
+    "    return a + b\n\n\n"
+    "def bad_rhythm(a: int) -> int:\n"
+    '    """Adds one.\n\n    Returns\n    -------\n    int\n    """\n'
+    "    return a + 1\n\n\n"
+    "class Holder:\n\n"
+    '    """\n\n    Holds.\n\n    Attributes\n    ----------\n    seen : int\n        Declared.\n\n    ghost : int\n        Not declared.\n\n    """\n\n'
+    "    seen: int = 0\n"
+)
+DOCSTRING_EXPECTS = (
+    "a module carries no docstring",
+    "only_parameters documents ['Parameters'] alone",
+    "only_parameters documents parameters ['a', 'b', 'c'] but its signature has ['a', 'b']",
+    "only_parameters lists parameters without a type (b)",
+    "bad_rhythm's docstring opens and closes with a triple quote alone on its line",
+    "Holder's Attributes section stands after two blank lines",
+    "Holder documents attributes ['ghost'] that the class does not declare",
+)
+
+UPSTREAM_HEAD = "# Upstream\n\nAligned to Planted at 0123456789ab.\n\nEvery entry is a lead, not a verdict.\n\n## Open\n\n"
+UPSTREAM_PARTS_TEXT = (
+    "**What it is.** x.\n\n**How the work surfaced it.** x.\n\n"
+    "**Why it is believed better.** x.\n\n**Records checked.** None.\n"
+)
+
+
+def wrong(message: str) -> int:
+    """Report one broken rule and count it."""
+    print(f"WRONG: {message}")
+    return 1
+
+
+def expect(problems: list[str], needle: str, label: str) -> int:
+    """Zero when a finding carries the needle, else one reported failure."""
+    if any(needle in p for p in problems):
+        return 0
+    return wrong(f"{label} did not raise {needle!r}")
+
+
+def restore(path: Path, original: bytes | None) -> None:
+    """Put a borrowed file back as it was, or remove it when it did not exist."""
+    if original is None:
+        path.unlink(missing_ok=True)
+    else:
+        path.write_bytes(original)
+
+
+def remove_planted(path: Path, stop: Path) -> None:
+    """Remove a planted file and every directory it emptied below the stop directory."""
+    path.unlink(missing_ok=True)
+    parent = path.parent
+    while parent != stop and parent.exists() and not any(parent.iterdir()):
+        parent.rmdir()
+        parent = parent.parent
+
+
+def prove_file_plants() -> int:
+    """Each untracked plant raises its finding and leaves no trace."""
+    failures = 0
+    for rel, content, needle in FILE_PLANTS:
+        target = ROOT / rel
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(content, encoding="utf-8")
+        try:
+            failures += expect(run()[0], needle, f"plant {rel}")
+        finally:
+            remove_planted(target, ROOT)
+    return failures
+
+
+def prove_append_plants() -> int:
+    """Each plant appended to a living document raises its finding, and the document's bytes come back."""
+    failures = 0
+    for rel, appended, needle in APPEND_PLANTS:
+        target = ROOT / rel
+        if not target.exists():
+            print(f"append plant skipped: {rel} is not in this tree")
+            continue
+        original = target.read_bytes()
+        target.write_bytes(original + appended.encode())
+        try:
+            failures += expect(run()[0], needle, f"plant on {rel}")
+        finally:
+            target.write_bytes(original)
+    return failures
+
+
+def prove_tracked_plants() -> int:
+    """Each plant the tracked-tree checks read raises its finding; nothing reaches a commit."""
+    failures = 0
+    for rel, content, needle in TRACKED_PLANTS:
+        target = ROOT / rel
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(content, encoding="utf-8")
+        git("add", "-N", "--", rel)
+        try:
+            failures += expect(run()[0], needle, f"tracked plant {rel}")
+        finally:
+            git("rm", "--cached", "-q", "--", rel)
+            remove_planted(target, ROOT)
+    return failures
+
+
+def prove_twin_numbers() -> int:
+    """Two records sharing one number are reported, naming both."""
+    taken = {p.name[:4] for p in (ROOT / "docs/decisions").glob("*.md")}
+    free = next(f"{n:04d}" for n in range(900, 10000) if f"{n:04d}" not in taken)
+    twins = [ROOT / f"docs/decisions/{free}-planted-twin-{side}.md" for side in ("a", "b")]
+    try:
+        for twin in twins:
+            twin.write_text(f"# {free}. Planted twin\n\nStatus: Accepted\nDate: 2026-01-01\n", encoding="utf-8")
+        return expect(run()[0], f"share the number {free}", "the twin records")
+    finally:
+        for twin in twins:
+            twin.unlink(missing_ok=True)
+
+
+def state_variants() -> list[tuple[str, str, str]]:
+    """Each STATE.md plant as a replacement pair and the finding it raises."""
+    six = "".join(f"- Planted in-flight work {n} ({date.today().isoformat()})\n" for n in range(6))
+    return [
+        ("## Next", "## Queue", "not the four the schema fixes"),
+        ("## Blocked\n", "## Blocked\n\n- Planted stale blocked work (2025-01-01)\n", f"against the {HORIZON_DAYS}-day horizon of Blocked"),
+        ("## Now\n", "## Now\n\n" + six, f"entries against the cap of {NOW_CAP}"),
+    ]
+
+
+def prove_state_plants() -> int:
+    """The STATE schema's decidable rules fire: the four sections, the horizon, and the cap on Now."""
+    state = ROOT / "STATE.md"
+    if not state.exists():
+        print("STATE plants skipped: no STATE.md in this tree")
+        return 0
+    failures = 0
+    original = state.read_bytes()
+    text = original.decode("utf-8").replace("\r\n", "\n")
+    for old, new, needle in state_variants():
+        if old not in text:
+            failures += wrong(f"STATE.md lacks {old!r}, so its plant cannot be placed")
+            continue
+        state.write_bytes(text.replace(old, new, 1).encode())
+        try:
+            failures += expect(run()[0], needle, f"STATE plant {needle!r}")
+        finally:
+            state.write_bytes(original)
+    print("queue age firing case skipped: no queued entry in this tree has two horizons of history")
+    return failures
+
+
+def upstream_variants() -> list[tuple[str, str | None]]:
+    """Each UPSTREAM.md plant and the finding it raises, None for one that must pass."""
+    today = date.today().isoformat()
+    entry = f"### {today} Planted entry\n\nKind: defect\nPin: 0123456789ab\n\n"
+    return [
+        (UPSTREAM_HEAD + "Nothing open.\n", None),
+        (UPSTREAM_HEAD + entry + UPSTREAM_PARTS_TEXT, None),
+        ("# Upstream\n\nEvery entry is a lead, not a verdict.\n\n## Open\n\nNothing open.\n", "no Aligned line"),
+        ("# Upstream\n\nAligned to Planted at 0123456789ab.\n\nNo section.\n", "no ## Open section"),
+        (UPSTREAM_HEAD + "Nothing here.\n", "Open holds entries or the words Nothing open."),
+        (UPSTREAM_HEAD + "Nothing open.\n\n" + entry + UPSTREAM_PARTS_TEXT, "beside open entries"),
+        (UPSTREAM_HEAD + f"### {today} Planted entry\n\nPin: 0123456789ab\n\n" + UPSTREAM_PARTS_TEXT, "no Kind line"),
+        (UPSTREAM_HEAD + f"### {today} Planted entry\n\nKind: defect\n\n" + UPSTREAM_PARTS_TEXT, "no Pin line"),
+        (UPSTREAM_HEAD + entry + "**What it is.** x.\n\n**Why it is believed better.** x.\n", "part **How the work surfaced it** missing"),
+        (UPSTREAM_HEAD + entry + "**What it is.** x.\n\n**How the work surfaced it.** x.\n\n**Records checked.** None.\n", "neither Why it is believed better"),
+        (UPSTREAM_HEAD + "### 2026-01-01 Planted entry\n\nKind: defect\nPin: 0123456789ab\n\n" + UPSTREAM_PARTS_TEXT, f"past the {HORIZON_DAYS}-day horizon"),
+    ]
+
+
+def prove_upstream_plants() -> int:
+    """A legal UPSTREAM.md passes and each rule of its schema fires; the path is borrowed and given back."""
+    failures = 0
+    upstream = ROOT / "docs/UPSTREAM.md"
+    original = upstream.read_bytes() if upstream.exists() else None
+    try:
+        for text, needle in upstream_variants():
+            upstream.write_text(text, encoding="utf-8")
+            hits = [p for p in run()[0] if "UPSTREAM" in p]
+            if needle is None and hits:
+                failures += wrong(f"a legal UPSTREAM.md raised {hits[:2]}")
+            elif needle is not None:
+                failures += expect(hits, needle, "an UPSTREAM.md plant")
+    finally:
+        restore(upstream, original)
+    return failures
+
+
+def prove_docstring_plants() -> int:
+    """Each decidable docstring rule fires against one planted source file."""
+    roots = python_roots()
+    if not roots:
+        print("docstring plants skipped: no package root in this tree")
+        return 0
+    target = roots[0] / "planted_selftest.py"
+    target.write_text(DOCSTRING_PLANT, encoding="utf-8")
+    try:
+        problems = run()[0]
+        return sum(expect(problems, needle, "the docstring plant") for needle in DOCSTRING_EXPECTS)
+    finally:
+        target.unlink()
+
+
+def prove_layout_plants() -> int:
+    """A directory holding both subpackages and modules, and an __init__.py that is not a door, are reported."""
+    roots = python_roots()
+    if not roots:
+        print("layout plants skipped: no package root in this tree")
+        return 0
+    failures = 0
+    mixed = roots[0] / "planted_mixed"
+    # The mixed directory carries doors so the import graph sees it and reports nothing extra.
+    planted = {
+        roots[0] / "planted_door" / "__init__.py": "planted = 1\n",
+        mixed / "__init__.py": "",
+        mixed / "inner" / "__init__.py": "",
+        mixed / "inner" / "leaf.py": "leaf = 1\n",
+        mixed / "loose.py": "loose = 1\n",
+    }
+    try:
+        for path, content in planted.items():
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(content, encoding="utf-8")
+        problems = run()[0]
+        failures += expect(problems, "an __init__.py is a door and only re-exports", "the door plant")
+        failures += expect(problems, "holds both subpackages and modules", "the mixed-directory plant")
+    finally:
+        for path in planted:
+            remove_planted(path, roots[0])
+    return failures
+
+
+def prove_src_shape() -> int:
+    """A loose module under src/ is reported, where the tree has a src/ layout."""
+    src = ROOT / "src"
+    if not src.is_dir():
+        print("src plant skipped: this tree has no src/ layout")
+        return 0
+    loose = src / "loose_planted.py"
+    loose.write_text("loose = 1\n", encoding="utf-8")
+    try:
+        return expect(run()[0], "src/: holds loose modules (loose_planted.py)", "the loose module plant")
+    finally:
+        loose.unlink()
+
+
+def prove_version_plant() -> int:
+    """A floor claim that disagrees with the declared version is reported."""
+    declared = declared_python()
+    readme = ROOT / "README.md"
+    if declared is None or not readme.exists():
+        print("version plant skipped: no declared version or no README.md in this tree")
+        return 0
+    claimed = "3.11" if declared != "3.11" else "3.12"
+    original = readme.read_bytes()
+    readme.write_bytes(original + f"\nRequires Python {claimed}+ here.\n".encode())
+    try:
+        return expect(run()[0], f"claims Python {claimed}+ while the tree declares {declared}", "the version plant")
+    finally:
+        readme.write_bytes(original)
+
+
+def prove_module_plant() -> int:
+    """A backticked module under a package root that is not on disk is reported."""
+    roots = python_roots()
+    agents = ROOT / "AGENTS.md"
+    if not roots or not agents.exists():
+        print("module plant skipped: no package root or no AGENTS.md in this tree")
+        return 0
+    token = f"{roots[0].name}.ghost_planted_module"
+    original = agents.read_bytes()
+    agents.write_bytes(original + f"\nNames the module `{token}` in passing.\n".encode())
+    try:
+        return expect(run()[0], f"names the module `{token}`, which does not exist", "the module plant")
+    finally:
+        agents.write_bytes(original)
+
+
+def prove_immutability() -> int:
+    """A body edit to an accepted record fails and a Status flip alone passes.
+
+    Immutability is a fact about a record's history, so this is the one plant that cannot
+    build its subject; it selects the lowest-numbered accepted record of the project's own by
+    that property, never by a number written here.
+    """
+    record = next(
+        (p for p in sorted((ROOT / "docs/decisions").glob("*.md")) if "\nStatus: Accepted\n" in p.read_text(encoding="utf-8")),
+        None,
+    )
+    if record is None:
+        print("immutability plants skipped: no accepted record of this project's own to plant on")
+        return 0
+    failures = 0
+    original = record.read_bytes()
+    try:
+        record.write_bytes(original + b"\nplanted body edit\n")
+        failures += expect(run()[0], "edited beyond its Status line", f"a body edit to {record.name}")
+        record.write_bytes(original.replace(b"Status: Accepted", b"Status: Superseded by 0999", 1))
+        if any("edited beyond its Status line" in p for p in run()[0]):
+            failures += wrong(f"a Status flip on {record.name} was reported as an illegal edit")
+    finally:
+        record.write_bytes(original)
+    return failures
+
+
+def prove_anchors() -> int:
+    """Each history-reading rule's scope sentence is dated by the commit that introduced it."""
+    failures = 0
+    for name, scope in (("immutability", IMMUTABILITY_SCOPE), ("queue age", STATE_AGE_SCOPE), ("filename cap", RECORD_NAME_SCOPE)):
+        arrival = git("log", "--reverse", "--format=%H", "-S", scope, "--", "scripts/audit_docs.py").split()
+        if not arrival:
+            print(f"anchor plant skipped: the {name} scope sentence has not reached history yet")
+        elif scope in git("show", f"{arrival[0]}^:scripts/audit_docs.py"):
+            failures += wrong(f"the {name} anchor is older than the commit that introduced the current scope")
+    print("import graph plants skipped: the graph library sees every module on disk, and a root it cannot import stops the build first")
+    return failures
+
+
+def selftest() -> int:
+    """Prove each rule fires against a planted defect, then leave no trace.
+
+    A plant builds what it needs and removes what it built, so the proof holds in a project
+    built from this template as well as in the template; a rule that can only be planted with
+    history, or that the tooling cannot be made to miss, is named as skipped rather than
+    counted as proven.
+    """
+    baseline, _ = run()
+    if baseline:
+        print("the unplanted tree is not clean, so nothing can be proven until the audit passes:")
+        for p in baseline[:5]:
+            print(f"  {p}")
+        return 1
+    proofs = (
+        prove_file_plants,
+        prove_append_plants,
+        prove_tracked_plants,
+        prove_twin_numbers,
+        prove_state_plants,
+        prove_upstream_plants,
+        prove_docstring_plants,
+        prove_layout_plants,
+        prove_src_shape,
+        prove_version_plant,
+        prove_module_plant,
+        prove_immutability,
+        prove_anchors,
+    )
+    failures = sum(proof() for proof in proofs)
+    print("every rule fires" if not failures else f"{failures} rule(s) do not work")
+    return 1 if failures else 0
+
+
+def main() -> int:
+    """Run every check and report each disagreement between the tree and its conventions, or prove the checks."""
+    if "--selftest" in sys.argv:
+        return selftest()
+    problems, held = run()
     for problem in problems:
         print(problem)
     if problems:

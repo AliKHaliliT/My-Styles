@@ -18,9 +18,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 # Seat folder, audit command, selftest command or None, and the style's name for the child's prose.
 SEATS: list[tuple[str, list[str], list[str] | None, str]] = [
-    ("ArchtypeCore", [sys.executable, "scripts/audit_docs.py"], None, "ArchetypeCore"),
-    ("Keel", [sys.executable, "scripts/audit_docs.py"], None, "Keel"),
-    ("Helm", ["node", "scripts/audit-docs.mjs"], None, "Helm"),
+    ("ArchtypeCore", [sys.executable, "scripts/audit_docs.py"], [sys.executable, "scripts/audit_docs.py", "--selftest"], "ArchetypeCore"),
+    ("Keel", [sys.executable, "scripts/audit_docs.py"], [sys.executable, "scripts/audit_docs.py", "--selftest"], "Keel"),
+    ("Helm", ["node", "scripts/audit-docs.mjs"], ["node", "scripts/audit-docs-selftest.mjs"], "Helm"),
     (
         "Quiver",
         [sys.executable, "scripts/audit_inquiry.py"],

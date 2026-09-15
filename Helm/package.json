@@ -13,7 +13,8 @@
     "test": "vitest run",
     "lint": "eslint .",
     "typecheck": "tsc -b",
-    "docs": "node scripts/audit-docs.mjs"
+    "docs": "node scripts/audit-docs.mjs",
+    "docs:selftest": "node scripts/audit-docs-selftest.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.7.1",
