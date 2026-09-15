@@ -169,9 +169,8 @@ export default tseslint.config(
   {
     // The three function-shape limits, gated because a count decides itself: ten paths
     // through a function, five nested blocks, fifty statements. Decision 0054 carries why
-    // these three and why ten. The audit script is a checklist and lives outside src and
-    // tests, so the limits never reach it.
-    files: ["src/**/*.{ts,tsx}", "tests/**/*.{ts,tsx}"],
+    // these three and why ten. The audit script is held to them like everything else.
+    files: ["src/**/*.{ts,tsx}", "tests/**/*.{ts,tsx}", "scripts/**/*.mjs"],
     rules: {
       complexity: ["error", 10],
       "max-depth": ["error", 5],

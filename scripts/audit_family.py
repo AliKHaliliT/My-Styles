@@ -172,9 +172,8 @@ def cut(text: str, start: str | None, end: str | None) -> str:
     return text[begin:stop]
 
 
-def main() -> int:
-    """Compare every copy of every shared block and report each divergence."""
-    problems: list[str] = []
+def check_blocks(problems: list[str]) -> None:
+    """Every copy of every shared block is one text."""
     for name, files, start, end in BLOCKS:
         digests: dict[str, list[str]] = {}
         for rel in files:
@@ -193,6 +192,9 @@ def main() -> int:
             copies = "; ".join(", ".join(v) for v in digests.values())
             problems.append(f"{name}: the copies diverge ({copies}); align them, they are one law")
 
+
+def check_carries(problems: list[str]) -> None:
+    """Every block an arrow carries from its style matches the original."""
     for name, original, copy, start, end in CARRIES:
         texts: dict[str, str] = {}
         for rel in (original, copy):
@@ -209,6 +211,9 @@ def main() -> int:
                 " the original is canonical, rewrite the copy"
             )
 
+
+def check_carried_trees(problems: list[str]) -> None:
+    """Every inherited folder is the original folder whole, record for record, and nothing more."""
     for name, original_dir, copy_dir in CARRIED_TREES:
         for path in sorted((ROOT / original_dir).glob("*.md")):
             twin = ROOT / copy_dir / path.name
@@ -231,6 +236,14 @@ def main() -> int:
                     f"carried {name}: {copy_dir}/{extra.name} is not a record of {original_dir};"
                     " the inherited folder is the original whole, and the copy's own records live in its decisions folder"
                 )
+
+
+def main() -> int:
+    """Compare every copy of every shared block and report each divergence."""
+    problems: list[str] = []
+    check_blocks(problems)
+    check_carries(problems)
+    check_carried_trees(problems)
 
     for problem in problems:
         print(problem)

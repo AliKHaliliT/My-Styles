@@ -91,9 +91,6 @@ max-statements = 50
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]
-# A check function carries one branch per rule it checks, so its path count is its rule
-# count; the audit script stands outside the shape limits, a debt STATE.md names.
-"scripts/*.py" = ["C901", "PLR0915", "PLR1702"]
 # A port's stub is a one-line signature; its documentation lives on each implementation.
 "src/keel/domain/interfaces/*.py" = ["D102"]
 # Suites document themselves through case names and assertions (see docs/CONVENTIONS.md).

@@ -9,6 +9,7 @@ import asyncio
 
 from app.core.config.settings import settings
 from app.core.security.local_auth import LocalAuthAdapter
+from app.domain.schemas.devices import Device
 from app.repositories.sqlalchemy.uow import SQLAlchemyUnitOfWork
 from app.services.vpn.wireguard import WireGuardProvider
 
@@ -36,47 +37,83 @@ async def sync_peers(remove_disabled: bool = True, dry_run: bool = False) -> Non
         enabled_identifiers = {device.client_identifier for device in enabled_devices}
         current_peers = set(await vpn_provider.list_peers())
 
-        added_count = 0
-        for device in enabled_devices:
-            if device.client_identifier not in current_peers:
-                
-                # Fetch user name for display logging cleanly
-                user = await uow.users.get(id=device.user_id)
-                username = user.username if user else "unknown"
-
-                if dry_run:
-                    print(f"📋 [DRY RUN] Would add peer {device.client_identifier} ({username})")
-                else:
-                    try:
-                        await vpn_provider.provision_client(
-                            client_identifier=device.client_identifier,
-                            ip_address=device.ip_address, 
-                            protocol_data=device.protocol_data
-                        )
-                        print(f"✅ Added peer {device.client_identifier} ({username})")
-                    except RuntimeError as e:
-                        print(f"❌ Failed to add peer {device.client_identifier}: {e}")
-                added_count += 1
+        added_count = await _add_missing_peers(uow, vpn_provider, enabled_devices, current_peers, dry_run)
 
         removed_count = 0
         if remove_disabled:
-            for identifier in current_peers:
-                if identifier not in enabled_identifiers:
-                    if dry_run:
-                        print(f"📋 [DRY RUN] Would remove disabled peer {identifier}")
-                    else:
-                        try:
-                            # Protocol specific context
-                            await vpn_provider.revoke_client(client_identifier=identifier, protocol_data={})
-                            print(f"✅ Removed disabled peer {identifier}")
-                        except RuntimeError as e:
-                            print(f"❌ Failed to remove peer {identifier}: {e}")
-                    removed_count += 1
+            removed_count = await _remove_disabled_peers(vpn_provider, current_peers, enabled_identifiers, dry_run)
 
     if dry_run:
         print(f"🔍 Dry run complete. Would add: {added_count}, Would remove: {removed_count}")
     else:
         print(f"✅ Peer synchronization complete. Added: {added_count}, Removed: {removed_count}")
+
+
+async def _add_missing_peers(
+    uow: SQLAlchemyUnitOfWork,
+    vpn_provider: WireGuardProvider,
+    enabled_devices: list[Device],
+    current_peers: set[str],
+    dry_run: bool,
+) -> int:
+
+    """
+
+    Provision a peer for every enabled device the network does not know yet.
+
+    """
+
+    added_count = 0
+    for device in enabled_devices:
+        if device.client_identifier not in current_peers:
+
+            # Fetch user name for display logging cleanly
+            user = await uow.users.get(id=device.user_id)
+            username = user.username if user else "unknown"
+
+            if dry_run:
+                print(f"📋 [DRY RUN] Would add peer {device.client_identifier} ({username})")
+            else:
+                try:
+                    await vpn_provider.provision_client(
+                        client_identifier=device.client_identifier,
+                        ip_address=device.ip_address,
+                        protocol_data=device.protocol_data
+                    )
+                    print(f"✅ Added peer {device.client_identifier} ({username})")
+                except RuntimeError as e:
+                    print(f"❌ Failed to add peer {device.client_identifier}: {e}")
+            added_count += 1
+    return added_count
+
+
+async def _remove_disabled_peers(
+    vpn_provider: WireGuardProvider,
+    current_peers: set[str],
+    enabled_identifiers: set[str],
+    dry_run: bool,
+) -> int:
+
+    """
+
+    Revoke every peer the network knows that no enabled device claims.
+
+    """
+
+    removed_count = 0
+    for identifier in current_peers:
+        if identifier not in enabled_identifiers:
+            if dry_run:
+                print(f"📋 [DRY RUN] Would remove disabled peer {identifier}")
+            else:
+                try:
+                    # Protocol specific context
+                    await vpn_provider.revoke_client(client_identifier=identifier, protocol_data={})
+                    print(f"✅ Removed disabled peer {identifier}")
+                except RuntimeError as e:
+                    print(f"❌ Failed to remove peer {identifier}: {e}")
+            removed_count += 1
+    return removed_count
 
 
 def main() -> None:

@@ -197,6 +197,13 @@ def check_living(problems: list[str], root: Path) -> None:
     """Budgets, presence, index registration, and the STATE schema."""
     agents = (root / "AGENTS.md").read_text(encoding="utf-8") if (root / "AGENTS.md").exists() else ""
     rows = index_rows(agents)
+    check_living_documents(problems, root, rows)
+    check_state(problems, root)
+    check_docs_below_top(problems, root, rows)
+
+
+def check_living_documents(problems: list[str], root: Path, rows: str) -> None:
+    """Every living document exists, stays within its budget where bounded, and has its row in the index."""
     for rel in living_documents(root):
         path = root / rel
         if not path.exists():
@@ -210,47 +217,67 @@ def check_living(problems: list[str], root: Path) -> None:
         if rel not in ("AGENTS.md", "README.md") and not registered:
             problems.append(f"{rel}: not registered in the AGENTS.md index")
 
+
+def check_state(problems: list[str], root: Path) -> None:
+    """The STATE schema: four sections, a capped Now, and every entry dated within its horizon."""
     state = root / "STATE.md"
-    if state.exists():
-        text = state.read_text(encoding="utf-8")
-        for section in ("## Now", "## Next", "## Deferred", "## Blocked"):
-            if section not in text:
-                problems.append(f"STATE.md: section {section!r} missing")
-        now = text.split("## Now", 1)[-1].split("##", 1)[0]
-        entries = [l for l in now.split("\n") if l.startswith("- ") and "Nothing" not in l]
-        if len(entries) > NOW_CAP:
-            problems.append(f"STATE.md: Now holds {len(entries)} entries, cap is {NOW_CAP}")
-        section = ""
-        today = datetime.now(timezone.utc).date()
-        binding = first_commit(STATE_AGE_SCOPE, "scripts/audit_inquiry.py") if root == ROOT else None
-        for raw in text.split("\n"):
-            if raw.startswith("## "):
-                section = raw[3:].strip()
-                continue
-            if not raw.startswith("- ") or "Nothing" in raw:
-                continue
-            stamp = STATE_DATE.search(raw)
-            horizon = NOW_HORIZON_DAYS if section == "Now" else HORIZON_DAYS
-            if not stamp:
-                problems.append(f"STATE.md: entry lacks a date: {raw.strip()[:60]}")
-            elif (today - date.fromisoformat(stamp.group(1))).days > horizon:
-                problems.append(f"STATE.md: entry past the {horizon}-day horizon of {section}: {raw.strip()[:60]}")
-            if section != "Now" and binding is not None:
-                born = first_commit(STATE_TEXT.sub("", raw).strip(), "STATE.md")
-                start = None if born is None else commit_date(binding if is_before(born, binding) else born)
-                standing = (today - start).days if start is not None else 0
-                if standing > HORIZON_DAYS * 2:
-                    problems.append(
-                        f"STATE.md: entry has stood unchanged in {section} for {standing} days, two horizons; "
-                        f"promote it to Now, write it as a decision record, or drop it: {raw.strip()[:60]}"
-                    )
-    # Everything else under docs/ is a document with a room or it does not exist. A file below
-    # a subdirectory is registered by its own path or by its directory's row in the index; a
-    # file that is not markdown has no species and no room here at all.
-    # Below the top level, docs/ holds the record folders and the arrow manifests only. A
-    # record folder beyond the numbered ones holds dated documents, registered by its own
-    # row; a living document belongs at the top as a flat UPPERCASE file, where the naming and
-    # budget rules can see it, so anything else below a subfolder fails.
+    if not state.exists():
+        return
+    text = state.read_text(encoding="utf-8")
+    for section in ("## Now", "## Next", "## Deferred", "## Blocked"):
+        if section not in text:
+            problems.append(f"STATE.md: section {section!r} missing")
+    now = text.split("## Now", 1)[-1].split("##", 1)[0]
+    entries = [l for l in now.split("\n") if l.startswith("- ") and "Nothing" not in l]
+    if len(entries) > NOW_CAP:
+        problems.append(f"STATE.md: Now holds {len(entries)} entries, cap is {NOW_CAP}")
+    binding = first_commit(STATE_AGE_SCOPE, "scripts/audit_inquiry.py") if root == ROOT else None
+    check_state_entries(problems, text, binding)
+
+
+def standing_days(raw: str, binding: str, today: date) -> int:
+    """How long a queued entry has stood unchanged, counted from the binding commit or the entry's own, whichever is later."""
+    born = first_commit(STATE_TEXT.sub("", raw).strip(), "STATE.md")
+    start = None if born is None else commit_date(binding if is_before(born, binding) else born)
+    return (today - start).days if start is not None else 0
+
+
+def check_state_entries(problems: list[str], text: str, binding: str | None) -> None:
+    """Every entry carries a date within its section's horizon, and no queued entry has stood for two of them."""
+    section = ""
+    today = datetime.now(timezone.utc).date()
+    for raw in text.split("\n"):
+        if raw.startswith("## "):
+            section = raw[3:].strip()
+            continue
+        if not raw.startswith("- ") or "Nothing" in raw:
+            continue
+        stamp = STATE_DATE.search(raw)
+        horizon = NOW_HORIZON_DAYS if section == "Now" else HORIZON_DAYS
+        if not stamp:
+            problems.append(f"STATE.md: entry lacks a date: {raw.strip()[:60]}")
+        elif (today - date.fromisoformat(stamp.group(1))).days > horizon:
+            problems.append(f"STATE.md: entry past the {horizon}-day horizon of {section}: {raw.strip()[:60]}")
+        if section == "Now" or binding is None:
+            continue
+        standing = standing_days(raw, binding, today)
+        if standing > HORIZON_DAYS * 2:
+            problems.append(
+                f"STATE.md: entry has stood unchanged in {section} for {standing} days, two horizons; "
+                f"promote it to Now, write it as a decision record, or drop it: {raw.strip()[:60]}"
+            )
+
+
+def check_docs_below_top(problems: list[str], root: Path, rows: str) -> None:
+    """Below the top level, docs/ holds registered record folders of dated records and the manifests, nothing else.
+
+    Everything else under docs/ is a document with a room or it does not exist. A file below
+    a subdirectory is registered by its own path or by its directory's row in the index; a
+    file that is not markdown has no species and no room here at all. A record folder beyond
+    the numbered ones holds dated documents, registered by its own row; a living document
+    belongs at the top as a flat UPPERCASE file, where the naming and budget rules can see it,
+    so anything else below a subfolder fails.
+    """
     for tracked in tracked_files() if root == ROOT else []:
         if not tracked.startswith("docs/") or tracked.startswith(("docs/decisions/", "docs/claims/", "docs/arrows/")):
             continue
@@ -286,22 +313,28 @@ def check_records(problems: list[str], root: Path) -> None:
             if not any(l.startswith("Date: ") for l in lines):
                 problems.append(f"{rel}: no Date line")
             if folder.endswith("claims"):
-                for section in ("## Claim", "## Evidence", "## Threats"):
-                    if section not in text:
-                        problems.append(f"{rel}: section {section!r} missing")
-                body = text.split("## Evidence", 1)[-1].split("##", 1)[0].strip()
-                is_conjecture = any(l == "Status: Conjecture" for l in lines)
-                # A superseded record is exempt on both sides. Its evidence lives in
-                # its superseder, because immutability forbids a conjecture ever
-                # gaining evidence in place. The owner approved this rule after the
-                # check wrongly failed the first settled conjecture.
-                is_superseded = any(l.startswith("Status: Superseded by") for l in lines)
-                if is_conjecture and body != "None.":
-                    problems.append(f"{rel}: a Conjecture carries evidence; support it or empty it")
-                if not is_conjecture and not is_superseded and body == "None.":
-                    problems.append(f"{rel}: a settled claim has no evidence")
-                if any(l.startswith("Status: Refuted") for l in lines) and "eopen" not in text:
-                    problems.append(f"{rel}: a Refuted claim names no reopening condition")
+                check_claim_shape(problems, rel, text, lines)
+
+
+def check_claim_shape(problems: list[str], rel: str, text: str, lines: list[str]) -> None:
+    """A claim carries its three sections, evidence that matches its status, and a reopening condition when refuted.
+
+    A superseded record is exempt on both sides. Its evidence lives in its superseder,
+    because immutability forbids a conjecture ever gaining evidence in place. The owner
+    approved this rule after the check wrongly failed the first settled conjecture.
+    """
+    for section in ("## Claim", "## Evidence", "## Threats"):
+        if section not in text:
+            problems.append(f"{rel}: section {section!r} missing")
+    body = text.split("## Evidence", 1)[-1].split("##", 1)[0].strip()
+    is_conjecture = any(l == "Status: Conjecture" for l in lines)
+    is_superseded = any(l.startswith("Status: Superseded by") for l in lines)
+    if is_conjecture and body != "None.":
+        problems.append(f"{rel}: a Conjecture carries evidence; support it or empty it")
+    if not is_conjecture and not is_superseded and body == "None.":
+        problems.append(f"{rel}: a settled claim has no evidence")
+    if any(l.startswith("Status: Refuted") for l in lines) and "eopen" not in text:
+        problems.append(f"{rel}: a Refuted claim names no reopening condition")
 
 
 def claims_to_be_path(token: str, root: Path) -> bool:
@@ -358,22 +391,26 @@ def check_upstream(problems: list[str], root: Path) -> None:
     today = datetime.now(timezone.utc).date()
     for index, entry in enumerate(entries):
         end = entries[index + 1].start() if index + 1 < len(entries) else len(body)
-        chunk = body[entry.end():end]
-        label = f"docs/UPSTREAM.md: entry {entry.group(1)} {entry.group(2)[:40]}"
-        if not UPSTREAM_KIND.search(chunk):
-            problems.append(f"{label}: no Kind line reading improvement or defect")
-        if not UPSTREAM_PIN.search(chunk):
-            problems.append(f"{label}: no Pin line naming the template commit")
-        for part in UPSTREAM_PARTS:
-            if part not in chunk:
-                problems.append(f"{label}: part {part}** missing")
-        if not any(why in chunk for why in UPSTREAM_WHY):
-            problems.append(f"{label}: neither Why it is believed better nor What was worked around")
-        if (today - date.fromisoformat(entry.group(1))).days > HORIZON_DAYS:
-            problems.append(
-                f"{label}: past the {HORIZON_DAYS}-day horizon; re-verify against the template and re-date,"
-                " or make it the project's own decision and delete it"
-            )
+        check_upstream_entry(problems, entry, body[entry.end():end], today)
+
+
+def check_upstream_entry(problems: list[str], entry: re.Match[str], chunk: str, today: date) -> None:
+    """One upstream entry carries its kind, its pin, its four parts, and a date within the horizon."""
+    label = f"docs/UPSTREAM.md: entry {entry.group(1)} {entry.group(2)[:40]}"
+    if not UPSTREAM_KIND.search(chunk):
+        problems.append(f"{label}: no Kind line reading improvement or defect")
+    if not UPSTREAM_PIN.search(chunk):
+        problems.append(f"{label}: no Pin line naming the template commit")
+    for part in UPSTREAM_PARTS:
+        if part not in chunk:
+            problems.append(f"{label}: part {part}** missing")
+    if not any(why in chunk for why in UPSTREAM_WHY):
+        problems.append(f"{label}: neither Why it is believed better nor What was worked around")
+    if (today - date.fromisoformat(entry.group(1))).days > HORIZON_DAYS:
+        problems.append(
+            f"{label}: past the {HORIZON_DAYS}-day horizon; re-verify against the template and re-date,"
+            " or make it the project's own decision and delete it"
+        )
 
 
 def check_rooms(problems: list[str], root: Path) -> None:
@@ -418,8 +455,16 @@ def check_record_immutability(problems: list[str], root: Path) -> None:
     if git("rev-parse", "--is-shallow-repository") == "true":
         problems.append("the clone is shallow, so record history cannot be checked; fetch the full history")
         return
-    # Every subfolder of docs/ except the arrow manifests is a record folder, so the diff is
-    # read over docs/ and only files below such a folder count; living documents change freely.
+    for where, diff in record_diffs():
+        flag_illegal_edits(problems, where, diff)
+
+
+def record_diffs() -> list[tuple[str, str]]:
+    """The diff of docs/ in the working tree and in every commit since the immutability scope arrived.
+
+    Every subfolder of docs/ except the arrow manifests is a record folder, so the diff is
+    read over docs/ and only files below such a folder count; living documents change freely.
+    """
     arrivals = git("log", "--reverse", "--format=%H", "-S", IMMUTABILITY_SCOPE, "--", "scripts/audit_inquiry.py").split()
     diffs = [("the working tree", git("diff", "HEAD", "--unified=0", "--diff-filter=M", "--", "docs"))]
     if arrivals:
@@ -428,23 +473,27 @@ def check_record_immutability(problems: list[str], root: Path) -> None:
             (sha[:12], git("show", sha, "--format=", "--unified=0", "-M", "--diff-filter=M", "--", "docs"))
             for sha in commits
         )
-    for where, diff in diffs:
-        current = ""
-        flagged: set[str] = set()
-        for line in diff.splitlines():
-            if line.startswith("+++ b/"):
-                current = line[6:]
-                below = current.split("docs/", 1)[1] if "docs/" in current else ""
-                if "/" not in below or below.startswith("arrows/"):
-                    current = ""
-                continue
-            if not current:
-                continue
-            if line.startswith(("--- ", "+++ ", "@@", "diff ", "index ", "similarity ", "rename ")):
-                continue
-            if ILLEGAL_RECORD_EDIT.match(line) and current not in flagged:
-                flagged.add(current)
-                problems.append(f"{current}: edited beyond its Status line in {where}; a record is immutable, so supersede it instead")
+    return diffs
+
+
+def flag_illegal_edits(problems: list[str], where: str, diff: str) -> None:
+    """Every record the diff changes beyond its Status line, reported once each; manifests are living and pass."""
+    current = ""
+    flagged: set[str] = set()
+    for line in diff.splitlines():
+        if line.startswith("+++ b/"):
+            current = line[6:]
+            below = current.split("docs/", 1)[1] if "docs/" in current else ""
+            if "/" not in below or below.startswith("arrows/"):
+                current = ""
+            continue
+        if not current:
+            continue
+        if line.startswith(("--- ", "+++ ", "@@", "diff ", "index ", "similarity ", "rename ")):
+            continue
+        if ILLEGAL_RECORD_EDIT.match(line) and current not in flagged:
+            flagged.add(current)
+            problems.append(f"{current}: edited beyond its Status line in {where}; a record is immutable, so supersede it instead")
 
 
 def check_figures(problems: list[str], root: Path) -> None:
@@ -497,25 +546,35 @@ def check_reviews(problems: list[str], root: Path) -> None:
         completeness = COMPLETENESS.search(section_body(text, "## Boundary"))
         if completeness is None:
             problems.append(f"{rel}: the Boundary ends with a line Completeness: exhausted or Completeness: judgment")
-        stages = {name: (mode, tail) for name, mode, tail in STAGE_LINE.findall(section_body(text, "## Stages"))}
-        for name in REVIEW_STAGES:
-            if name not in stages:
-                problems.append(f"{rel}: stage {name} has no line; each stage ran or collapsed in writing")
-            elif stages[name][0] == "collapsed" and len(stages[name][1].strip(" ,.")) < 3:
-                problems.append(f"{rel}: stage {name} collapsed without a reason; a collapse costs one written line")
-        if stages.get("Checks", ("ran", ""))[0] == "collapsed":
-            problems.append(f"{rel}: the checks never collapse, because they are free")
-        if completeness and completeness.group(1) == "exhausted" and stages.get("Completeness review", ("collapsed", ""))[0] != "ran":
-            problems.append(f"{rel}: a pass claiming its boundary exhausted ran the completeness review; otherwise it claims judgment")
-        slice_text = section_body(text, "## Slice")
-        if "First pass" not in slice_text:
-            prior = [t for t in LINK.findall(slice_text) if t.endswith(".md")]
-            if not prior:
-                problems.append(f"{rel}: the Slice names the prior pass it extends or says First pass")
-            problems.extend(
-                f"{rel}: extends {target}, which does not exist"
-                for target in prior if not (path.parent / target.split("#", 1)[0]).exists()
-            )
+        check_review_stages(problems, rel, section_body(text, "## Stages"), completeness)
+        check_review_slice(problems, rel, path, section_body(text, "## Slice"))
+
+
+def check_review_stages(problems: list[str], rel: str, stages_text: str, completeness: re.Match[str] | None) -> None:
+    """Every stage ran or collapsed in writing, the checks never collapse, and exhaustion ran the completeness review."""
+    stages = {name: (mode, tail) for name, mode, tail in STAGE_LINE.findall(stages_text)}
+    for name in REVIEW_STAGES:
+        if name not in stages:
+            problems.append(f"{rel}: stage {name} has no line; each stage ran or collapsed in writing")
+        elif stages[name][0] == "collapsed" and len(stages[name][1].strip(" ,.")) < 3:
+            problems.append(f"{rel}: stage {name} collapsed without a reason; a collapse costs one written line")
+    if stages.get("Checks", ("ran", ""))[0] == "collapsed":
+        problems.append(f"{rel}: the checks never collapse, because they are free")
+    if completeness and completeness.group(1) == "exhausted" and stages.get("Completeness review", ("collapsed", ""))[0] != "ran":
+        problems.append(f"{rel}: a pass claiming its boundary exhausted ran the completeness review; otherwise it claims judgment")
+
+
+def check_review_slice(problems: list[str], rel: str, path: Path, slice_text: str) -> None:
+    """The Slice names the prior pass it extends, and that pass exists, or it says First pass."""
+    if "First pass" in slice_text:
+        return
+    prior = [t for t in LINK.findall(slice_text) if t.endswith(".md")]
+    if not prior:
+        problems.append(f"{rel}: the Slice names the prior pass it extends or says First pass")
+    problems.extend(
+        f"{rel}: extends {target}, which does not exist"
+        for target in prior if not (path.parent / target.split("#", 1)[0]).exists()
+    )
 
 
 def prose_only(text: str) -> str:
@@ -552,27 +611,34 @@ def check_arrows(problems: list[str], root: Path) -> None:
         problems.append(f"arrows/{name}: no manifest at docs/arrows/{name}.md")
     for name in sorted(manifests - arrows):
         problems.append(f"docs/arrows/{name}.md: manifest for an arrow that does not exist")
-    # A manifest is living, so the claims it says rest on the arrow are the current ones: every
-    # claim still standing that pins the arrow is linked, no superseded claim is, and every
-    # verification it records names a claim that is current here.
     for name in sorted(arrows & manifests):
-        manifest = (root / "docs/arrows" / f"{name}.md").read_text(encoding="utf-8")
-        current: set[str] = set()
-        for path in sorted((root / "docs/claims").glob("*.md")) if (root / "docs/claims").exists() else []:
-            text = path.read_text(encoding="utf-8")
-            if not any(arrow == name for arrow, _ in PIN.findall(text)):
-                continue
-            superseded = any(l.startswith("Status: Superseded by") for l in text.split("\n"))
-            linked = path.name in manifest
-            if superseded and linked:
-                problems.append(f"docs/arrows/{name}.md: still lists {path.name}, which is superseded; a manifest names the current claims")
-            if not superseded and not linked:
-                problems.append(f"docs/arrows/{name}.md: does not list {path.name}, a current claim pinned to this arrow")
-            if not superseded and not any(l.startswith("Status: Stale") for l in text.split("\n")):
-                current.add(path.name[:4])
-        for number in sorted(verifications(root, name)):
-            if number not in current:
-                problems.append(f"docs/arrows/{name}.md: verifies {number}, which is not a current claim pinned to this arrow")
+        check_manifest_currency(problems, root, name)
+
+
+def check_manifest_currency(problems: list[str], root: Path, name: str) -> None:
+    """A manifest names exactly the current claims pinned to its arrow and verifies only those.
+
+    A manifest is living, so the claims it says rest on the arrow are the current ones: every
+    claim still standing that pins the arrow is linked, no superseded claim is, and every
+    verification it records names a claim that is current here.
+    """
+    manifest = (root / "docs/arrows" / f"{name}.md").read_text(encoding="utf-8")
+    current: set[str] = set()
+    for path in sorted((root / "docs/claims").glob("*.md")) if (root / "docs/claims").exists() else []:
+        text = path.read_text(encoding="utf-8")
+        if not any(arrow == name for arrow, _ in PIN.findall(text)):
+            continue
+        superseded = any(l.startswith("Status: Superseded by") for l in text.split("\n"))
+        linked = path.name in manifest
+        if superseded and linked:
+            problems.append(f"docs/arrows/{name}.md: still lists {path.name}, which is superseded; a manifest names the current claims")
+        if not superseded and not linked:
+            problems.append(f"docs/arrows/{name}.md: does not list {path.name}, a current claim pinned to this arrow")
+        if not superseded and not any(l.startswith("Status: Stale") for l in text.split("\n")):
+            current.add(path.name[:4])
+    for number in sorted(verifications(root, name)):
+        if number not in current:
+            problems.append(f"docs/arrows/{name}.md: verifies {number}, which is not a current claim pinned to this arrow")
 
 
 # The paths inside an arrow that can change what a run produces: the code, the
@@ -614,36 +680,14 @@ def check_pins(problems: list[str], advice: list[str], root: Path) -> None:
         )
         recorded = RECORDED.search(text)
         if recorded:
-            named = [t for t in PATH_TOKEN.findall(recorded.group(1)) if claims_to_be_path(t, root)]
-            if not named and "nothing preserved" not in recorded.group(1):
-                problems.append(
-                    f"{rel}: recorded evidence names nothing preserved; name the artefact by path or say nothing preserved"
-                )
-            for token in named:
-                if not (root / token.lstrip("./")).exists():
-                    problems.append(f"{rel}: recorded evidence names `{token}`, which does not exist")
+            check_recorded(problems, rel, recorded.group(1), root)
         for arrow, pin in PIN.findall(text):
             if not git("rev-parse", "--verify", f"{pin}^{{commit}}"):
                 problems.append(f"{rel}: pin {pin} is not a commit in this history")
                 continue
             if resting or recorded:
                 continue
-            # A verification in the arrow's manifest moves the point the movement is measured
-            # from, while the claim keeps the pin that produced its figures. It must be a commit
-            # this history holds and no older than that pin.
-            base, basis = pin, "pin"
-            verified = verifications(root, arrow).get(number)
-            if verified:
-                if not git("rev-parse", "--verify", f"{verified}^{{commit}}"):
-                    problems.append(
-                        f"docs/arrows/{arrow}.md: verifies {number} at {verified}, which is not a commit in this history"
-                    )
-                elif git("rev-list", "--count", f"{verified}..{pin}") != "0":
-                    problems.append(
-                        f"docs/arrows/{arrow}.md: verifies {number} at {verified[:12]}, which is older than the claim's pin {pin[:12]}"
-                    )
-                else:
-                    base, basis = verified, "verification"
+            base, basis = movement_base(problems, root, arrow, number, pin)
             spec = [f"arrows/{arrow}/{part}" for part in EVIDENCE_PATHS]
             moved = git("log", "--oneline", f"{base}..HEAD", "--", *spec)
             if moved:
@@ -652,6 +696,41 @@ def check_pins(problems: list[str], advice: list[str], root: Path) -> None:
                     f" ({len(moved.splitlines())} commit(s)); re-verify it in the manifest if the figures"
                     " reproduce, supersede it if they do not, or flip it Stale"
                 )
+
+
+def check_recorded(problems: list[str], rel: str, recorded: str, root: Path) -> None:
+    """A recorded observation names what it preserved, by a path that exists, or says nothing preserved."""
+    named = [t for t in PATH_TOKEN.findall(recorded) if claims_to_be_path(t, root)]
+    if not named and "nothing preserved" not in recorded:
+        problems.append(
+            f"{rel}: recorded evidence names nothing preserved; name the artefact by path or say nothing preserved"
+        )
+    for token in named:
+        if not (root / token.lstrip("./")).exists():
+            problems.append(f"{rel}: recorded evidence names `{token}`, which does not exist")
+
+
+def movement_base(problems: list[str], root: Path, arrow: str, number: str, pin: str) -> tuple[str, str]:
+    """The commit movement is measured from, the claim's pin or a legal later verification in the arrow's manifest.
+
+    A verification in the arrow's manifest moves the point the movement is measured from,
+    while the claim keeps the pin that produced its figures. It must be a commit this history
+    holds and no older than that pin, or it is a verdict and the pin stays the base.
+    """
+    verified = verifications(root, arrow).get(number)
+    if not verified:
+        return pin, "pin"
+    if not git("rev-parse", "--verify", f"{verified}^{{commit}}"):
+        problems.append(
+            f"docs/arrows/{arrow}.md: verifies {number} at {verified}, which is not a commit in this history"
+        )
+        return pin, "pin"
+    if git("rev-list", "--count", f"{verified}..{pin}") != "0":
+        problems.append(
+            f"docs/arrows/{arrow}.md: verifies {number} at {verified[:12]}, which is older than the claim's pin {pin[:12]}"
+        )
+        return pin, "pin"
+    return verified, "verification"
 
 
 def run(root: Path) -> tuple[list[str], list[str]]:
@@ -793,28 +872,16 @@ LEGAL_PLANTS = [
 ]
 
 
-def selftest() -> int:
-    """Prove each rule fires against a planted defect, then leave no trace.
+# The claim body the advisory plants share; status and evidence vary per plant.
+ADVISORY_BODY = (
+    "# {num}. Planted advisory\n\nStatus: {status}\nDate: 2026-01-01\n\n"
+    "## Claim\n\nx.\n\n## Evidence\n\n{evidence}\n\n## Threats\n\n- None named.\n"
+)
 
-    A plant builds whatever it names, an arrow, a manifest, a bibliography entry, rather than
-    naming what this tree happens to carry, so the proof holds in a project built from this
-    template that carries none of the demo.
-    """
+
+def prove_single_plants() -> int:
+    """Each single-file plant raises the finding it was written to raise."""
     failures = 0
-    # A plant proves nothing in a tree that already fails, so the tree is checked first and the
-    # command stops with the audit's own findings rather than counting every legal plant as a
-    # broken rule.
-    baseline, _ = run(ROOT)
-    if baseline:
-        print("the unplanted tree is not clean, so nothing can be proven until the audit passes:")
-        for p in baseline[:5]:
-            print(f"  {p}")
-        return 1
-    # Plants write into record folders a project may not have yet, a fresh inquiry among them, so
-    # the folders the plants need are built here and removed again once every plant is gone.
-    built_folders = [ROOT / rel for rel in ("docs/claims", "docs/arrows", "docs/reviews") if not (ROOT / rel).exists()]
-    for folder in built_folders:
-        folder.mkdir()
     for rel, content, expect in PLANTS:
         target = ROOT / rel
         target.write_text(content, encoding="utf-8")
@@ -825,6 +892,12 @@ def selftest() -> int:
                 print(f"WRONG: plant {rel} did not raise {expect!r}")
         finally:
             target.unlink()
+    return failures
+
+
+def prove_legal_plants() -> int:
+    """Each legal plant passes, or the checker would forbid a record the rulebook allows."""
+    failures = 0
     for rel, content in LEGAL_PLANTS:
         target = ROOT / rel
         target.write_text(content, encoding="utf-8")
@@ -835,8 +908,16 @@ def selftest() -> int:
                 print(f"WRONG: legal plant {rel} raised {legal_problems[:2]}")
         finally:
             target.unlink()
-    # The manifest-currency rule judges an arrow against its manifest, so the plant builds both
-    # rather than naming whatever arrow this tree happens to carry.
+    return failures
+
+
+def prove_unlisted_claim() -> int:
+    """A current claim pinned to an arrow its manifest does not list is reported.
+
+    The manifest-currency rule judges an arrow against its manifest, so the plant builds both
+    rather than naming whatever arrow this tree happens to carry.
+    """
+    failures = 0
     arrows_dir = ROOT / "arrows"
     manifests_dir = ROOT / "docs/arrows"
     built = [folder for folder in (manifests_dir, arrows_dir) if not folder.exists()]
@@ -863,8 +944,16 @@ def selftest() -> int:
         planted_arrow.parent.rmdir()
         for folder in built:
             folder.rmdir()
-    # The review plants cite a key, so the key is planted in the bibliography for their duration
-    # and the file's bytes are restored afterwards.
+    return failures
+
+
+def prove_review_plants() -> int:
+    """Each review plant raises its finding and the well-formed pass raises nothing.
+
+    The review plants cite a key, so the key is planted in the bibliography for their duration
+    and the file's bytes are restored afterwards.
+    """
+    failures = 0
     bibliography = ROOT / "docs/BIBLIOGRAPHY.md"
     original_bibliography = bibliography.read_bytes() if bibliography.exists() else None
     bibliography.write_bytes((original_bibliography or b"# Bibliography\n").rstrip(b"\n") + b"\n" + PLANTED_ENTRY)
@@ -899,114 +988,138 @@ def selftest() -> int:
             bibliography.write_bytes(original_bibliography)
         if not reviews_existed and not any(reviews.iterdir()):
             reviews.rmdir()
-    body = (
-        "# {num}. Planted advisory\n\nStatus: {status}\nDate: 2026-01-01\n\n"
-        "## Claim\n\nx.\n\n## Evidence\n\n{evidence}\n\n## Threats\n\n- None named.\n"
-    )
+    return failures
+
+
+def prove_movement() -> int:
+    """The movement advisory fires for a current claim past its pin and stays quiet for a resting one."""
     mover = moved_evidence_pin()
     if mover is None:
         print("advisory plants skipped: no arrow's evidence paths have moved in this history")
-    else:
-        arrow_name, old_pin = mover
-        pinned = f"run at arrows/{arrow_name} at {old_pin}."
-        movers: list[tuple[str, str, str, str, bool]] = [
-            ("docs/claims/0099-planted-moving.md", "0099", "Supported", pinned, True),
-            ("docs/claims/0098-planted-resting.md", "0098", "Stale", pinned, False),
-            ("docs/claims/0097-planted-passed.md", "0097", "Superseded by 0099", pinned, False),
-        ]
-        targets = []
-        try:
-            for rel, num, status, evidence, _expect in movers:
-                target = ROOT / rel
-                target.write_text(
-                    body.format(num=num, status=status, evidence=evidence), encoding="utf-8"
-                )
-                targets.append(target)
-            _, moved_advice = run(ROOT)
-            for rel, num, status, _evidence, should_fire in movers:
-                fired = any(rel in a for a in moved_advice)
-                if fired != should_fire:
-                    failures += 1
-                    verb = "did not raise" if should_fire else "wrongly raised"
-                    print(f"WRONG: plant {rel} ({status}) {verb} the movement advisory")
-        finally:
-            for target in targets:
-                target.unlink()
-        # A verification in the arrow's manifest answers a movement whose figures reproduced, so
-        # it must silence the advisory; a recorded observation is never advised; a verification
-        # at a commit history lacks, or older than the pin, or of a claim that is not current,
-        # is a verdict. The manifest's bytes are restored afterwards.
-        manifest_path = ROOT / "docs/arrows" / f"{arrow_name}.md"
-        original_manifest = manifest_path.read_bytes()
-        head = git("rev-parse", "HEAD")
-        older = git("rev-parse", f"{old_pin}^")
-        verified_claim = ROOT / "docs/claims/0089-planted-verified.md"
-        recorded_claim = ROOT / "docs/claims/0088-planted-recorded.md"
-        try:
-            verified_claim.write_text(body.format(num="0089", status="Supported", evidence=pinned), encoding="utf-8")
-            recorded_claim.write_text(
-                body.format(
-                    num="0088",
-                    status="Supported",
-                    evidence=f"Recorded: one paid run, preserved as `docs/QUESTION.md`.\n\n{pinned}",
-                ),
-                encoding="utf-8",
+        return 0
+    failures = 0
+    arrow_name, old_pin = mover
+    pinned = f"run at arrows/{arrow_name} at {old_pin}."
+    movers: list[tuple[str, str, str, str, bool]] = [
+        ("docs/claims/0099-planted-moving.md", "0099", "Supported", pinned, True),
+        ("docs/claims/0098-planted-resting.md", "0098", "Stale", pinned, False),
+        ("docs/claims/0097-planted-passed.md", "0097", "Superseded by 0099", pinned, False),
+    ]
+    targets = []
+    try:
+        for rel, num, status, evidence, _expect in movers:
+            target = ROOT / rel
+            target.write_text(
+                ADVISORY_BODY.format(num=num, status=status, evidence=evidence), encoding="utf-8"
             )
-            listing = "\n- Planted: 0088-planted-recorded.md and 0089-planted-verified.md rest here for the selftest.\n"
-            manifest_path.write_bytes(original_manifest.rstrip(b"\n") + f"{listing}- **Verified**: 0089 at {head}.\n".encode())
-            verified_problems, verified_advice = run(ROOT)
-            if any("0089" in a for a in verified_advice):
+            targets.append(target)
+        _, moved_advice = run(ROOT)
+        for rel, num, status, _evidence, should_fire in movers:
+            fired = any(rel in a for a in moved_advice)
+            if fired != should_fire:
                 failures += 1
-                print("WRONG: a claim verified in its manifest at HEAD still raised the movement advisory")
-            if any("0088" in a for a in verified_advice):
-                failures += 1
-                print("WRONG: a recorded observation raised the movement advisory")
-            legal_noise = [p for p in verified_problems if "0089" in p or "0088" in p]
-            if legal_noise:
-                failures += 1
-                print(f"WRONG: a legal verification or recorded claim raised {legal_noise[:2]}")
-            bad_lines = [
-                ("- **Verified**: 0089 at 0123456789ab.\n", "which is not a commit in this history"),
-                (f"- **Verified**: 0087 at {head}.\n", "verifies 0087, which is not a current claim pinned to this arrow"),
-            ]
-            if older:
-                bad_lines.append((f"- **Verified**: 0089 at {older}.\n", "which is older than the claim's pin"))
-            else:
-                print("older-verification plant skipped: the first evidence commit has no parent")
-            for line, expect in bad_lines:
-                manifest_path.write_bytes(original_manifest.rstrip(b"\n") + (listing + line).encode())
-                bad_problems, _ = run(ROOT)
-                if not any(expect in p for p in bad_problems):
-                    failures += 1
-                    print(f"WRONG: manifest line {line.strip()!r} did not raise {expect!r}")
-        finally:
-            manifest_path.write_bytes(original_manifest)
-            verified_claim.unlink(missing_ok=True)
-            recorded_claim.unlink(missing_ok=True)
-    quiet_mover = docs_only_moved_pin()
-    if quiet_mover is None:
-        print("docs-only advisory plant skipped: no arrow has moved in non-evidence bytes alone")
-    else:
-        arrow_name, quiet_pin = quiet_mover
-        rel = "docs/claims/0096-planted-quiet.md"
-        target = ROOT / rel
-        target.write_text(
-            body.format(
-                num="0096",
+                verb = "did not raise" if should_fire else "wrongly raised"
+                print(f"WRONG: plant {rel} ({status}) {verb} the movement advisory")
+    finally:
+        for target in targets:
+            target.unlink()
+    return failures + prove_verifications(arrow_name, old_pin, pinned)
+
+
+def prove_verifications(arrow_name: str, old_pin: str, pinned: str) -> int:
+    """A legal verification silences the advisory, a recorded observation is never advised, and an illegal verification is a verdict.
+
+    A verification in the arrow's manifest answers a movement whose figures reproduced, so
+    it must silence the advisory; a recorded observation is never advised; a verification
+    at a commit history lacks, or older than the pin, or of a claim that is not current,
+    is a verdict. The manifest's bytes are restored afterwards.
+    """
+    failures = 0
+    manifest_path = ROOT / "docs/arrows" / f"{arrow_name}.md"
+    original_manifest = manifest_path.read_bytes()
+    head = git("rev-parse", "HEAD")
+    older = git("rev-parse", f"{old_pin}^")
+    verified_claim = ROOT / "docs/claims/0089-planted-verified.md"
+    recorded_claim = ROOT / "docs/claims/0088-planted-recorded.md"
+    try:
+        verified_claim.write_text(ADVISORY_BODY.format(num="0089", status="Supported", evidence=pinned), encoding="utf-8")
+        recorded_claim.write_text(
+            ADVISORY_BODY.format(
+                num="0088",
                 status="Supported",
-                evidence=f"run at arrows/{arrow_name} at {quiet_pin}.",
+                evidence=f"Recorded: one paid run, preserved as `docs/QUESTION.md`.\n\n{pinned}",
             ),
             encoding="utf-8",
         )
-        try:
-            _, quiet_advice = run(ROOT)
-            if any(rel in a for a in quiet_advice):
+        listing = "\n- Planted: 0088-planted-recorded.md and 0089-planted-verified.md rest here for the selftest.\n"
+        manifest_path.write_bytes(original_manifest.rstrip(b"\n") + f"{listing}- **Verified**: 0089 at {head}.\n".encode())
+        verified_problems, verified_advice = run(ROOT)
+        if any("0089" in a for a in verified_advice):
+            failures += 1
+            print("WRONG: a claim verified in its manifest at HEAD still raised the movement advisory")
+        if any("0088" in a for a in verified_advice):
+            failures += 1
+            print("WRONG: a recorded observation raised the movement advisory")
+        legal_noise = [p for p in verified_problems if "0089" in p or "0088" in p]
+        if legal_noise:
+            failures += 1
+            print(f"WRONG: a legal verification or recorded claim raised {legal_noise[:2]}")
+        bad_lines = [
+            ("- **Verified**: 0089 at 0123456789ab.\n", "which is not a commit in this history"),
+            (f"- **Verified**: 0087 at {head}.\n", "verifies 0087, which is not a current claim pinned to this arrow"),
+        ]
+        if older:
+            bad_lines.append((f"- **Verified**: 0089 at {older}.\n", "which is older than the claim's pin"))
+        else:
+            print("older-verification plant skipped: the first evidence commit has no parent")
+        for line, expect in bad_lines:
+            manifest_path.write_bytes(original_manifest.rstrip(b"\n") + (listing + line).encode())
+            bad_problems, _ = run(ROOT)
+            if not any(expect in p for p in bad_problems):
                 failures += 1
-                print(f"WRONG: plant {rel} raised the movement advisory for a docs-only move")
-        finally:
-            target.unlink()
-    # Checks that read the tracked tree need a plant git can see, so these are added with
-    # intent-to-add and removed from the index again; nothing reaches a commit.
+                print(f"WRONG: manifest line {line.strip()!r} did not raise {expect!r}")
+    finally:
+        manifest_path.write_bytes(original_manifest)
+        verified_claim.unlink(missing_ok=True)
+        recorded_claim.unlink(missing_ok=True)
+    return failures
+
+
+def prove_quiet_move() -> int:
+    """A move in an arrow's non-evidence bytes alone raises no movement advisory."""
+    quiet_mover = docs_only_moved_pin()
+    if quiet_mover is None:
+        print("docs-only advisory plant skipped: no arrow has moved in non-evidence bytes alone")
+        return 0
+    failures = 0
+    arrow_name, quiet_pin = quiet_mover
+    rel = "docs/claims/0096-planted-quiet.md"
+    target = ROOT / rel
+    target.write_text(
+        ADVISORY_BODY.format(
+            num="0096",
+            status="Supported",
+            evidence=f"run at arrows/{arrow_name} at {quiet_pin}.",
+        ),
+        encoding="utf-8",
+    )
+    try:
+        _, quiet_advice = run(ROOT)
+        if any(rel in a for a in quiet_advice):
+            failures += 1
+            print(f"WRONG: plant {rel} raised the movement advisory for a docs-only move")
+    finally:
+        target.unlink()
+    return failures
+
+
+def prove_tracked_plants() -> int:
+    """Each plant the tracked-tree checks read raises its finding.
+
+    Checks that read the tracked tree need a plant git can see, so these are added with
+    intent-to-add and removed from the index again; nothing reaches a commit.
+    """
+    failures = 0
     for rel, content, expect in TRACKED_PLANTS:
         target = ROOT / rel
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -1022,10 +1135,18 @@ def selftest() -> int:
             target.unlink()
             if target.parent != ROOT and not any(target.parent.iterdir()):
                 target.parent.rmdir()
-    # A project built from this template carries the template's records in an inherited folder,
-    # numbered and registered by one row, so a legal one must PASS. In such a project the folder
-    # is full, the row exists, and the low numbers are taken, so the plant builds only what the
-    # tree lacks, takes the lowest free number, and removes only what it built.
+    return failures
+
+
+def prove_inherited_record() -> int:
+    """A legal inherited record, in a registered inherited folder, passes.
+
+    A project built from this template carries the template's records in an inherited folder,
+    numbered and registered by one row, so a legal one must PASS. In such a project the folder
+    is full, the row exists, and the low numbers are taken, so the plant builds only what the
+    tree lacks, takes the lowest free number, and removes only what it built.
+    """
+    failures = 0
     agents_path = ROOT / "AGENTS.md"
     original_agents = agents_path.read_bytes()
     inherited_dir = ROOT / "docs/inherited"
@@ -1055,9 +1176,19 @@ def selftest() -> int:
         inherited.unlink()
         if not inherited_existed:
             inherited_dir.rmdir()
-    # A project built from this template carries an UPSTREAM.md of the same kind as STATE.md, so a
-    # legal one must PASS and each rule of its schema must fire. The project's own file and row
-    # are kept and written back, because the plant borrows the path rather than owning it.
+    return failures
+
+
+def prove_upstream_plants() -> int:
+    """A legal UPSTREAM.md passes and each rule of its schema fires.
+
+    A project built from this template carries an UPSTREAM.md of the same kind as STATE.md, so a
+    legal one must PASS and each rule of its schema must fire. The project's own file and row
+    are kept and written back, because the plant borrows the path rather than owning it.
+    """
+    failures = 0
+    agents_path = ROOT / "AGENTS.md"
+    original_agents = agents_path.read_bytes()
     upstream = ROOT / "docs/UPSTREAM.md"
     original_upstream = upstream.read_bytes() if upstream.exists() else None
     upstream_row = b"| [docs/UPSTREAM.md](docs/UPSTREAM.md) | Planted: what this project has for its style. |\n"
@@ -1094,7 +1225,12 @@ def selftest() -> int:
             upstream.unlink(missing_ok=True)
         else:
             upstream.write_bytes(original_upstream)
-    # Two claims quoting one figure at one pin must agree, so the plant is a pair.
+    return failures
+
+
+def prove_figure_pair() -> int:
+    """Two claims quoting one figure at one pin with different values are reported."""
+    failures = 0
     pair = [
         ("docs/claims/0094-planted-figure-a.md", "0094", "5.000"),
         ("docs/claims/0093-planted-figure-b.md", "0093", "6.000"),
@@ -1116,11 +1252,17 @@ def selftest() -> int:
     finally:
         for target in written:
             target.unlink()
-    # A record edited beyond its Status line must fail, and a Status flip alone must pass, or
-    # the check would forbid the one edit the rulebook allows. Immutability is a fact about a
-    # record's history, so this is the one plant that cannot build its subject; it selects the
-    # lowest-numbered accepted record of the project's own by that property, never by a number
-    # written here, because a project that kept its numbers after the inherited ones has no 0001.
+    return failures
+
+
+def prove_immutability() -> int:
+    """A body edit to an accepted record fails and a Status flip alone passes.
+
+    Immutability is a fact about a record's history, so this is the one plant that cannot
+    build its subject; it selects the lowest-numbered accepted record of the project's own by
+    that property, never by a number written here, because a project that kept its numbers
+    after the inherited ones has no 0001.
+    """
     record = next(
         (
             p for p in sorted((ROOT / "docs/decisions").glob("*.md"))
@@ -1130,24 +1272,33 @@ def selftest() -> int:
     )
     if record is None:
         print("immutability plants skipped: no accepted record of this project's own to plant on")
-    else:
-        original = record.read_bytes()
-        try:
-            record.write_bytes(original + b"\nplanted body edit\n")
-            edited_problems, _ = run(ROOT)
-            if not any("edited beyond its Status line" in p for p in edited_problems):
-                failures += 1
-                print(f"WRONG: a body edit to {record.name} raised nothing")
-            record.write_bytes(original.replace(b"Status: Accepted", b"Status: Superseded by 0099", 1))
-            flipped_problems, _ = run(ROOT)
-            if any("edited beyond its Status line" in p for p in flipped_problems):
-                failures += 1
-                print(f"WRONG: a Status flip on {record.name} was reported as an illegal edit")
-        finally:
-            record.write_bytes(original)
-    # A queued entry written today has no history to age it, so it must PASS; an entry that has
-    # stood for two horizons cannot be planted without commits, so the firing case runs only where
-    # this tree carries one and says so otherwise.
+        return 0
+    failures = 0
+    original = record.read_bytes()
+    try:
+        record.write_bytes(original + b"\nplanted body edit\n")
+        edited_problems, _ = run(ROOT)
+        if not any("edited beyond its Status line" in p for p in edited_problems):
+            failures += 1
+            print(f"WRONG: a body edit to {record.name} raised nothing")
+        record.write_bytes(original.replace(b"Status: Accepted", b"Status: Superseded by 0099", 1))
+        flipped_problems, _ = run(ROOT)
+        if any("edited beyond its Status line" in p for p in flipped_problems):
+            failures += 1
+            print(f"WRONG: a Status flip on {record.name} was reported as an illegal edit")
+    finally:
+        record.write_bytes(original)
+    return failures
+
+
+def prove_queue_age() -> int:
+    """A queued entry written today passes; the firing case needs history this tree may lack.
+
+    A queued entry written today has no history to age it, so it must PASS; an entry that has
+    stood for two horizons cannot be planted without commits, so the firing case runs only where
+    this tree carries one and says so otherwise.
+    """
+    failures = 0
     state_path = ROOT / "STATE.md"
     original_state = state_path.read_bytes()
     state_text = original_state.decode("utf-8").replace("\r\n", "\n")
@@ -1168,6 +1319,17 @@ def selftest() -> int:
         finally:
             state_path.write_bytes(original_state)
     print("queue age firing case skipped: no queued entry in this tree has two horizons of history")
+    return failures
+
+
+def prove_anchors() -> int:
+    """Each history-reading rule's scope sentence is dated by the commit that introduced it.
+
+    The rule is dated by its scope sentence, so the commit the search finds must be the one
+    that introduced that sentence: its parent must not contain it. A history without the
+    sentence yet has nothing to prove and says so.
+    """
+    failures = 0
     name_arrival = git("log", "--reverse", "--format=%H", "-S", RECORD_NAME_SCOPE, "--", "scripts/audit_inquiry.py").split()
     if name_arrival and RECORD_NAME_SCOPE in git("show", f"{name_arrival[0]}^:scripts/audit_inquiry.py"):
         failures += 1
@@ -1176,22 +1338,63 @@ def selftest() -> int:
     if age_arrival and STATE_AGE_SCOPE in git("show", f"{age_arrival[0]}^:scripts/audit_inquiry.py"):
         failures += 1
         print("WRONG: the queue age anchor is older than the commit that introduced the current scope")
-    # The immutability rule is dated by its scope sentence, so the commit the search finds must
-    # be the one that introduced that sentence: its parent must not contain it. A history without
-    # the sentence yet has nothing to prove and says so.
     arrival = git("log", "--reverse", "--format=%H", "-S", IMMUTABILITY_SCOPE, "--", "scripts/audit_inquiry.py").split()
     if not arrival:
         print("anchor plant skipped: the immutability scope sentence has not reached history yet")
-    else:
-        parent = git("show", f"{arrival[0]}^:scripts/audit_inquiry.py")
-        if IMMUTABILITY_SCOPE in parent:
-            failures += 1
-            print("WRONG: the immutability anchor is older than the commit that introduced the current scope")
+    elif IMMUTABILITY_SCOPE in git("show", f"{arrival[0]}^:scripts/audit_inquiry.py"):
+        failures += 1
+        print("WRONG: the immutability anchor is older than the commit that introduced the current scope")
+    return failures
+
+
+def prove_empty_tree() -> int:
+    """An empty tree raises the missing-document problem rather than passing for lack of material."""
     with tempfile.TemporaryDirectory() as scratch:
         empty, _ = run(Path(scratch))
         if not any("missing living document" in p for p in empty):
-            failures += 1
             print("WRONG: an empty tree raised no missing-document problem")
+            return 1
+    return 0
+
+
+def selftest() -> int:
+    """Prove each rule fires against a planted defect, then leave no trace.
+
+    A plant builds whatever it names, an arrow, a manifest, a bibliography entry, rather than
+    naming what this tree happens to carry, so the proof holds in a project built from this
+    template that carries none of the demo.
+    """
+    # A plant proves nothing in a tree that already fails, so the tree is checked first and the
+    # command stops with the audit's own findings rather than counting every legal plant as a
+    # broken rule.
+    baseline, _ = run(ROOT)
+    if baseline:
+        print("the unplanted tree is not clean, so nothing can be proven until the audit passes:")
+        for p in baseline[:5]:
+            print(f"  {p}")
+        return 1
+    # Plants write into record folders a project may not have yet, a fresh inquiry among them, so
+    # the folders the plants need are built here and removed again once every plant is gone.
+    built_folders = [ROOT / rel for rel in ("docs/claims", "docs/arrows", "docs/reviews") if not (ROOT / rel).exists()]
+    for folder in built_folders:
+        folder.mkdir()
+    proofs = (
+        prove_single_plants,
+        prove_legal_plants,
+        prove_unlisted_claim,
+        prove_review_plants,
+        prove_movement,
+        prove_quiet_move,
+        prove_tracked_plants,
+        prove_inherited_record,
+        prove_upstream_plants,
+        prove_figure_pair,
+        prove_immutability,
+        prove_queue_age,
+        prove_anchors,
+        prove_empty_tree,
+    )
+    failures = sum(proof() for proof in proofs)
     for folder in built_folders:
         if not any(folder.iterdir()):
             folder.rmdir()

@@ -216,6 +216,14 @@ function isBefore(commit, other) {
   return commit !== other && git("rev-list", "--count", `${other}..${commit}`).trim() === "0";
 }
 
+// How long a queued entry has stood unchanged, counted from the binding commit or the entry's
+// own, whichever is later.
+function standingDays(raw, binding) {
+  const born = firstCommit(raw.replace(/\s*\(\d{4}-\d{2}-\d{2}\)\s*$/, "").trim(), "STATE.md");
+  const start = born === null ? null : commitDate(isBefore(born, binding) ? binding : born);
+  return start === null ? 0 : Math.floor((today - start) / 86_400_000);
+}
+
 const statePath = resolve(ROOT, "STATE.md");
 if (existsSync(statePath)) {
   const text = readFileSync(statePath, "utf-8");
@@ -240,16 +248,13 @@ if (existsSync(statePath)) {
           `${horizon}-day horizon of ${section}; re-verify it against reality, then re-date or remove it`,
       );
     }
-    if (section !== "Now" && binding !== null) {
-      const born = firstCommit(raw.replace(/\s*\(\d{4}-\d{2}-\d{2}\)\s*$/, "").trim(), "STATE.md");
-      const start = born === null ? null : commitDate(isBefore(born, binding) ? binding : born);
-      const standing = start === null ? 0 : Math.floor((today - start) / 86_400_000);
-      if (standing > HORIZON_DAYS * 2) {
-        problems.push(
-          `STATE.md:${offset + 1}: entry has stood unchanged in ${section} for ${standing} days, two horizons; ` +
-            "promote it to Now, write it as a decision record, or drop it",
-        );
-      }
+    if (section === "Now" || binding === null) return;
+    const standing = standingDays(raw, binding);
+    if (standing > HORIZON_DAYS * 2) {
+      problems.push(
+        `STATE.md:${offset + 1}: entry has stood unchanged in ${section} for ${standing} days, two horizons; ` +
+          "promote it to Now, write it as a decision record, or drop it",
+      );
     }
   });
   const nowSection = text.match(/^## Now\r?\n([\s\S]*?)(?=^## )/m);
@@ -451,6 +456,25 @@ if (existsSync(archPath)) {
 // so it fails rather than quietly checking less.
 // Every subfolder of docs/ is a record folder, so the diff is read over docs/ and only files
 // below a subfolder count; the flat living documents at the top change freely.
+function flagIllegalEdits(where, diff) {
+  let current = "";
+  const flagged = new Set();
+  for (const line of diff.split("\n")) {
+    if (line.startsWith("+++ b/")) {
+      current = line.slice(6);
+      const below = current.includes("docs/") ? current.split("docs/")[1] : "";
+      if (!below.includes("/")) current = "";
+      continue;
+    }
+    if (!current) continue;
+    if (/^(--- |\+\+\+ |@@|diff |index |similarity |rename )/.test(line)) continue;
+    if (ILLEGAL_RECORD_EDIT.test(line) && !flagged.has(current)) {
+      flagged.add(current);
+      problems.push(`${current}: edited beyond its Status line in ${where}; a record is immutable, so supersede it instead`);
+    }
+  }
+}
+
 if (existsSync(resolve(ROOT, "docs"))) {
   if (git("rev-parse", "--is-shallow-repository").trim() === "true") {
     problems.push("the clone is shallow, so record history cannot be checked; fetch the full history");
@@ -464,22 +488,7 @@ if (existsSync(resolve(ROOT, "docs"))) {
       }
     }
     for (const [where, diff] of diffs) {
-      let current = "";
-      const flagged = new Set();
-      for (const line of diff.split("\n")) {
-        if (line.startsWith("+++ b/")) {
-          current = line.slice(6);
-          const below = current.includes("docs/") ? current.split("docs/")[1] : "";
-          if (!below.includes("/")) current = "";
-          continue;
-        }
-        if (!current) continue;
-        if (/^(--- |\+\+\+ |@@|diff |index |similarity |rename )/.test(line)) continue;
-        if (ILLEGAL_RECORD_EDIT.test(line) && !flagged.has(current)) {
-          flagged.add(current);
-          problems.push(`${current}: edited beyond its Status line in ${where}; a record is immutable, so supersede it instead`);
-        }
-      }
+      flagIllegalEdits(where, diff);
     }
   }
 }

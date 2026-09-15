@@ -59,7 +59,7 @@ jobs:
       - name: Lint and type-check the family's own tooling
         run: |
           python -m pip install ruff mypy
-          ruff check --isolated scripts Quiver/scripts
+          ruff check --isolated --preview --extend-select C901,PLR0915,PLR1702 --config "lint.mccabe.max-complexity=10" --config "lint.pylint.max-nested-blocks=5" --config "lint.pylint.max-statements=50" scripts Quiver/scripts
           mypy --strict scripts/audit_family.py scripts/rehearse_adoption.py Quiver/scripts/audit_inquiry.py
 
   # The audits are proven where they run. A child is built from each template, shaped the way

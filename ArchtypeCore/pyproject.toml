@@ -44,9 +44,7 @@ max-statements = 50
 "tests/**" = ["D101", "D102", "D103", "D107", "S101"]
 # The operational scripts and the Alembic environment put the repository root on sys.path
 # before importing from it, and Alembic needs the models imported for their side effect.
-# A check function carries one branch per rule it checks, so its path count is its rule
-# count; the scripts stand outside the shape limits, a debt STATE.md names.
-"scripts/*.py" = ["E402", "S101", "C901", "PLR0915", "PLR1702"]
+"scripts/*.py" = ["E402", "S101"]
 "db/migrations/env.py" = ["E402", "F401"]
 # The field filter is written as compact one-line guards on purpose.
 "app/utils/reorder_fields.py" = ["E701"]
