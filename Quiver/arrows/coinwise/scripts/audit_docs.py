@@ -41,10 +41,10 @@ HORIZON_DAYS = 90
 NOW_HORIZON_DAYS = 30
 # Now is for in-flight work only; past this many entries the section is accreting, not tracking.
 NOW_CAP = 5
-# Bounded documents fail past this; AGENTS.md, docs/ARCHITECTURE.md, and README.md are the
-# documents that grow with the system instead.
+# Bounded documents fail past this; AGENTS.md, docs/ARCHITECTURE.md, README.md, and the rulebook
+# are the documents that grow with the system instead, a manual, a map, and the law it is held to.
 BUDGET_LINES = 150
-FREE_GROWING = {"AGENTS.md", "docs/ARCHITECTURE.md", "README.md"}
+FREE_GROWING = {"AGENTS.md", "docs/ARCHITECTURE.md", "README.md", "docs/CONVENTIONS.md"}
 
 BACKTICK = re.compile(r"`([^`\n]+)`")
 LINK = re.compile(r"\[[^\]]*\]\(([^)\s]+)\)")
@@ -99,6 +99,14 @@ NAME_CAP = 72
 # A link into a numbered record folder is a citation, and a citation carries the record's title
 # in its paragraph, so the sentence stands without the click and cannot drift from what it cites.
 RECORD_LINK = re.compile(r"(?:decisions|inherited|claims)/(\d{4})-[a-z0-9-]+\.md$")
+# A prose paragraph that names this many references or more is an enumeration wearing prose, a
+# list or a table with its rows run together; measured over the family and over a project built
+# from it, everything at this count was a schema stated as prose or a set of bindings, and
+# everything argued sat well below it. Whether a given paragraph is one of those stays with
+# review, so the count advises and never gates.
+DENSE_PARAGRAPH = 8
+REFERENCE = re.compile(r"`[^`\n]+`|\[[^\]]*\]\([^)\s]+\)")
+NOT_PROSE = ("#", "- ", "* ", "|", ">")
 
 
 def git(*args: str) -> str:
@@ -293,6 +301,49 @@ def check_links(problems: list[str], rel: str, doc: Path, text: str) -> None:
         if not resolved.exists():
             line = prose.count("\n", 0, match.start()) + 1
             problems.append(f"{rel}:{line}: links to {target}, which does not resolve")
+
+
+def prose_paragraphs(text: str) -> list[tuple[int, str]]:
+    """Every prose paragraph with the line it starts on; fences, headings, list items, table rows, and quotes are not prose."""
+    paragraphs: list[tuple[int, str]] = []
+    buffer: list[str] = []
+    start = 0
+    in_fence = False
+    for number, line in enumerate(text.split("\n"), 1):
+        if line.startswith("```"):
+            in_fence = not in_fence
+            continue
+        if in_fence or not line.strip() or line.lstrip().startswith(NOT_PROSE) or re.match(r"^\s*\d+\.\s", line):
+            if buffer:
+                paragraphs.append((start, " ".join(buffer)))
+                buffer = []
+            continue
+        start = start if buffer else number
+        buffer.append(line.strip())
+    if buffer:
+        paragraphs.append((start, " ".join(buffer)))
+    return paragraphs
+
+
+def advise_dense_paragraphs(advice: list[str], rel: str, text: str) -> None:
+    """A prose paragraph naming eight or more references is advised to become a list or a table; the facts stay, the shape changes."""
+    for line, paragraph in prose_paragraphs(text):
+        count = len(REFERENCE.findall(paragraph))
+        if count >= DENSE_PARAGRAPH:
+            advice.append(
+                f"{rel}:{line}: this paragraph names {count} references; a list or a table shows them, a paragraph argues, "
+                "and every fact it holds survives the move"
+            )
+
+
+def advise_forms(advice: list[str]) -> None:
+    """The form advisory over every living document, the spine and the flat documents under docs/."""
+    docs = ROOT / "docs"
+    rels = list(LIVING) + [f"docs/{f.name}" for f in sorted(docs.glob("*.md")) if docs.is_dir() and f"docs/{f.name}" not in LIVING]
+    for rel in rels:
+        path = ROOT / rel
+        if path.exists():
+            advise_dense_paragraphs(advice, rel, path.read_text(encoding="utf-8"))
 
 
 def record_title(record: Path) -> str | None:
@@ -876,9 +927,11 @@ def check_version_story(problems: list[str]) -> None:
         )
 
 
-def run() -> tuple[list[str], list[Path]]:
-    """Every disagreement between the tree and its conventions, and the package roots the layout was held over."""
+def run() -> tuple[list[str], list[str], list[Path]]:
+    """Every disagreement between the tree and its conventions, every piece of advice, and the package roots the layout was held over."""
     problems: list[str] = []
+    advice: list[str] = []
+    advise_forms(advice)
     check_documents(problems)
     check_docs_zone(problems)
     check_record_names(problems)
@@ -889,7 +942,7 @@ def run() -> tuple[list[str], list[Path]]:
     check_record_immutability(problems)
     check_docstrings(problems)
     check_version_story(problems)
-    return problems, held
+    return problems, advice, held
 
 
 # Plants, each an untracked file the glob-reading checks see, and the finding it must raise.
@@ -1228,6 +1281,30 @@ def prove_citation_plant() -> int:
     return failures
 
 
+def prove_dense_plant() -> int:
+    """A prose paragraph naming eight references is advised, and the same eight names as a list are not."""
+    agents = ROOT / "AGENTS.md"
+    if not agents.exists():
+        print("form plants skipped: no AGENTS.md in this tree")
+        return 0
+    names = [f"`planted_{n}`" for n in range(DENSE_PARAGRAPH)]
+    failures = 0
+    original = agents.read_bytes()
+    # The tree may carry dense paragraphs of its own, so the plant is judged by what it adds.
+    before = len(run()[1])
+    try:
+        agents.write_bytes(original + f"\nThe planted paragraph names {', '.join(names)} in one breath.\n".encode())
+        added = [a for a in run()[1] if f"names {DENSE_PARAGRAPH} references" in a and "AGENTS.md" in a]
+        if len(run()[1]) != before + 1 or not added:
+            failures += wrong("a prose paragraph naming eight references raised no advice of its own")
+        agents.write_bytes(original + ("\n" + "".join(f"- {name}\n" for name in names)).encode())
+        if len(run()[1]) != before:
+            failures += wrong("a list of eight names was advised as a dense paragraph")
+    finally:
+        agents.write_bytes(original)
+    return failures
+
+
 def prove_immutability() -> int:
     """A body edit to an accepted record fails and a Status flip alone passes.
 
@@ -1276,7 +1353,7 @@ def selftest() -> int:
     history, or that the tooling cannot be made to miss, is named as skipped rather than
     counted as proven.
     """
-    baseline, _ = run()
+    baseline, _, _ = run()
     if baseline:
         print("the unplanted tree is not clean, so nothing can be proven until the audit passes:")
         for p in baseline[:5]:
@@ -1295,6 +1372,7 @@ def selftest() -> int:
         prove_version_plant,
         prove_module_plant,
         prove_citation_plant,
+        prove_dense_plant,
         prove_immutability,
         prove_anchors,
     )
@@ -1307,7 +1385,11 @@ def main() -> int:
     """Run every check and report each disagreement between the tree and its conventions, or prove the checks."""
     if "--selftest" in sys.argv:
         return selftest()
-    problems, held = run()
+    problems, advice, held = run()
+    if advice:
+        print(f"advisory, {len(advice)} item(s), decides nothing and gates nothing:")
+        for item in advice:
+            print(f"  {item}")
     for problem in problems:
         print(problem)
     if problems:

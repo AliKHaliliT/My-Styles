@@ -26,7 +26,13 @@ Nearly every documentation failure is a species violation. Never mix the two spe
 | `docs/decisions/` | Records | The decision log of this project's own choices; the durable home of rationale. |
 | `docs/claims/` | Records | The claim ledger; the durable home of what the inquiry holds true, on what evidence. |
 
-Assistant-specific instruction files do not exist here; every assistant reads `AGENTS.md`. Beyond the spine, documentation grows organically. Two folders join the spine with their first entry, a `reviews/` folder under `docs/` holding one record per pass over the literature and an `arrows/` folder under `docs/` holding one living manifest per arrow, each registered by its own row in the index when it appears, because a fresh inquiry has neither a pass nor an arrow yet, and a folder git cannot hold empty is not a folder a project can carry. Further documents are added under `docs/` (UPPERCASE markdown, one subject per file, one species per file) and registered in the index. The one exception in location is a directory whose purpose needs stating where a reader stands, which may carry its own `README.md` beside its contents, registered in the index like any other document. A subfolder under `docs/` is a record folder or `arrows/`, nothing else; living organic documents are flat UPPERCASE files at the top of `docs/`, because the naming and budget rules see only that shape. A record folder beyond `decisions/`, `claims/`, `reviews/`, and `inherited/` where a project carries one, holds dated documents named `YYYY-MM-DD-short-kebab-title.md`, ordered by date rather than by number, immutable like every record, and registered by its own row in the index. Growth changes the number of documents, never the species rules of an existing one.
+Assistant-specific instruction files do not exist here; every assistant reads `AGENTS.md`. Beyond the spine, documentation grows organically, and growth changes the number of documents, never the species rules of an existing one:
+
+- Two folders join the spine with their first entry, a `reviews/` folder under `docs/` holding one record per pass over the literature and an `arrows/` folder under `docs/` holding one living manifest per arrow, each registered by its own row in the index when it appears, because a fresh inquiry has neither a pass nor an arrow yet, and a folder git cannot hold empty is not a folder a project can carry.
+- Further documents are added under `docs/` (UPPERCASE markdown, one subject per file, one species per file) and registered in the index.
+- The one exception in location is a directory whose purpose needs stating where a reader stands, which may carry its own `README.md` beside its contents, registered in the index like any other document.
+- A subfolder under `docs/` is a record folder or `arrows/`, nothing else; living organic documents are flat UPPERCASE files at the top of `docs/`, because the naming and budget rules see only that shape.
+- A record folder beyond `decisions/`, `claims/`, `reviews/`, and `inherited/` where a project carries one, holds dated documents named `YYYY-MM-DD-short-kebab-title.md`, ordered by date rather than by number, immutable like every record, and registered by its own row in the index.
 
 ## The index contract
 
@@ -44,7 +50,23 @@ Assistant-specific instruction files do not exist here; every assistant reads `A
 
 ### The STATE.md schema
 
-`STATE.md` has exactly four sections: `Now` (in flight), `Next` (queued), `Deferred`, and `Blocked`. An entry earns `Now` only while its work is genuinely unfinished. Completing work deletes its entry in the same change. Every entry is one line ending with its date (YYYY-MM-DD), and the audit caps `Now` at five entries. The file is swept at both ends of every change. An entry in `Next`, `Deferred`, or `Blocked` whose text has stood unchanged, its date aside, for two horizons is a decision record trying to be born, so it is promoted to `Now`, written as a record and removed, or dropped; the audit reads the entry's age from history and fails it past that point, because the file's dates are last-verified stamps and cannot show it. Execution tracking lives here and never in a record. In a project built from this template, `UPSTREAM.md` at the top of `docs/` is a living document of the same kind: it opens with the template and the commit the project is aligned to, and holds the entries the project has for its style under one section, `## Open`, with `Nothing open.` when there are none, each entry dated, kinded, pinned, and shaped as the agent guide says, deleted when re-alignment resolves it, and expired after 90 days until re-verified; it is free-growing, since the horizon bounds it better than a line budget would.
+`STATE.md` has exactly four sections, and every entry in them is one line that ends with its last-verified date (YYYY-MM-DD).
+
+| Section | Holds |
+| --- | --- |
+| `Now` | Work in flight, or a condition future work must honor that no other document carries |
+| `Next` | Work queued |
+| `Deferred` | Work consciously postponed |
+| `Blocked` | Work waiting on something external |
+
+- An entry earns `Now` only while its work is genuinely unfinished.
+- Completing work deletes its entry in the same change.
+- The file is swept at both ends of every change.
+- The audit caps `Now` at five entries.
+- An entry in `Next`, `Deferred`, or `Blocked` whose text has stood unchanged, its date aside, for two horizons is a decision record trying to be born, so it is promoted to `Now`, written as a record and removed, or dropped; the audit reads the entry's age from history and fails it past that point, because the file's dates are last-verified stamps and cannot show it.
+- Execution tracking lives here and never in a record.
+
+In a project built from this template, `UPSTREAM.md` at the top of `docs/` is a living document of the same kind. It opens with the template and the commit the project is aligned to, and holds the entries the project has for its style under one section, `## Open`, with `Nothing open.` when there are none. Each entry is dated, kinded, pinned, and shaped as the agent guide says, is deleted when re-alignment resolves it, and expires after 90 days until re-verified. The file is free-growing, since the horizon bounds it better than a line budget would.
 
 ## Rules for decision records
 
@@ -124,3 +146,5 @@ A project adopting this style brings prose it did not write under a law written 
 A report to a person opens with one paragraph a reader outside the work could follow, what happened and what it means, before any detail, and every abstract finding is paired with one concrete instance, the input that broke the invariant or the line that carried the drift. This is not a schema and not layman's terms; it is the order in which an expert who did not do the work can check it. Chat replies, upstream reports, and handoffs are reports to a person and follow it.
 
 Before shipping prose, the writer checks its own output against this section: colons only for lists, quotes, and labels; at most one flourish per paragraph and two em dashes per file; every generic sentence bound to the subject or cut; every emphasis argued rather than labeled; a report to a person opened with its plain account; the ending concrete. Beyond the counts named above no tool judges any of this, so the check is the writer's own, and review reads behind it.
+
+The form follows the shape of the information. Like items that share attributes go in a table, one row each. Steps that happen in order go in a numbered list. Items that stand alone go in bullets. An argument, one claim leading to the next, goes in a paragraph, and a paragraph is for arguing. A paragraph that mostly names things, paths, symbols, options, records, is an enumeration wearing prose, and the docs audit advises when one names eight or more references, because past that point a reader is parsing rather than reading. The answer is the shape, never a cut, since every fact the paragraph held survives the move into a list or a table.

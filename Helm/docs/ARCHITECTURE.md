@@ -58,7 +58,20 @@ helm/
 
 ## The wire boundary
 
-All HTTP goes through `shared/api`'s `request`, which attaches the bearer token, normalizes failures into `ApiError`, and validates every response body against a zod schema before anything else sees it; a payload that does not match becomes a `WireContractError` instead of a mystery crash three components later. A refusal's readable reason is read from `detail`, then `message`, then `title`, so the client understands the family's own server envelope and a plainer backend without a switch. Each entity keeps the boundary in three segments: `dto.ts` describes what the backend actually sends (snake_case, ISO strings), `translate.ts` reshapes it into the domain model (camelCase, real `Date` objects), and `api.ts` composes the two so callers only ever meet domain types. Outbound requests run the same path in reverse through the translators.
+All HTTP goes through `shared/api`'s `request`. A refusal's readable reason is read from `detail`, then `message`, then `title`, so the client understands the family's own server envelope and a plainer backend without a switch. Before anything else sees a response, the request path does four things:
+
+1. It attaches the bearer token.
+2. It normalizes failures into `ApiError`.
+3. It validates every response body against a zod schema.
+4. It turns a payload that does not match into a `WireContractError`, instead of a mystery crash three components later.
+
+Each entity keeps the boundary in three segments, and outbound requests run the same path in reverse through the translators.
+
+| Segment | Holds |
+| --- | --- |
+| `dto.ts` | What the backend actually sends, snake_case and ISO strings |
+| `translate.ts` | The reshaping into the domain model, camelCase and real `Date` objects |
+| `api.ts` | The composition of the two, so callers only ever meet domain types |
 
 ## Server cache versus client state
 
@@ -70,7 +83,12 @@ In mock mode (the default) an MSW service worker answers the same HTTP the clien
 
 ## Theming
 
-`src/app/styles/tokens.css` owns every color as a CSS variable, keyed on the root `data-theme` attribute and mapped into Tailwind utilities through the `@theme` block. Components use only token utilities (`bg-surface`, `text-ink`, `border-line`, `text-signal`, and the status tones); raw palette classes are off limits. The theme store applies the attribute, and `initTheme` runs at bootstrap so the first paint is already correct.
+`src/app/styles/tokens.css` owns every color as a CSS variable, keyed on the root `data-theme` attribute and mapped into Tailwind utilities through the `@theme` block. The theme store applies the attribute, and `initTheme` runs at bootstrap so the first paint is already correct. Components use only the token utilities, and raw palette classes are off limits. The utilities are:
+
+- `bg-surface`
+- `text-ink`
+- `border-line`
+- `text-signal` and the status tones
 
 ## Testing
 

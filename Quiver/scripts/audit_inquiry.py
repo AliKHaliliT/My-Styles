@@ -33,7 +33,8 @@ LIVING = [
     "docs/CONVENTIONS.md",
     "docs/BASELINE.md",
 ]
-FREE_GROWING = {"AGENTS.md", "README.md", "docs/ARCHITECTURE.md", "docs/BIBLIOGRAPHY.md", "docs/UPSTREAM.md"}
+# The rulebook grows with the law it states, as the manual and the map grow with the system.
+FREE_GROWING = {"AGENTS.md", "README.md", "docs/ARCHITECTURE.md", "docs/BIBLIOGRAPHY.md", "docs/UPSTREAM.md", "docs/CONVENTIONS.md"}
 BUDGET_LINES = 150
 HORIZON_DAYS = 90
 # In-flight work that has not moved in this long is either finished or stalled, and Now is
@@ -103,6 +104,14 @@ NAME_CAP = 72
 # A link into a numbered record folder is a citation, and a citation carries the record's title
 # in its paragraph, so the sentence stands without the click and cannot drift from what it cites.
 RECORD_LINK = re.compile(r"(?:decisions|inherited|claims)/(\d{4})-[a-z0-9-]+\.md$")
+# A prose paragraph that names this many references or more is an enumeration wearing prose, a
+# list or a table with its rows run together; measured over the family and over a project built
+# from it, everything at this count was a schema stated as prose or a set of bindings, and
+# everything argued sat well below it. Whether a given paragraph is one of those stays with
+# review, so the count advises and never gates.
+DENSE_PARAGRAPH = 8
+REFERENCE = re.compile(r"`[^`\n]+`|\[[^\]]*\]\([^)\s]+\)")
+NOT_PROSE = ("#", "- ", "* ", "|", ">")
 
 
 # Questions about committed history have one answer for the life of a process, because nothing
@@ -377,6 +386,39 @@ def claims_to_be_path(token: str, root: Path) -> bool:
         return False
     first = token.lstrip("./").split("/")[0]
     return (root / first).exists()
+
+
+def prose_paragraphs(text: str) -> list[tuple[int, str]]:
+    """Every prose paragraph with the line it starts on; fences, headings, list items, table rows, and quotes are not prose."""
+    paragraphs: list[tuple[int, str]] = []
+    buffer: list[str] = []
+    start = 0
+    in_fence = False
+    for number, line in enumerate(text.split("\n"), 1):
+        if line.startswith("```"):
+            in_fence = not in_fence
+            continue
+        if in_fence or not line.strip() or line.lstrip().startswith(NOT_PROSE) or re.match(r"^\s*\d+\.\s", line):
+            if buffer:
+                paragraphs.append((start, " ".join(buffer)))
+                buffer = []
+            continue
+        start = start if buffer else number
+        buffer.append(line.strip())
+    if buffer:
+        paragraphs.append((start, " ".join(buffer)))
+    return paragraphs
+
+
+def advise_dense_paragraphs(advice: list[str], rel: str, text: str) -> None:
+    """A prose paragraph naming eight or more references is advised to become a list or a table; the facts stay, the shape changes."""
+    for line, paragraph in prose_paragraphs(text):
+        count = len(REFERENCE.findall(paragraph))
+        if count >= DENSE_PARAGRAPH:
+            advice.append(
+                f"{rel}:{line}: this paragraph names {count} references; a list or a table shows them, a paragraph argues, "
+                "and every fact it holds survives the move"
+            )
 
 
 def record_title(record: Path) -> str | None:
@@ -789,6 +831,9 @@ def run(root: Path) -> tuple[list[str], list[str]]:
     """Every decided problem and every piece of advice for one tree."""
     problems: list[str] = []
     advice: list[str] = []
+    for rel in living_documents(root):
+        if (root / rel).exists():
+            advise_dense_paragraphs(advice, rel, (root / rel).read_text(encoding="utf-8"))
     check_living(problems, root)
     check_references(problems, root)
     check_rooms(problems, root)
@@ -1336,6 +1381,28 @@ def prove_citation_plant() -> int:
     return failures
 
 
+def prove_dense_plant() -> int:
+    """A prose paragraph naming eight references is advised, and the same eight names as a list are not."""
+    names = [f"`planted_{n}`" for n in range(DENSE_PARAGRAPH)]
+    planted = ROOT / "docs/PLANTED.md"
+    failures = 0
+    # The tree may carry dense paragraphs of its own, so the plant is judged by what it adds.
+    before = len(run(ROOT)[1])
+    try:
+        planted.write_text(f"# Planted\n\nThe planted paragraph names {', '.join(names)} in one breath.\n", encoding="utf-8")
+        added = [a for a in run(ROOT)[1] if f"names {DENSE_PARAGRAPH} references" in a and "docs/PLANTED.md" in a]
+        if len(run(ROOT)[1]) != before + 1 or not added:
+            failures += 1
+            print("WRONG: a prose paragraph naming eight references raised no advice of its own")
+        planted.write_text("# Planted\n\n" + "".join(f"- {name}\n" for name in names), encoding="utf-8")
+        if len(run(ROOT)[1]) != before:
+            failures += 1
+            print("WRONG: a list of eight names was advised as a dense paragraph")
+    finally:
+        planted.unlink(missing_ok=True)
+    return failures
+
+
 def prove_duplicate_numbers() -> int:
     """Two records sharing one number in a folder are reported, naming both."""
     twins = [ROOT / "docs/claims/0090-planted-twin-a.md", ROOT / "docs/claims/0090-planted-twin-b.md"]
@@ -1491,6 +1558,7 @@ def selftest() -> int:
         prove_upstream_plants,
         prove_figure_pair,
         prove_citation_plant,
+        prove_dense_plant,
         prove_duplicate_numbers,
         prove_immutability,
         prove_queue_age,

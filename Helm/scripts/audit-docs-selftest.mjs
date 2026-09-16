@@ -33,10 +33,15 @@ function git(...args) {
   }
 }
 
-/** The audit's findings on the tree as it stands, one per line, the verdict line excluded. */
+/** The audit's findings and advice on the tree as it stands, one per line, the verdict lines excluded. */
 function audit() {
   const done = spawnSync(process.execPath, [AUDIT], { cwd: ROOT, encoding: "utf-8" });
-  return `${done.stdout}${done.stderr}`.split("\n").filter((line) => line && !line.startsWith("The tree") && !line.includes("problem(s)."));
+  return `${done.stdout}${done.stderr}`.split("\n").filter((line) => line && !line.startsWith("The tree") && !line.includes("problem(s).") && !line.startsWith("advisory,"));
+}
+
+/** Only the findings, the lines the audit would fail on; advice is indented and decides nothing. */
+function findings() {
+  return audit().filter((line) => !line.startsWith("  "));
 }
 
 let failures = 0;
@@ -275,6 +280,28 @@ function proveCitationPlant() {
   }
 }
 
+/** Only the advice, the indented lines under the advisory header. */
+function adviceLines() {
+  return audit().filter((line) => line.startsWith("  "));
+}
+
+function proveDensePlant() {
+  const names = Array.from({ length: 8 }, (_, n) => `\`planted_${n}\``);
+  const agents = join(ROOT, "AGENTS.md");
+  const original = readFileSync(agents);
+  // The tree may carry dense paragraphs of its own, so the plant is judged by what it adds.
+  const before = adviceLines().length;
+  try {
+    writeFileSync(agents, Buffer.concat([original, Buffer.from(`\nThe planted paragraph names ${names.join(", ")} in one breath.\n`)]));
+    const added = adviceLines().filter((line) => line.includes("names 8 references") && line.includes("AGENTS.md"));
+    if (adviceLines().length !== before + 1 || added.length === 0) wrong("a prose paragraph naming eight references raised no advice of its own");
+    writeFileSync(agents, Buffer.concat([original, Buffer.from(`\n${names.map((name) => `- ${name}\n`).join("")}`)]));
+    if (adviceLines().length !== before) wrong("a list of eight names was advised as a dense paragraph");
+  } finally {
+    writeFileSync(agents, original);
+  }
+}
+
 function proveImmutability() {
   const folder = join(ROOT, "docs", "decisions");
   const name = readdirSync(folder).sort().find((entry) => readFileSync(join(folder, entry), "utf-8").includes("\nStatus: Accepted\n"));
@@ -307,13 +334,13 @@ function proveAnchors() {
   }
 }
 
-const baseline = audit();
+const baseline = findings();
 if (baseline.length > 0) {
   console.log("the unplanted tree is not clean, so nothing can be proven until the audit passes:");
   for (const p of baseline.slice(0, 5)) console.log(`  ${p}`);
   process.exit(1);
 }
-for (const proof of [proveFilePlants, proveTrackedPlants, proveAppendedPlants, proveStatePlants, proveUpstreamPlants, provePalettePlant, proveCitationPlant, proveImmutability, proveAnchors]) {
+for (const proof of [proveFilePlants, proveTrackedPlants, proveAppendedPlants, proveStatePlants, proveUpstreamPlants, provePalettePlant, proveCitationPlant, proveDensePlant, proveImmutability, proveAnchors]) {
   proof();
 }
 console.log(failures === 0 ? "every rule fires" : `${failures} rule(s) do not work`);

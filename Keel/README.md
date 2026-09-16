@@ -36,7 +36,12 @@ Managing an agent runtime forces the architecture to handle practical, complex p
 Keel enforces the **Dependency Rule**: inner layers (Business Logic) must not depend on outer layers (Public Surface, Providers, IO).
 
 1. **Ports & Adapters (Dependency Inversion)**
-   The orchestration service (`AgentRunner`) depends only on pure Python `Protocols` (`IReasoner`, `IToolRegistry`, `IMemory`, `IEventSink`). The `EngineBuilder` injects concrete implementations (like `RuleBasedReasoner` or `GeminiReasoner`) at construction time.
+   The orchestration service (`AgentRunner`) depends only on pure Python `Protocols`, and the `EngineBuilder` injects concrete implementations (like `RuleBasedReasoner` or `GeminiReasoner`) at construction time. The four ports:
+
+   - `IReasoner`
+   - `IToolRegistry`
+   - `IMemory`
+   - `IEventSink`
 2. **Strict Translators**
    Domain objects never leak through the public surface; run results are translated into the facade's report schemas before a caller sees them. Provider payloads are strictly for the provider SDK, and the Gemini adapter carries its own `domain <-> provider` translator pair. There is no inbound mirror schema, because the facade builds domain schemas directly from the primitives its callers pass (see [decision 0005, Translate only outward at the facade boundary](docs/decisions/0005-translate-only-outward-at-the-facade-boundary.md)).
 3. **Decoupled Exceptions**

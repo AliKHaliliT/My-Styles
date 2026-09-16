@@ -36,9 +36,9 @@ const HORIZON_DAYS = 90;
 const NOW_HORIZON_DAYS = 30;
 /** Now is for in-flight work only; past this many entries the section is accreting, not tracking. */
 const NOW_CAP = 5;
-/** Bounded documents fail past this; the manual, the map, and the README grow with the system. */
+/** Bounded documents fail past this; the manual, the map, the README, and the rulebook grow with the system. */
 const BUDGET_LINES = 150;
-const FREE_GROWING = new Set(["AGENTS.md", "docs/ARCHITECTURE.md", "README.md"]);
+const FREE_GROWING = new Set(["AGENTS.md", "docs/ARCHITECTURE.md", "README.md", "docs/CONVENTIONS.md"]);
 
 const BACKTICK = /`([^`\n]+)`/g;
 const LINK = /\[[^\]]*\]\(([^)\s]+)\)/g;
@@ -94,6 +94,14 @@ const NAME_CAP = 72;
 // A link into a numbered record folder is a citation, and a citation carries the record's title
 // in its paragraph, so the sentence stands without the click and cannot drift from what it cites.
 const RECORD_LINK = /(?:decisions|inherited|claims)\/(\d{4})-[a-z0-9-]+\.md$/;
+// A prose paragraph that names this many references or more is an enumeration wearing prose, a
+// list or a table with its rows run together; measured over the family and over a project built
+// from it, everything at this count was a schema stated as prose or a set of bindings, and
+// everything argued sat well below it. Whether a given paragraph is one of those stays with
+// review, so the count advises and never gates.
+const DENSE_PARAGRAPH = 8;
+const REFERENCE = /`[^`\n]+`|\[[^\]]*\]\([^)\s]+\)/g;
+const NOT_PROSE = ["#", "- ", "* ", "|", ">"];
 
 /** One git call against the repository this file lives in; empty when git says no. */
 function git(...args) {
@@ -134,6 +142,40 @@ function looksLikePath(token) {
 
 function lineOf(text, index) {
   return text.slice(0, index).split("\n").length;
+}
+
+/** Every prose paragraph with the line it starts on; fences, headings, list items, table rows, and quotes are not prose. */
+function proseParagraphs(text) {
+  const paragraphs = [];
+  let buffer = [];
+  let start = 0;
+  let inFence = false;
+  text.split("\n").forEach((line, index) => {
+    if (line.startsWith("```")) {
+      inFence = !inFence;
+      return;
+    }
+    const trimmed = line.trimStart();
+    if (inFence || !line.trim() || NOT_PROSE.some((mark) => trimmed.startsWith(mark)) || /^\s*\d+\.\s/.test(line)) {
+      if (buffer.length > 0) paragraphs.push([start, buffer.join(" ")]);
+      buffer = [];
+      return;
+    }
+    if (buffer.length === 0) start = index + 1;
+    buffer.push(line.trim());
+  });
+  if (buffer.length > 0) paragraphs.push([start, buffer.join(" ")]);
+  return paragraphs;
+}
+
+/** A prose paragraph naming eight or more references is advised to become a list or a table; the facts stay, the shape changes. */
+function adviseDenseParagraphs(rel, text) {
+  for (const [line, paragraph] of proseParagraphs(text)) {
+    const count = [...paragraph.matchAll(REFERENCE)].length;
+    if (count >= DENSE_PARAGRAPH) {
+      advice.push(`${rel}:${line}: this paragraph names ${count} references; a list or a table shows them, a paragraph argues, and every fact it holds survives the move`);
+    }
+  }
 }
 
 /** The title a record's heading states, after its number, or null where the heading is not in the form. */
@@ -177,6 +219,7 @@ function* walkAll(dir) {
 }
 
 const problems = [];
+const advice = [];
 const today = new Date();
 const basenames = new Set();
 for (const file of walkAll(ROOT)) basenames.add(file.split(/[\\/]/).pop());
@@ -226,6 +269,7 @@ for (const rel of LIVING) {
   }
 
   checkRecordCitations(rel, doc, text);
+  adviseDenseParagraphs(rel, text);
 }
 
 // The first commit whose diff of the path carries the needle, or null.
@@ -311,7 +355,11 @@ if (existsSync(docsDir)) {
         problems.push(`docs/${entry}: ${lines} lines against the ${BUDGET_LINES}-line budget; split by fission`);
       }
     }
-    if (!LIVING.includes(`docs/${entry}`)) checkRecordCitations(`docs/${entry}`, full, readFileSync(full, "utf-8"));
+    if (!LIVING.includes(`docs/${entry}`)) {
+      const organic = readFileSync(full, "utf-8");
+      checkRecordCitations(`docs/${entry}`, full, organic);
+      adviseDenseParagraphs(`docs/${entry}`, organic);
+    }
   }
   for (const folderName of NUMBERED_RECORD_FOLDERS) {
     const records = join(docsDir, folderName);
@@ -561,6 +609,10 @@ if (existsSync(pkg)) {
   }
 }
 
+if (advice.length > 0) {
+  console.log(`advisory, ${advice.length} item(s), decides nothing and gates nothing:`);
+  for (const item of advice) console.log(`  ${item}`);
+}
 for (const problem of problems) console.log(problem);
 if (problems.length > 0) {
   console.log(`\n${problems.length} problem(s). The tree disagrees with its own conventions.`);
