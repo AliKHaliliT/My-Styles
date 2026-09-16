@@ -58,7 +58,7 @@ Closing a task follows one loop: run the checking commands above, weigh the chan
 - **Two hats**: shape changes and behavior changes are separate steps, and no incidental reformatting rides along.
 - **Waste**: nothing speculative and nothing the change orphaned is left behind.
 - **The measured line**: nothing is made faster without a measurement that demanded it, and every optimization that lands records its measurement and its price.
-- **Test honesty**: substitutes stand in only at the declared seams, time, randomness, and order are controlled, and where an optional dependency sits behind a port with a fallback implementation, the suite executes both paths and holds them to a tolerance a decision record states with the measurement that set it, over a fixture on which the two can disagree.
+- **Test honesty**: substitutes stand in only at the declared seams, time, randomness, and order are controlled, the suite runs in a shuffled order under a seed the run prints so a test leaning on its neighbour fails on the day it is written and the run that caught it can be replayed, and where an optional dependency sits behind a port with a fallback implementation, the suite executes both paths and holds them to a tolerance a decision record states with the measurement that set it, over a fixture on which the two can disagree.
 - **Point-of-use truth**: the doc comment or docstring each export carries is true, not merely present.
 - **Intent-split placement**: every documentation change lands in the document whose reader it serves, per the rulebook's species.
 - **Decision records**: any choice made here that would be re-litigated without a record gets one now.

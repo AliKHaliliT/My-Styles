@@ -36,6 +36,7 @@ Repository = "https://github.com/AliKHaliliT/My-Styles"
 dev = [
     "hypothesis",
     "pytest",
+    "pytest-randomly",
     "ruff",
     "mypy",
     "import-linter",
@@ -100,6 +101,8 @@ strict = true
 implicit_reexport = true
 
 [tool.pytest.ini_options]
+# The suite runs in a shuffled order under a seed the run prints, so a test that leans on
+# its neighbour fails on the day it is written; replay a run with --randomly-seed=<printed>.
 testpaths = ["tests"]
 # A deprecation warning is a removal notice at least two releases early, so it gates here
 # rather than scrolling past unread. Any exception is a named ignore for one specific

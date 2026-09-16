@@ -42,6 +42,7 @@ dev = [
     "hypothesis",
     "pytest",
     "pytest-asyncio",
+    "pytest-randomly",
     "ruff",
     "mypy",
     "import-linter",
@@ -143,6 +144,8 @@ module = "google.*"
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
+# The suite runs in a shuffled order under a seed the run prints, so a test that leans on
+# its neighbour fails on the day it is written; replay a run with --randomly-seed=<printed>.
 # Stack binding: the demo's suites are async.
 asyncio_mode = "auto"
 testpaths = ["tests"]
