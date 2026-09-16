@@ -942,6 +942,30 @@ def check_version_story(problems: list[str]) -> None:
         )
 
 
+# What a check needs before it can run. A check whose need is absent is reported as not run,
+# with the need named, so a clean verdict never hides a check the tree gave nothing to check.
+CHECK_NEEDS = (
+    ("check_state", "STATE.md"),
+    ("check_upstream", "docs/UPSTREAM.md"),
+    ("check_rooms", "docs/ARCHITECTURE.md"),
+    ("check_docs_zone", "docs"),
+)
+
+
+def unrun_checks() -> list[str]:
+    """Every check the tree gave nothing to run, each named with what it needs."""
+    unrun = [f"{name} did not run: {need} is absent from this tree" for name, need in CHECK_NEEDS if not (ROOT / need).exists()]
+    if not python_roots():
+        unrun.append("check_layout and check_docstrings did not run: no package root is on disk")
+    pyproject = ROOT / "pyproject.toml"
+    roots = tomllib.loads(pyproject.read_text(encoding="utf-8")).get("tool", {}).get("importlinter", {}).get("root_packages", []) if pyproject.exists() else []
+    if not roots:
+        unrun.append("check_import_graph did not run: pyproject.toml names no importlinter root_packages")
+    if declared_python() is None:
+        unrun.append("check_version_story did not run: pyproject.toml pins no ruff target-version")
+    return unrun
+
+
 def run() -> tuple[list[str], list[str], list[Path]]:
     """Every disagreement between the tree and its conventions, every piece of advice, and the package roots the layout was held over."""
     problems: list[str] = []
@@ -1376,6 +1400,24 @@ def prove_ignore_plant() -> int:
         ignore.write_bytes(original)
 
 
+def prove_unrun_report() -> int:
+    """Hiding a check's need names the check as not run, and the file comes back."""
+    state = ROOT / "STATE.md"
+    if not state.exists():
+        print("unrun plant skipped: no STATE.md in this tree")
+        return 0
+    if any("check_state did not run" in line for line in unrun_checks()):
+        return wrong("check_state was reported as not run while STATE.md is present")
+    original = state.read_bytes()
+    state.unlink()
+    try:
+        if any("check_state did not run" in line for line in unrun_checks()):
+            return 0
+        return wrong("hiding STATE.md did not report check_state as not run")
+    finally:
+        state.write_bytes(original)
+
+
 def selftest() -> int:
     """Prove each rule fires against a planted defect, then leave no trace.
 
@@ -1407,6 +1449,7 @@ def selftest() -> int:
         prove_immutability,
         prove_anchors,
         prove_ignore_plant,
+        prove_unrun_report,
     )
     failures = sum(proof() for proof in proofs)
     print("every rule fires" if not failures else f"{failures} rule(s) do not work")
@@ -1418,6 +1461,11 @@ def main() -> int:
     if "--selftest" in sys.argv:
         return selftest()
     problems, advice, held = run()
+    unrun = unrun_checks()
+    if unrun:
+        print(f"{len(unrun)} check(s) did not run on this tree, each named with what it needs:")
+        for item in unrun:
+            print(f"  {item}")
     if advice:
         print(f"advisory, {len(advice)} item(s), decides nothing and gates nothing:")
         for item in advice:

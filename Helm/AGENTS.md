@@ -20,7 +20,7 @@ advice, it leaves the exit status clean, and it comes from a check that cannot
 decide its own question and so is not allowed to gate. Advice is not noise and
 not optional reading. Every warning is looked at and then either fixed or
 dismissed in writing, in the change that produced it, and a warning is never
-silenced with a suppression comment to make a run look clean. The advisory checks here are the credential and regular-expression heuristics in the lint configuration, which guess from the shape of a string or a pattern and are wrong often enough that they cannot be a gate, the prose-vocabulary grep in CI, which reads an honest domain term the same as a tell and so advises for review, and the docs audit's form advisory, which counts the references a prose paragraph names and cannot tell an enumeration from an argument, so it advises a list or a table and gates nothing.
+silenced with a suppression comment to make a run look clean. The advisory checks here are the credential and regular-expression heuristics in the lint configuration, which guess from the shape of a string or a pattern and are wrong often enough that they cannot be a gate, the prose-vocabulary grep in CI, which reads an honest domain term the same as a tell and so advises for review, and the docs audit's form advisory, which counts the references a prose paragraph names and cannot tell an enumeration from an argument, so it advises a list or a table and gates nothing. A check the tree gave nothing to run is named as not run, with what it needs, so a clean verdict never hides a check that never looked.
 
 ## Hard rules
 

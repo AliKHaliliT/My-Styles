@@ -36,7 +36,7 @@ function git(...args) {
 /** The audit's findings and advice on the tree as it stands, one per line, the verdict lines excluded. */
 function audit() {
   const done = spawnSync(process.execPath, [AUDIT], { cwd: ROOT, encoding: "utf-8" });
-  return `${done.stdout}${done.stderr}`.split("\n").filter((line) => line && !line.startsWith("The tree") && !line.includes("problem(s).") && !line.startsWith("advisory,"));
+  return `${done.stdout}${done.stderr}`.split("\n").filter((line) => line && !line.startsWith("The tree") && !line.includes("problem(s).") && !line.startsWith("advisory,") && !line.includes("did not run"));
 }
 
 /** Only the findings, the lines the audit would fail on; advice is indented and decides nothing. */
@@ -345,13 +345,35 @@ function proveIgnorePlant() {
   proveReplaced("the ignore plant", ".gitignore", kept.join("\n") + "\n", ["Working trees section"]);
 }
 
+
+/** Hiding a check's need names the check as not run in the audit's own output, and the file comes back. */
+function proveUnrunReport() {
+  const path = join(ROOT, "STATE.md");
+  if (!existsSync(path)) {
+    console.log("unrun plant skipped: no STATE.md in this tree");
+    return;
+  }
+  const rawAudit = () => {
+    const done = spawnSync(process.execPath, [AUDIT], { cwd: ROOT, encoding: "utf-8" });
+    return `${done.stdout}${done.stderr}`;
+  };
+  if (rawAudit().includes("the STATE check did not run")) wrong("the STATE check was reported as not run while STATE.md is present");
+  const original = readFileSync(path);
+  unlinkSync(path);
+  try {
+    if (!rawAudit().includes("the STATE check did not run")) wrong("hiding STATE.md did not report the STATE check as not run");
+  } finally {
+    writeFileSync(path, original);
+  }
+}
+
 const baseline = findings();
 if (baseline.length > 0) {
   console.log("the unplanted tree is not clean, so nothing can be proven until the audit passes:");
   for (const p of baseline.slice(0, 5)) console.log(`  ${p}`);
   process.exit(1);
 }
-for (const proof of [proveFilePlants, proveTrackedPlants, proveAppendedPlants, proveStatePlants, proveUpstreamPlants, provePalettePlant, proveCitationPlant, proveDensePlant, proveImmutability, proveAnchors, proveIgnorePlant]) {
+for (const proof of [proveFilePlants, proveTrackedPlants, proveAppendedPlants, proveStatePlants, proveUpstreamPlants, provePalettePlant, proveCitationPlant, proveDensePlant, proveImmutability, proveAnchors, proveIgnorePlant, proveUnrunReport]) {
   proof();
 }
 console.log(failures === 0 ? "every rule fires" : `${failures} rule(s) do not work`);

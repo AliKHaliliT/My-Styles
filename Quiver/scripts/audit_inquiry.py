@@ -842,6 +842,22 @@ def movement_base(problems: list[str], root: Path, arrow: str, number: str, pin:
     return verified, "verification"
 
 
+# What a check needs before it can run. A check whose need is absent is reported as not run,
+# with the need named, so a clean verdict never hides a check the tree gave nothing to check.
+CHECK_NEEDS = (
+    ("check_state", "STATE.md"),
+    ("check_upstream", "docs/UPSTREAM.md"),
+    ("check_reviews", "docs/reviews"),
+    ("check_arrows", "docs/arrows"),
+    ("check_pins", "docs/claims"),
+)
+
+
+def unrun_checks(root: Path) -> list[str]:
+    """Every check the tree gave nothing to run, each named with what it needs."""
+    return [f"{name} did not run: {need} is absent from this tree" for name, need in CHECK_NEEDS if not (root / need).exists()]
+
+
 def run(root: Path) -> tuple[list[str], list[str]]:
     """Every decided problem and every piece of advice for one tree."""
     problems: list[str] = []
@@ -1560,6 +1576,26 @@ def prove_ignore_plant() -> int:
         ignore.write_bytes(original)
 
 
+def prove_unrun_report() -> int:
+    """Hiding a check's need names the check as not run, and the file comes back."""
+    state = ROOT / "STATE.md"
+    if not state.exists():
+        print("unrun plant skipped: no STATE.md in this tree")
+        return 0
+    if any("check_state did not run" in line for line in unrun_checks(ROOT)):
+        print("WRONG: check_state was reported as not run while STATE.md is present")
+        return 1
+    original = state.read_bytes()
+    state.unlink()
+    try:
+        if any("check_state did not run" in line for line in unrun_checks(ROOT)):
+            return 0
+        print("WRONG: hiding STATE.md did not report check_state as not run")
+        return 1
+    finally:
+        state.write_bytes(original)
+
+
 def selftest() -> int:
     """Prove each rule fires against a planted defect, then leave no trace.
 
@@ -1599,6 +1635,7 @@ def selftest() -> int:
         prove_queue_age,
         prove_anchors,
         prove_ignore_plant,
+        prove_unrun_report,
         prove_empty_tree,
     )
     failures = sum(proof() for proof in proofs)
@@ -1614,6 +1651,11 @@ def main() -> int:
     if "--selftest" in sys.argv:
         return selftest()
     problems, advice = run(ROOT)
+    unrun = unrun_checks(ROOT)
+    if unrun:
+        print(f"{len(unrun)} check(s) did not run on this tree, each named with what it needs:")
+        for item in unrun:
+            print(f"  {item}")
     if advice:
         print(f"advisory, {len(advice)} item(s), decides nothing and gates nothing:")
         for item in advice:

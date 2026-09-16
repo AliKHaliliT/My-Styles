@@ -623,6 +623,22 @@ if (existsSync(pkg)) {
   }
 }
 
+// What a check needs before it can run. A check whose need is absent is reported as not run,
+// with the need named, so a clean verdict never hides a check the tree gave nothing to check.
+const CHECK_NEEDS = [
+  ["the STATE check", "STATE.md"],
+  ["the upstream check", "docs/UPSTREAM.md"],
+  ["the rooms check", "docs/ARCHITECTURE.md"],
+  ["the docs-zone checks", "docs"],
+];
+const unrun = CHECK_NEEDS.filter(([, need]) => !existsSync(join(ROOT, need))).map(([name, need]) => `${name} did not run: ${need} is absent from this tree`);
+const declaredFloor = existsSync(pkg) ? JSON.parse(readFileSync(pkg, "utf-8")).engines?.node?.match(/>=\s*(\d+(?:\.\d+)*)/)?.[1] : undefined;
+if (!declaredFloor) unrun.push("the version-story check did not run: package.json declares no engines.node floor");
+if (unrun.length > 0) {
+  console.log(`${unrun.length} check(s) did not run on this tree, each named with what it needs:`);
+  for (const item of unrun) console.log(`  ${item}`);
+}
+
 if (advice.length > 0) {
   console.log(`advisory, ${advice.length} item(s), decides nothing and gates nothing:`);
   for (const item of advice) console.log(`  ${item}`);
