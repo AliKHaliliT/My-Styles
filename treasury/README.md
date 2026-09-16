@@ -39,6 +39,7 @@ method rather than from anyone's recollection of the last one.
 | [0002-optimization-vocabulary](0002-optimization-vocabulary/) | 2026-08-17 | 9,188 named optimization concepts folded to a 1,272 entry vocabulary in six families |
 | [0003-security-vocabulary](0003-security-vocabulary/) | 2026-08-22 | 13,764 named security concepts folded to a 1,996 entry vocabulary in eight families |
 | [0004-research-methodology-vocabulary](0004-research-methodology-vocabulary/) | 2026-08-27 | 22,924 named research-methodology concepts folded to a 2,908 entry vocabulary in thirteen families |
+| [0005-agent-skills](0005-agent-skills/) | 2026-09-16 | 2,272 named agent skills read against the family's law, 26 candidates, eight adopted |
 
 ## Family rulings
 
@@ -80,6 +81,7 @@ check this folder; the question may already be settled.
 | [0027](decisions/0027-rehearse-adoption-before-a-check-lands.md) | The family workflow builds a child from each template, shaped the way adoption shapes it, and requires its gate to pass, so a check is never green only where its preconditions are absent |
 | [0028](decisions/0028-adopt-three-shape-limits-and-refuse-the-other-slop-metrics.md) | Every seat's linter gates three function-shape limits, ten paths, five nested blocks, fifty statements, with audit scripts exempt as named debt; dead code, clones, blended scores, and churn hotspots refused for the template on measurement |
 | [0029](decisions/0029-speed-the-gate-without-loosening-it-and-land-through-a-branch.md) | The gate runs concurrently, the audits gather history in one call and remember it for a process, the host audit names shared record numbers, and every seat lands through a branch merged with main and gated whole; skipping unchanged checks, a type-check daemon, and lighter proofs refused |
+| [0030](decisions/0030-take-eight-rules-from-the-skills-study-and-refuse-the-rest.md) | Study 0005's disposition: the failure proof for tests and seven checks in, the rest refused with their reopening conditions or already held |
 
 ## Rules of the folder
 

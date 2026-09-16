@@ -2,7 +2,7 @@
 
 The treasury exists so the next design starts from evidence rather than from
 memory, and the method that produces the evidence has to meet the same
-standard. This file is that method, written from the four studies that have run
+standard. This file is that method, written from the five studies that have run
 under it. It is living guidance, rewritten in place as the practice sharpens,
 and it is the only treasury-level guide; guidance on consuming a particular
 study's findings stays beside that study.
@@ -197,6 +197,14 @@ spending tokens on a scratch file nobody will open.
   work into compliance.
 - Record the boundary that was excluded, in one line, so a later reader knows
   the omission was a decision.
+- A corpus that is already enumerated is a trap. When the names exist as bytes,
+  the harvest is instant, and the speed tempts a single pass that skips the
+  reading. The cost moved from enumeration to reading; it did not disappear.
+  The first pass of one study found nine candidates of twenty-six that way.
+- Count coverage by source, never by volume read. A reader who has read two
+  thousand lines may have read nothing from half the sources, because reading
+  by position samples whichever source sorts first. The sources never
+  sampled in one study held six of its candidates.
 
 ## What a study leaves behind
 
