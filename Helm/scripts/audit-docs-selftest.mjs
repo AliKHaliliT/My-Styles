@@ -334,13 +334,24 @@ function proveAnchors() {
   }
 }
 
+
+function proveIgnorePlant() {
+  const path = join(ROOT, ".gitignore");
+  if (!existsSync(path)) {
+    console.log("ignore plant skipped: no .gitignore in this tree");
+    return;
+  }
+  const kept = readFileSync(path, "utf-8").split(/\r?\n/).filter((line) => ![".worktrees/", ".claude/worktrees/"].includes(line.trim()));
+  proveReplaced("the ignore plant", ".gitignore", kept.join("\n") + "\n", ["Working trees section"]);
+}
+
 const baseline = findings();
 if (baseline.length > 0) {
   console.log("the unplanted tree is not clean, so nothing can be proven until the audit passes:");
   for (const p of baseline.slice(0, 5)) console.log(`  ${p}`);
   process.exit(1);
 }
-for (const proof of [proveFilePlants, proveTrackedPlants, proveAppendedPlants, proveStatePlants, proveUpstreamPlants, provePalettePlant, proveCitationPlant, proveDensePlant, proveImmutability, proveAnchors]) {
+for (const proof of [proveFilePlants, proveTrackedPlants, proveAppendedPlants, proveStatePlants, proveUpstreamPlants, provePalettePlant, proveCitationPlant, proveDensePlant, proveImmutability, proveAnchors, proveIgnorePlant]) {
   proof();
 }
 console.log(failures === 0 ? "every rule fires" : `${failures} rule(s) do not work`);

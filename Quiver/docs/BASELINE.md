@@ -59,6 +59,7 @@ when the trigger disappears.
   private, because visibility can flip and history is permanent. Confidential
   facts go there, with at most a neutral pointer in tracked text.
 - Anything regenerable: caches, build artifacts, coverage output.
+- The directory a second working tree occupies, `.worktrees/` by the family's convention and `.claude/worktrees/` where that harness creates one. The branch protocol gives every session its own working tree, and one created inside the repository is a nested checkout that a careless `git add` records as an embedded repository, so the directory is ignored before the tree is created and the docs audit holds `.gitignore` to the entry.
 - Operating system junk (`.DS_Store`, `Thumbs.db`, `Desktop.ini`).
 
 ## Temporary development files

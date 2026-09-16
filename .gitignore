@@ -1,3 +1,7 @@
+# Working trees
+.worktrees/
+.claude/worktrees/
+
 # Editors and IDEs
 .vscode/
 .idea/

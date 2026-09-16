@@ -34,6 +34,10 @@ env/
 # Project specific
 *.log
 
+# Working trees
+.worktrees/
+.claude/worktrees/
+
 # Editors and IDEs
 .vscode/
 .idea/

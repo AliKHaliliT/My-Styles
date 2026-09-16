@@ -489,6 +489,20 @@ function checkRecordNames() {
 checkRecordNames();
 checkUpstream();
 
+// The ignore file names every directory a second working tree may occupy, because a tree created
+// inside the repository is a nested checkout that a careless add records as an embedded repository.
+const WORKING_TREE_DIRS = [".worktrees/", ".claude/worktrees/"];
+function checkIgnoredWorkingTrees() {
+  const ignore = join(ROOT, ".gitignore");
+  const lines = existsSync(ignore) ? readFileSync(ignore, "utf-8").split(/\r?\n/).map((line) => line.trim()) : [];
+  const missing = WORKING_TREE_DIRS.filter((directory) => !lines.includes(directory));
+  if (missing.length > 0) {
+    problems.push(`.gitignore: a second working tree's directory is ignored before it is created; the Working trees section names ${WORKING_TREE_DIRS.join(" and ")}, missing ${missing.join(", ")}`);
+  }
+}
+
+checkIgnoredWorkingTrees();
+
 // Every tracked directory at the root and one level below src/, and every root file, has a room
 // in the map or the baseline; that is the depth the form draws, and deeper structure is the
 // layer rule's own. A directory is housed when its name is drawn in the map's tree, or the

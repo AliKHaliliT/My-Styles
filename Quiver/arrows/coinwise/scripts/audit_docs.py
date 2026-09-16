@@ -601,6 +601,21 @@ def check_rooms(problems: list[str]) -> None:
     )
 
 
+WORKING_TREE_DIRS = (".worktrees/", ".claude/worktrees/")
+
+
+def check_ignored_working_trees(problems: list[str]) -> None:
+    """The ignore file names every directory a second working tree may occupy."""
+    ignore = ROOT / ".gitignore"
+    lines = [line.strip() for line in ignore.read_text(encoding="utf-8").splitlines()] if ignore.exists() else []
+    missing = [directory for directory in WORKING_TREE_DIRS if directory not in lines]
+    if missing:
+        problems.append(
+            ".gitignore: a second working tree's directory is ignored before it is created;"
+            f" the Working trees section names {' and '.join(WORKING_TREE_DIRS)}, missing {', '.join(missing)}"
+        )
+
+
 def check_import_graph(problems: list[str]) -> None:
     """The import graph the Dependency Rule contract runs over covers every module on disk.
 
@@ -937,6 +952,7 @@ def run() -> tuple[list[str], list[str], list[Path]]:
     check_record_names(problems)
     check_upstream(problems)
     check_rooms(problems)
+    check_ignored_working_trees(problems)
     held = check_layout(problems)
     check_import_graph(problems)
     check_record_immutability(problems)
@@ -1345,6 +1361,21 @@ def prove_anchors() -> int:
     return failures
 
 
+def prove_ignore_plant() -> int:
+    """Dropping the working-tree lines from the ignore file raises the finding, and the bytes come back."""
+    ignore = ROOT / ".gitignore"
+    if not ignore.exists():
+        print("ignore plant skipped: no .gitignore in this tree")
+        return 0
+    original = ignore.read_bytes()
+    kept = [line for line in original.decode("utf-8").splitlines() if line.strip() not in WORKING_TREE_DIRS]
+    ignore.write_text("\n".join(kept) + "\n", encoding="utf-8")
+    try:
+        return expect(run()[0], "Working trees section", "ignore plant")
+    finally:
+        ignore.write_bytes(original)
+
+
 def selftest() -> int:
     """Prove each rule fires against a planted defect, then leave no trace.
 
@@ -1375,6 +1406,7 @@ def selftest() -> int:
         prove_dense_plant,
         prove_immutability,
         prove_anchors,
+        prove_ignore_plant,
     )
     failures = sum(proof() for proof in proofs)
     print("every rule fires" if not failures else f"{failures} rule(s) do not work")

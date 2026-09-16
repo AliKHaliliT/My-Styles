@@ -532,6 +532,21 @@ def check_rooms(problems: list[str], root: Path) -> None:
     )
 
 
+WORKING_TREE_DIRS = (".worktrees/", ".claude/worktrees/")
+
+
+def check_ignored_working_trees(problems: list[str], root: Path) -> None:
+    """The ignore file names every directory a second working tree may occupy."""
+    ignore = root / ".gitignore"
+    lines = [line.strip() for line in ignore.read_text(encoding="utf-8").splitlines()] if ignore.exists() else []
+    missing = [directory for directory in WORKING_TREE_DIRS if directory not in lines]
+    if missing:
+        problems.append(
+            ".gitignore: a second working tree's directory is ignored before it is created;"
+            f" the Working trees section names {' and '.join(WORKING_TREE_DIRS)}, missing {', '.join(missing)}"
+        )
+
+
 def check_record_immutability(problems: list[str], root: Path) -> None:
     """A record changes only on its Status line, in the working tree and in every commit since this scope arrived.
 
@@ -837,6 +852,7 @@ def run(root: Path) -> tuple[list[str], list[str]]:
     check_living(problems, root)
     check_references(problems, root)
     check_rooms(problems, root)
+    check_ignored_working_trees(problems, root)
     check_upstream(problems, root)
     check_record_names(problems, root)
     check_records(problems, root)
@@ -1525,6 +1541,25 @@ def prove_empty_tree() -> int:
     return 0
 
 
+def prove_ignore_plant() -> int:
+    """Dropping the working-tree lines from the ignore file raises the finding, and the bytes come back."""
+    ignore = ROOT / ".gitignore"
+    if not ignore.exists():
+        print("ignore plant skipped: no .gitignore in this tree")
+        return 0
+    original = ignore.read_bytes()
+    kept = [line for line in original.decode("utf-8").splitlines() if line.strip() not in WORKING_TREE_DIRS]
+    ignore.write_text("\n".join(kept) + "\n", encoding="utf-8")
+    try:
+        problems, _ = run(ROOT)
+        if any("Working trees section" in p for p in problems):
+            return 0
+        print("WRONG: ignore plant did not raise the Working trees finding")
+        return 1
+    finally:
+        ignore.write_bytes(original)
+
+
 def selftest() -> int:
     """Prove each rule fires against a planted defect, then leave no trace.
 
@@ -1563,6 +1598,7 @@ def selftest() -> int:
         prove_immutability,
         prove_queue_age,
         prove_anchors,
+        prove_ignore_plant,
         prove_empty_tree,
     )
     failures = sum(proof() for proof in proofs)

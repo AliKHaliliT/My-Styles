@@ -23,6 +23,10 @@ npm-debug.log*
 # Project specific
 public/mockServiceWorker.js
 
+# Working trees
+.worktrees/
+.claude/worktrees/
+
 # Editors and IDEs
 .vscode/
 .idea/
