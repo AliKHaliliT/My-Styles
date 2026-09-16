@@ -1,8 +1,11 @@
 from collections.abc import Callable
 from functools import cache
+import logging
 import warnings
 
 from pydantic import BaseModel, create_model
+
+logger = logging.getLogger(__name__)
 
 
 def reorder_fields(
@@ -201,10 +204,10 @@ class _FieldOrder:
         """
 
         if self.include_fields_set and fname not in self.include_fields_set:
-            if self.verbose: print(f"Skipping field '{fname}' (not in include_fields)")
+            if self.verbose: logger.debug(f"Skipping field '{fname}' (not in include_fields)")
             return False
         if self.exclude_fields_set and fname in self.exclude_fields_set:
-            if self.verbose: print(f"Skipping field '{fname}' (in exclude_fields)")
+            if self.verbose: logger.debug(f"Skipping field '{fname}' (in exclude_fields)")
             return False
         return True
 
@@ -229,7 +232,7 @@ def _add_inherited_fields(cls: type, last_class_names_set: set[str], order: _Fie
     
     """
 
-    if debug: print(f"\n[{cls.__name__}] Adding inherited fields (excluding last_classes)...")
+    if debug: logger.debug(f"\n[{cls.__name__}] Adding inherited fields (excluding last_classes)...")
     for base in cls.__mro__[1:]:
         if base in (BaseModel, object) or base.__name__ in last_class_names_set:
             continue
@@ -238,7 +241,7 @@ def _add_inherited_fields(cls: type, last_class_names_set: set[str], order: _Fie
                 if order.allowed(fname):
                     order.add(fname, field.annotation, field)
                 elif order.verbose:
-                    print(f"Skipping field '{fname}' (not allowed)")
+                    logger.debug(f"Skipping field '{fname}' (not allowed)")
 
 
 def _add_own_fields(cls: type, order: _FieldOrder, debug: bool) -> None:
@@ -249,14 +252,14 @@ def _add_own_fields(cls: type, order: _FieldOrder, debug: bool) -> None:
     
     """
 
-    if debug: print(f"\n[{cls.__name__}] Adding own fields...")
+    if debug: logger.debug(f"\n[{cls.__name__}] Adding own fields...")
     # A model keeps its defaults on the field, not on the class, so the field is what carries them.
     declared = getattr(cls, "model_fields", {})
     for fname, annotation in getattr(cls, "__annotations__", {}).items():
         if order.allowed(fname):
             order.add(fname, annotation, declared[fname] if fname in declared else getattr(cls, fname, ...))
         elif order.verbose:
-            print(f"Skipping field '{fname}' (not allowed)")
+            logger.debug(f"Skipping field '{fname}' (not allowed)")
 
 
 def _collect_last_fields(
@@ -273,7 +276,7 @@ def _collect_last_fields(
     
     """
 
-    if debug: print(f"\n[{cls.__name__}] Adding last-class fields...")
+    if debug: logger.debug(f"\n[{cls.__name__}] Adding last-class fields...")
     last_fields_collected: dict[str, tuple[type, object]] = {}
     for class_name in last_class_names_ordered:
         base = next(b for b in cls.__mro__ if b.__name__ == class_name)
@@ -307,7 +310,7 @@ def _add_last_fields(
     """
 
     if interleave_last:
-        if debug: print(f"  Interleaving last fields in order: {interleave_last}")
+        if debug: logger.debug(f"  Interleaving last fields in order: {interleave_last}")
         for fname in interleave_last:
             if fname in last_fields_collected and fname not in order.seen:
                 order.add(fname, *last_fields_collected.pop(fname))
@@ -344,7 +347,7 @@ def _build_model(cls: type, ordered_fields: list[tuple[str, tuple[object, object
 
 
     if debug:
-        print(f"\n[{cls.__name__}] Final field order: {[f[0] for f in ordered_fields]}")
+        logger.debug(f"\n[{cls.__name__}] Final field order: {[f[0] for f in ordered_fields]}")
 
 
     return new_model
