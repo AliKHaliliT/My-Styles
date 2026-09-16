@@ -111,7 +111,7 @@ The full spine of an inquiry is question, conjecture, evidence, claim. Any short
 
 ## Where a "why" belongs
 
-A "why" that fits in a sentence and explains one change goes in the commit message body. A "why" that would be re-litigated goes in a decision record. A "what we hold true" goes in a claim. Chronology itself is never documented; git already is the complete log.
+A "why" that fits in a sentence and explains one change goes in the commit message body, and when the change fixes a defect the body also names where else the same defect was looked for and what was found. A "why" that would be re-litigated goes in a decision record. A "what we hold true" goes in a claim. Chronology itself is never documented; git already is the complete log.
 
 A reference in a living document carries its description. A record is cited by its number and its title, verbatim from its heading and in the same paragraph as the link, so the sentence stands without the click and cannot drift, because a record is immutable. A path or a symbol is cited with its role in the sentence, what the reference is for here, and never with its behaviour, which is the file's own claim and moves when the file moves. The docs audit holds the title; the role stays with review.
 

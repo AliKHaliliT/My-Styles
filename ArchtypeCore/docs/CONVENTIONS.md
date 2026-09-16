@@ -108,7 +108,7 @@ A dead end is written when its evidence arrives, not when work completes. A reve
 
 Rationale has exactly two homes here, chosen by reach:
 
-1. A "why" that fits in a sentence or two and only explains one change goes in the **commit message body**.
+1. A "why" that fits in a sentence or two and only explains one change goes in the **commit message body**. When the change fixes a defect, the body also names where else the same defect was looked for and what was found, so the search is a fact a reader can re-derive rather than a claim that everything was checked.
 2. A "why" that will shape future decisions, or that would be re-litigated without a record, becomes a **decision record**.
 
 A changelog exists only where consumers upgrade through releases, so a project that versions none maintains none (the trigger lives in BASELINE.md). A versioned artifact, such as a packaged library, adds `CHANGELOG.md` as a third home, carrying the curated per-release summary for its consumers; it summarizes impact, not reasoning.
