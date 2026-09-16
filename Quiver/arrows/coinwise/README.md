@@ -27,7 +27,7 @@ The awkward part is the tie. On the grid the experiment walks, every tenth amoun
 coinwise keeps Keel's Dependency Rule, inner layers never depending on outer ones, and four decisions carry the rest; [the map](docs/ARCHITECTURE.md) has the detail.
 
 1. **A machine-checked layer order.** import-linter holds `facade` over `services` over `domain` on every lint run.
-2. **Translation only outward.** Service results are flattened into the facade's own schemas before a caller sees them, per [Keel's decision 0005](docs/inherited/0005-translate-only-outward-at-the-facade-boundary.md).
+2. **Translation only outward.** Service results are flattened into the facade's own schemas before a caller sees them, per [Keel's decision 0005, Translate only outward at the facade boundary](docs/inherited/0005-translate-only-outward-at-the-facade-boundary.md).
 3. **Determinism by construction.** The grid fixes tie density at one in ten with no seed to lose, so any run of the same count reproduces the same numbers anywhere.
 4. **Library citizenship.** No global state, no environment reads at import, a `NullHandler` on the package logger, curated `__init__` exports, and a `py.typed` marker.
 

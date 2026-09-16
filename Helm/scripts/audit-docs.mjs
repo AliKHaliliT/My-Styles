@@ -91,6 +91,9 @@ const STATE_AGE_SCOPE = "entries of Next, Deferred, and Blocked held to two hori
 // are ordered by the history and not by the calendar.
 const RECORD_NAME_SCOPE = "record filenames held to seventy-two characters";
 const NAME_CAP = 72;
+// A link into a numbered record folder is a citation, and a citation carries the record's title
+// in its paragraph, so the sentence stands without the click and cannot drift from what it cites.
+const RECORD_LINK = /(?:decisions|inherited|claims)\/(\d{4})-[a-z0-9-]+\.md$/;
 
 /** One git call against the repository this file lives in; empty when git says no. */
 function git(...args) {
@@ -131,6 +134,28 @@ function looksLikePath(token) {
 
 function lineOf(text, index) {
   return text.slice(0, index).split("\n").length;
+}
+
+/** The title a record's heading states, after its number, or null where the heading is not in the form. */
+function recordTitle(record) {
+  const first = readFileSync(record, "utf-8").split("\n")[0].trim();
+  if (!first.startsWith("# ") || !first.includes(". ")) return null;
+  return first.slice(first.indexOf(". ") + 2).trim();
+}
+
+/** Every link to a record carries the record's title in the same paragraph, so the sentence stands without the click. */
+function checkRecordCitations(rel, doc, text) {
+  for (const paragraph of text.split(/\n\s*\n/)) {
+    for (const match of paragraph.matchAll(LINK)) {
+      const target = match[1].split("#")[0];
+      const record = resolve(dirname(doc), target);
+      if (!RECORD_LINK.test(target) || !existsSync(record)) continue;
+      const title = recordTitle(record);
+      if (title === null || paragraph.includes(title)) continue;
+      const number = record.split(/[\\/]/).pop().slice(0, 4);
+      problems.push(`${rel}:${lineOf(text, text.indexOf(match[0]))}: cites ${number} without its title; a citation carries the number and the title, ${title}`);
+    }
+  }
 }
 
 function* walk(dir) {
@@ -199,6 +224,8 @@ for (const rel of LIVING) {
       }
     });
   }
+
+  checkRecordCitations(rel, doc, text);
 }
 
 // The first commit whose diff of the path carries the needle, or null.
@@ -284,6 +311,7 @@ if (existsSync(docsDir)) {
         problems.push(`docs/${entry}: ${lines} lines against the ${BUDGET_LINES}-line budget; split by fission`);
       }
     }
+    if (!LIVING.includes(`docs/${entry}`)) checkRecordCitations(`docs/${entry}`, full, readFileSync(full, "utf-8"));
   }
   for (const folderName of NUMBERED_RECORD_FOLDERS) {
     const records = join(docsDir, folderName);

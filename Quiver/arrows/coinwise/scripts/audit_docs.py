@@ -6,7 +6,8 @@ checked here, along with the shapes the rulebook fixes: budgets, the index contr
 whole docs zone, names, the STATE schema, the version floor claims, the Python layout
 conventions, the room every directory and root file has in the map or the baseline, the
 coverage of the import graph the Dependency Rule contract runs over, the immutability of
-records, and the decidable half of the docstring convention. Decision records are exempt from
+records, the title beside every citation of one, and the decidable half of the docstring
+convention. Decision records are exempt from
 the freshness rules because they describe the past, which does not rot; what is held about
 them is that nobody rewrites the past.
 
@@ -95,6 +96,9 @@ STATE_TEXT = re.compile(r"\s*\(\d{4}-\d{2}-\d{2}\)\s*$")
 # one day are ordered by the history and not by the calendar.
 RECORD_NAME_SCOPE = "record filenames held to seventy-two characters"
 NAME_CAP = 72
+# A link into a numbered record folder is a citation, and a citation carries the record's title
+# in its paragraph, so the sentence stands without the click and cannot drift from what it cites.
+RECORD_LINK = re.compile(r"(?:decisions|inherited|claims)/(\d{4})-[a-z0-9-]+\.md$")
 
 
 def git(*args: str) -> str:
@@ -291,6 +295,29 @@ def check_links(problems: list[str], rel: str, doc: Path, text: str) -> None:
             problems.append(f"{rel}:{line}: links to {target}, which does not resolve")
 
 
+def record_title(record: Path) -> str | None:
+    """The title a record's heading states, after its number, or None where the heading is not in the form."""
+    first = record.read_text(encoding="utf-8").split("\n", 1)[0].strip()
+    if not first.startswith("# ") or ". " not in first:
+        return None
+    return first.split(". ", 1)[1].strip()
+
+
+def check_record_citations(problems: list[str], rel: str, doc: Path, text: str) -> None:
+    """Every link to a record carries the record's title in the same paragraph, so the sentence stands without the click."""
+    for paragraph in re.split(r"\n\s*\n", text):
+        for match in LINK.finditer(paragraph):
+            target = match.group(1).split("#", 1)[0]
+            record = doc.parent / target
+            if not RECORD_LINK.search(target) or not record.exists():
+                continue
+            title = record_title(record)
+            if title is None or title in paragraph:
+                continue
+            line = text.count("\n", 0, text.find(match.group(0))) + 1
+            problems.append(f"{rel}:{line}: cites {record.name[:4]} without its title; a citation carries the number and the title, {title}")
+
+
 def standing_days(raw: str, binding: str, today: date) -> int:
     """How long a queued entry has stood unchanged, counted from the binding commit or the entry's own, whichever is later."""
     born = first_commit(STATE_TEXT.sub("", raw).strip(), "STATE.md")
@@ -360,6 +387,7 @@ def check_documents(problems: list[str]) -> None:
         check_backticked_claims(problems, rel, text, declared)
         check_tree_diagrams(problems, rel, text, basenames)
         check_links(problems, rel, doc, text)
+        check_record_citations(problems, rel, doc, text)
     check_state(problems, today)
 
 
@@ -374,6 +402,8 @@ def check_top_level_docs(problems: list[str], docs: Path, agents: str) -> None:
             lines = f.read_text(encoding="utf-8").count("\n") + 1
             if lines > BUDGET_LINES:
                 problems.append(f"docs/{f.name}: {lines} lines against the {BUDGET_LINES}-line budget; split by fission")
+        if f"docs/{f.name}" not in LIVING:
+            check_record_citations(problems, f"docs/{f.name}", f, f.read_text(encoding="utf-8"))
 
 
 def check_record_numbers(problems: list[str], docs: Path) -> None:
@@ -1176,6 +1206,28 @@ def prove_module_plant() -> int:
         agents.write_bytes(original)
 
 
+def prove_citation_plant() -> int:
+    """A record cited without its title is reported, and the same citation with the title passes."""
+    record = next(iter(sorted((ROOT / "docs/decisions").glob("*.md"))), None)
+    agents = ROOT / "AGENTS.md"
+    title = record_title(record) if record is not None else None
+    if record is None or title is None or not agents.exists():
+        print("citation plants skipped: no titled record or no AGENTS.md in this tree")
+        return 0
+    failures = 0
+    original = agents.read_bytes()
+    number = record.name[:4]
+    try:
+        agents.write_bytes(original + f"\nSee [decision {number}](docs/decisions/{record.name}) in passing.\n".encode())
+        failures += expect(run()[0], f"cites {number} without its title", "the bare citation plant")
+        agents.write_bytes(original + f"\nSee [decision {number}, {title}](docs/decisions/{record.name}) in passing.\n".encode())
+        if any("without its title" in p for p in run()[0]):
+            failures += wrong("a citation carrying the record's title was reported as bare")
+    finally:
+        agents.write_bytes(original)
+    return failures
+
+
 def prove_immutability() -> int:
     """A body edit to an accepted record fails and a Status flip alone passes.
 
@@ -1242,6 +1294,7 @@ def selftest() -> int:
         prove_src_shape,
         prove_version_plant,
         prove_module_plant,
+        prove_citation_plant,
         prove_immutability,
         prove_anchors,
     )

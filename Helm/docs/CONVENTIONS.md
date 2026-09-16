@@ -97,6 +97,8 @@ A changelog exists only where consumers upgrade through releases, so a project t
 
 Chronology itself is never documented. Git already is the complete log, and any document that re-narrates it degenerates into a worse git log.
 
+A reference in a living document carries its description. A record is cited by its number and its title, verbatim from its heading and in the same paragraph as the link, so the sentence stands without the click and cannot drift, because a record is immutable. A path or a symbol is cited with its role in the sentence, what the reference is for here, and never with its behaviour, which is the file's own claim and moves when the file moves. The docs audit holds the title; the role stays with review.
+
 ## Naming
 
 Spine and organic technical documents use UPPERCASE basenames at predictable locations (`STATE.md`, `docs/ARCHITECTURE.md`), matching the ecosystem convention that uppercase markdown means "meta-document about the project". Decision records use `NNNN-short-kebab-title.md` because they are many, ordered, and cited by number. The inherited folder keeps the template's numbers untouched and a project's own records start at 0001, so a number is unique within its folder and the two sequences never meet. A record's filename stays within seventy-two characters, because the folders a record lives under are deep and a Windows clone has a path limit; the docs audit holds the cap for records written after it arrived. Other record folders name their files `YYYY-MM-DD-short-kebab-title.md`, since a briefing or a progress report is ordered by when it happened.

@@ -141,7 +141,7 @@ def strip_demo_inquiry(child: Path, today: str) -> None:
         "# The Question\n\n"
         "What a rehearsed inquiry asks, bounded to what this child can answer.\n\n"
         "## The decomposition\n\n"
-        "- Open. The first conjecture stands in [claim 0001](claims/0001-a-rehearsed-conjecture.md), unbacked until an arrow exists.\n",
+        "- Open. The first conjecture stands in [claim 0001, A rehearsed conjecture](claims/0001-a-rehearsed-conjecture.md), unbacked until an arrow exists.\n",
         encoding="utf-8",
     )
     architecture = child / "docs/ARCHITECTURE.md"

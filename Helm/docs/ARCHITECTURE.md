@@ -1,6 +1,6 @@
 # Architecture
 
-This project is a client-side single-page application built as one-way sliced layers, with a hexagonal wire boundary and a strict split between the server cache and client state. The layer discipline is derived from [Feature-Sliced Design](https://feature-sliced.design/); the reasoning behind the shape is recorded in [decision 0003](decisions/0003-build-the-client-as-one-way-sliced-layers.md).
+This project is a client-side single-page application built as one-way sliced layers, with a hexagonal wire boundary and a strict split between the server cache and client state. The layer discipline is derived from [Feature-Sliced Design](https://feature-sliced.design/); the reasoning behind the shape is recorded in [decision 0003, Build the client as one-way sliced layers](decisions/0003-build-the-client-as-one-way-sliced-layers.md).
 
 ## The layers and their one rule
 
@@ -62,11 +62,11 @@ All HTTP goes through `shared/api`'s `request`, which attaches the bearer token,
 
 ## Server cache versus client state
 
-Server data lives in the TanStack Query cache and nowhere else; each entity defines its keys and hooks in `queries.ts`, and invalidation happens through those keys. Client state is only what the client owns (the session, the theme, form drafts, filters) and lives in small Zustand stores or component state. Copying query data into a store is against the rules; the reasoning is recorded in [decision 0004](decisions/0004-segregate-the-server-cache-from-client-state.md). Every consumer renders the cache's lifecycle through `QueryState`, so pending, error, empty, and success are handled once, not per page.
+Server data lives in the TanStack Query cache and nowhere else; each entity defines its keys and hooks in `queries.ts`, and invalidation happens through those keys. Client state is only what the client owns (the session, the theme, form drafts, filters) and lives in small Zustand stores or component state. Copying query data into a store is against the rules; the reasoning is recorded in [decision 0004, Segregate the server cache from client state](decisions/0004-segregate-the-server-cache-from-client-state.md). Every consumer renders the cache's lifecycle through `QueryState`, so pending, error, empty, and success are handled once, not per page.
 
 ## The demo backend
 
-In mock mode (the default) an MSW service worker answers the same HTTP the client would send anywhere else, with realistic latency, auth checks, and refusals in the family's server envelope; the handlers speak wire shapes only and share nothing with the client's domain types. Tests run the identical handlers through MSW's node server. Setting `VITE_API_MODE=live` skips the worker entirely and points the client at `VITE_API_BASE_URL`. The trade-offs are recorded in [decision 0005](decisions/0005-run-the-demo-against-an-in-browser-mock-backend.md).
+In mock mode (the default) an MSW service worker answers the same HTTP the client would send anywhere else, with realistic latency, auth checks, and refusals in the family's server envelope; the handlers speak wire shapes only and share nothing with the client's domain types. Tests run the identical handlers through MSW's node server. Setting `VITE_API_MODE=live` skips the worker entirely and points the client at `VITE_API_BASE_URL`. The trade-offs are recorded in [decision 0005, Run the demo against an in-browser mock backend](decisions/0005-run-the-demo-against-an-in-browser-mock-backend.md).
 
 ## Theming
 

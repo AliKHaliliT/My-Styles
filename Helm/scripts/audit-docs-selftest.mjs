@@ -254,6 +254,27 @@ function provePalettePlant() {
   );
 }
 
+function proveCitationPlant() {
+  const folder = join(ROOT, "docs", "decisions");
+  const name = readdirSync(folder).sort().find((entry) => entry.endsWith(".md"));
+  const first = name ? readFileSync(join(folder, name), "utf-8").split("\n")[0].trim() : "";
+  if (!name || !first.includes(". ")) {
+    console.log("citation plants skipped: no titled record in this tree");
+    return;
+  }
+  const title = first.slice(first.indexOf(". ") + 2).trim();
+  const number = name.slice(0, 4);
+  proveAppended("the bare citation plant", [["AGENTS.md", `\nSee [decision ${number}](docs/decisions/${name}) in passing.\n`]], [`cites ${number} without its title`]);
+  const agents = join(ROOT, "AGENTS.md");
+  const original = readFileSync(agents);
+  writeFileSync(agents, Buffer.concat([original, Buffer.from(`\nSee [decision ${number}, ${title}](docs/decisions/${name}) in passing.\n`)]));
+  try {
+    if (audit().some((p) => p.includes("without its title"))) wrong("a citation carrying the record's title was reported as bare");
+  } finally {
+    writeFileSync(agents, original);
+  }
+}
+
 function proveImmutability() {
   const folder = join(ROOT, "docs", "decisions");
   const name = readdirSync(folder).sort().find((entry) => readFileSync(join(folder, entry), "utf-8").includes("\nStatus: Accepted\n"));
@@ -292,7 +313,7 @@ if (baseline.length > 0) {
   for (const p of baseline.slice(0, 5)) console.log(`  ${p}`);
   process.exit(1);
 }
-for (const proof of [proveFilePlants, proveTrackedPlants, proveAppendedPlants, proveStatePlants, proveUpstreamPlants, provePalettePlant, proveImmutability, proveAnchors]) {
+for (const proof of [proveFilePlants, proveTrackedPlants, proveAppendedPlants, proveStatePlants, proveUpstreamPlants, provePalettePlant, proveCitationPlant, proveImmutability, proveAnchors]) {
   proof();
 }
 console.log(failures === 0 ? "every rule fires" : `${failures} rule(s) do not work`);

@@ -91,6 +91,8 @@ The full spine of an inquiry is question, conjecture, evidence, claim. Any short
 
 A "why" that fits in a sentence and explains one change goes in the commit message body. A "why" that would be re-litigated goes in a decision record. A "what we hold true" goes in a claim. Chronology itself is never documented; git already is the complete log.
 
+A reference in a living document carries its description. A record is cited by its number and its title, verbatim from its heading and in the same paragraph as the link, so the sentence stands without the click and cannot drift, because a record is immutable. A path or a symbol is cited with its role in the sentence, what the reference is for here, and never with its behaviour, which is the file's own claim and moves when the file moves. The docs audit holds the title; the role stays with review.
+
 ## Naming
 
 Spine and organic documents use UPPERCASE basenames at predictable locations. Decision and claim records use `NNNN-short-kebab-title.md`, each sequence numbered independently, because they are many, ordered, and cited by number. A record's filename stays within seventy-two characters, because the folders a record lives under are deep and a Windows clone has a path limit; the audit holds the cap for records written after it arrived. Arrow manifests are lowercase, named exactly after the arrow directory they describe. Other record folders name their files `YYYY-MM-DD-short-kebab-title.md`, since a briefing or a progress report is ordered by when it happened.

@@ -100,6 +100,9 @@ STATE_TEXT = re.compile(r"\s*\(\d{4}-\d{2}-\d{2}\)\s*$")
 # one day are ordered by the history and not by the calendar.
 RECORD_NAME_SCOPE = "record filenames held to seventy-two characters"
 NAME_CAP = 72
+# A link into a numbered record folder is a citation, and a citation carries the record's title
+# in its paragraph, so the sentence stands without the click and cannot drift from what it cites.
+RECORD_LINK = re.compile(r"(?:decisions|inherited|claims)/(\d{4})-[a-z0-9-]+\.md$")
 
 
 # Questions about committed history have one answer for the life of a process, because nothing
@@ -376,12 +379,35 @@ def claims_to_be_path(token: str, root: Path) -> bool:
     return (root / first).exists()
 
 
+def record_title(record: Path) -> str | None:
+    """The title a record's heading states, after its number, or None where the heading is not in the form."""
+    first = record.read_text(encoding="utf-8").split("\n", 1)[0].strip()
+    if not first.startswith("# ") or ". " not in first:
+        return None
+    return first.split(". ", 1)[1].strip()
+
+
+def check_record_citations(problems: list[str], rel: str, path: Path, text: str) -> None:
+    """Every link to a record carries the record's title in the same paragraph, so the sentence stands without the click."""
+    for paragraph in re.split(r"\n\s*\n", text):
+        for target in LINK.findall(paragraph):
+            record = path.parent / target.split("#", 1)[0]
+            if not RECORD_LINK.search(target.split("#", 1)[0]) or not record.exists():
+                continue
+            title = record_title(record)
+            if title is None or title in paragraph:
+                continue
+            line = text.count("\n", 0, text.find(f"]({target})")) + 1
+            problems.append(f"{rel}:{line}: cites {record.name[:4]} without its title; a citation carries the number and the title, {title}")
+
+
 def check_references(problems: list[str], root: Path) -> None:
-    """Every relative link in a living document resolves, and every root-anchored path it names exists."""
+    """Every relative link in a living document resolves, every root-anchored path it names exists, and every record cited carries its title."""
     for rel in living_documents(root):
         path = root / rel
         if not path.exists():
             continue
+        check_record_citations(problems, rel, path, path.read_text(encoding="utf-8"))
         for line_no, line in enumerate(path.read_text(encoding="utf-8").split("\n"), 1):
             for target in LINK.findall(line):
                 bare = target.split("#", 1)[0]
@@ -1283,6 +1309,33 @@ def prove_figure_pair() -> int:
     return failures
 
 
+def prove_citation_plant() -> int:
+    """A record cited without its title is reported, and the same citation with the title passes."""
+    claim = ROOT / "docs/claims/0089-planted-cited.md"
+    cited = ROOT / "docs/PLANTED.md"
+    claim.write_text(
+        "# 0089. Planted cited claim\n\nStatus: Conjecture\nDate: 2026-01-01\n\n## Claim\n\nx.\n\n"
+        "## Evidence\n\nNone.\n\n## Threats\n\n- None named.\n",
+        encoding="utf-8",
+    )
+    failures = 0
+    try:
+        cited.write_text("# Planted\n\nSee [claim 0089](claims/0089-planted-cited.md) in passing.\n", encoding="utf-8")
+        problems, _ = run(ROOT)
+        if not any("cites 0089 without its title" in p for p in problems):
+            failures += 1
+            print("WRONG: a claim cited without its title raised nothing")
+        cited.write_text("# Planted\n\nSee [claim 0089, Planted cited claim](claims/0089-planted-cited.md) in passing.\n", encoding="utf-8")
+        titled, _ = run(ROOT)
+        if any("without its title" in p for p in titled):
+            failures += 1
+            print("WRONG: a citation carrying the claim's title was reported as bare")
+    finally:
+        cited.unlink(missing_ok=True)
+        claim.unlink(missing_ok=True)
+    return failures
+
+
 def prove_duplicate_numbers() -> int:
     """Two records sharing one number in a folder are reported, naming both."""
     twins = [ROOT / "docs/claims/0090-planted-twin-a.md", ROOT / "docs/claims/0090-planted-twin-b.md"]
@@ -1437,6 +1490,7 @@ def selftest() -> int:
         prove_inherited_record,
         prove_upstream_plants,
         prove_figure_pair,
+        prove_citation_plant,
         prove_duplicate_numbers,
         prove_immutability,
         prove_queue_age,
