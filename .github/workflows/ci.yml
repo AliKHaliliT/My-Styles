@@ -45,8 +45,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
       - name: Shared blocks are one text
         run: python3 scripts/audit_family.py
+      - name: Landed branches are gone
+        run: |
+          git fetch --prune origin '+refs/heads/*:refs/remotes/origin/*'
+          stale=$(git branch -r --merged origin/main | grep -vE 'origin/(main|HEAD)$' || true)
+          if [ -n "$stale" ]; then
+            echo "$stale"
+            echo "A landed branch outlives its landing; delete it locally and on the remote in the push that moves main."
+            exit 1
+          fi
 
   audit-scripts:
     name: Audit scripts

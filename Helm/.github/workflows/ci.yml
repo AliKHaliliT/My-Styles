@@ -35,6 +35,15 @@ jobs:
             echo "Misspellings in living prose or code; correct each, or name a domain term in the ignore list."
             exit 1
           fi
+      - name: Landed branches are gone
+        run: |
+          git fetch --prune origin '+refs/heads/*:refs/remotes/origin/*'
+          stale=$(git branch -r --merged origin/main | grep -vE 'origin/(main|HEAD)$' || true)
+          if [ -n "$stale" ]; then
+            echo "$stale"
+            echo "A landed branch outlives its landing; delete it locally and on the remote in the push that moves main."
+            exit 1
+          fi
       - uses: actions/setup-node@v7
         with:
           node-version: "24"
