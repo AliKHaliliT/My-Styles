@@ -99,6 +99,18 @@ NAME_CAP = 72
 # A link into a numbered record folder is a citation, and a citation carries the record's title
 # in its paragraph, so the sentence stands without the click and cannot drift from what it cites.
 RECORD_LINK = re.compile(r"(?:decisions|inherited|claims)/(\d{4})-[a-z0-9-]+\.md$")
+# A record the inherited folder gains at a re-alignment is cited by a record of the project's
+# own, the re-alignment's, which says what the rule did to the tree; reading a record is not
+# applying it, and a rule with no check reaches the tree only through the hand that says what it
+# did with it. The check decides the citation and review decides its honesty. Like every
+# history-reading check it binds from the arrival of its own scope sentence, and the folder's
+# first arrival, the adoption, is exempt, because the adoption record stands for it whole.
+DISPOSITION_SCOPE = "records the inherited folder gained held to a citing record of the project's own"
+INHERITED_CITATION = re.compile(r"inherited/(\d{4})-[a-z0-9-]+\.md")
+# An arrow carried inside its style's repository is aligned at the host's own commit, its
+# inherited folder moving with every landing under the family audit, so no re-alignment gains it
+# a record and the disposition check does not apply there.
+HOST_OWN_COMMIT = "at the host's own commit"
 # A prose paragraph that names this many references or more is an enumeration wearing prose, a
 # list or a table with its rows run together; measured over the family and over a project built
 # from it, everything at this count was a schema stated as prose or a set of bindings, and
@@ -222,6 +234,37 @@ def check_record_names(problems: list[str]) -> None:
                 f"{rel}: filename is {len(path.name)} characters, the cap is {NAME_CAP}; "
                 "a title is short, and the folders above it are not"
             )
+
+
+def aligned_at_host() -> bool:
+    """Whether the upstream file aligns this tree at the host's own commit, as an arrow carried inside its style's repository is."""
+    upstream = ROOT / "docs/UPSTREAM.md"
+    return upstream.exists() and HOST_OWN_COMMIT in upstream.read_text(encoding="utf-8")
+
+
+def check_dispositions(problems: list[str]) -> None:
+    """Every record the inherited folder gained after adoption is cited by a record of the project's own."""
+    inherited = ROOT / "docs/inherited"
+    if not inherited.is_dir() or aligned_at_host() or not git("ls-tree", "-r", "--name-only", "HEAD", "--", "docs/inherited").strip():
+        return
+    cited: set[str] = set()
+    for record in (ROOT / "docs/decisions").glob("*.md"):
+        cited.update(INHERITED_CITATION.findall(record.read_text(encoding="utf-8")))
+    uncited = [p for p in sorted(inherited.glob("*.md")) if RECORD_NAME.match(p.name) and p.name[:4] not in cited]
+    if not uncited:
+        return
+    arrival = first_commit(DISPOSITION_SCOPE, "scripts/audit_docs.py")
+    added = added_commits("docs/inherited")
+    adoption = git("log", "--reverse", "--format=%H", "--diff-filter=A", "--", "docs/inherited").split("\n")[0].strip()
+    for path in uncited:
+        born = added.get(f"docs/inherited/{path.name}")
+        if born == adoption or (born is not None and (arrival is None or is_before(born, arrival))):
+            continue
+        problems.append(
+            f"docs/inherited/{path.name}: gained by a re-alignment and cited by no record of this project's own;"
+            " the re-alignment's record names each record the folder gained with what it bound and what changed,"
+            " or that it bound nothing and why"
+        )
 
 
 def declared_names() -> str:
@@ -947,6 +990,7 @@ def check_version_story(problems: list[str]) -> None:
 CHECK_NEEDS = (
     ("check_state", "STATE.md"),
     ("check_upstream", "docs/UPSTREAM.md"),
+    ("check_dispositions", "docs/inherited"),
     ("check_rooms", "docs/ARCHITECTURE.md"),
     ("check_docs_zone", "docs"),
 )
@@ -955,6 +999,11 @@ CHECK_NEEDS = (
 def unrun_checks() -> list[str]:
     """Every check the tree gave nothing to run, each named with what it needs."""
     unrun = [f"{name} did not run: {need} is absent from this tree" for name, need in CHECK_NEEDS if not (ROOT / need).exists()]
+    if (ROOT / "docs/inherited").exists() and aligned_at_host():
+        unrun.append(
+            "check_dispositions did not run: docs/UPSTREAM.md aligns this arrow at the host's own commit,"
+            " so the family audit holds its inherited folder and no re-alignment gains it a record"
+        )
     if not python_roots():
         unrun.append("check_layout and check_docstrings did not run: no package root is on disk")
     pyproject = ROOT / "pyproject.toml"
@@ -975,6 +1024,7 @@ def run() -> tuple[list[str], list[str], list[Path]]:
     check_docs_zone(problems)
     check_record_names(problems)
     check_upstream(problems)
+    check_dispositions(problems)
     check_rooms(problems)
     check_ignored_working_trees(problems)
     held = check_layout(problems)
@@ -1372,10 +1422,52 @@ def prove_immutability() -> int:
     return failures
 
 
+def prove_disposition() -> int:
+    """A record the inherited folder gains with no citing record fails, and the same record cited passes.
+
+    The firing case needs a folder that already stood in history, so it runs where the tree carries
+    one, the rehearsal's child among them, and is named as skipped in the template, whose folder the
+    plant builds, and in an arrow aligned at the host's own commit, which gains nothing by re-alignment.
+    """
+    decisions = ROOT / "docs/decisions"
+    if not decisions.is_dir():
+        print("disposition plants skipped: no docs/decisions in this tree")
+        return 0
+    failures = 0
+    inherited_dir = ROOT / "docs/inherited"
+    existed = inherited_dir.exists()
+    inherited_dir.mkdir(exist_ok=True)
+    taken = {p.name[:4] for p in inherited_dir.glob("*.md")}
+    free = next(f"{n:04d}" for n in range(1, 10000) if f"{n:04d}" not in taken)
+    own_taken = {p.name[:4] for p in decisions.glob("*.md")}
+    own = next(f"{n:04d}" for n in range(900, 10000) if f"{n:04d}" not in own_taken)
+    gained = inherited_dir / f"{free}-planted-gained.md"
+    citing = decisions / f"{own}-planted-disposition.md"
+    try:
+        gained.write_text(f"# {free}. Planted gained\n\nStatus: Accepted\nDate: 2026-01-01\n\n## Decision\n\nx.\n", encoding="utf-8")
+        if not existed:
+            print("disposition firing case skipped: this tree has no inherited folder that stood in history")
+        elif aligned_at_host():
+            print("disposition firing case skipped: this arrow is aligned at the host's own commit and gains nothing by re-alignment")
+        else:
+            failures += expect(run()[0], "cited by no record of this project's own", "the gained record plant")
+        citing.write_text(
+            f"# {own}. Planted disposition\n\nStatus: Accepted\nDate: 2026-01-01\n\n## Decision\n\n"
+            f"[Inherited {free}, Planted gained](../inherited/{gained.name}) bound nothing here.\n",
+            encoding="utf-8",
+        )
+        if any("cited by no record" in p for p in run()[0]):
+            failures += wrong("a gained record cited by a record of this project's own was reported as uncited")
+    finally:
+        citing.unlink(missing_ok=True)
+        remove_planted(gained, ROOT / "docs")
+    return failures
+
+
 def prove_anchors() -> int:
     """Each history-reading rule's scope sentence is dated by the commit that introduced it."""
     failures = 0
-    for name, scope in (("immutability", IMMUTABILITY_SCOPE), ("queue age", STATE_AGE_SCOPE), ("filename cap", RECORD_NAME_SCOPE)):
+    for name, scope in (("immutability", IMMUTABILITY_SCOPE), ("queue age", STATE_AGE_SCOPE), ("filename cap", RECORD_NAME_SCOPE), ("disposition", DISPOSITION_SCOPE)):
         arrival = git("log", "--reverse", "--format=%H", "-S", scope, "--", "scripts/audit_docs.py").split()
         if not arrival:
             print(f"anchor plant skipped: the {name} scope sentence has not reached history yet")
@@ -1447,6 +1539,7 @@ def selftest() -> int:
         prove_citation_plant,
         prove_dense_plant,
         prove_immutability,
+        prove_disposition,
         prove_anchors,
         prove_ignore_plant,
         prove_unrun_report,

@@ -326,6 +326,7 @@ function proveAnchors() {
     ["immutability", "records held immutable beyond their Status line: every file below a subfolder of docs/"],
     ["queue age", "entries of Next, Deferred, and Blocked held to two horizons of unchanged text"],
     ["filename cap", "record filenames held to seventy-two characters"],
+    ["disposition", "records the inherited folder gained held to a citing record of the project's own"],
   ];
   for (const [label, scope] of scopes) {
     const arrival = git("log", "--reverse", "--format=%H", "-S", scope, "--", "scripts/audit-docs.mjs").split(/\s+/).filter(Boolean)[0];
@@ -334,6 +335,42 @@ function proveAnchors() {
   }
 }
 
+
+/** A record the inherited folder gains with no citing record fails, and the same record cited passes. */
+function proveDisposition() {
+  const decisions = join(ROOT, "docs", "decisions");
+  if (!existsSync(decisions)) {
+    console.log("disposition plants skipped: no docs/decisions in this tree");
+    return;
+  }
+  const inherited = join(ROOT, "docs", "inherited");
+  const existed = existsSync(inherited);
+  const taken = new Set(existed ? readdirSync(inherited).map((name) => name.slice(0, 4)) : []);
+  let free = "0001";
+  for (let n = 1; n < 10000; n += 1) {
+    const candidate = String(n).padStart(4, "0");
+    if (!taken.has(candidate)) {
+      free = candidate;
+      break;
+    }
+  }
+  const own = freeNumber();
+  const gainedRel = `docs/inherited/${free}-planted-gained.md`;
+  const citingRel = `docs/decisions/${own}-planted-disposition.md`;
+  const upstream = join(ROOT, "docs", "UPSTREAM.md");
+  const atHost = existsSync(upstream) && readFileSync(upstream, "utf-8").includes("at the host's own commit");
+  try {
+    plant(gainedRel, `# ${free}. Planted gained\n\nStatus: Accepted\nDate: 2026-01-01\n\n## Decision\n\nx.\n`);
+    if (!existed) console.log("disposition firing case skipped: this tree has no inherited folder that stood in history");
+    else if (atHost) console.log("disposition firing case skipped: this arrow is aligned at the host's own commit and gains nothing by re-alignment");
+    else expect(audit(), "cited by no record of this project's own", "the gained record plant");
+    plant(citingRel, `# ${own}. Planted disposition\n\nStatus: Accepted\nDate: 2026-01-01\n\n## Decision\n\n[Inherited ${free}, Planted gained](../inherited/${free}-planted-gained.md) bound nothing here.\n`);
+    if (audit().some((p) => p.includes("cited by no record"))) wrong("a gained record cited by a record of this project's own was reported as uncited");
+  } finally {
+    unplant(citingRel);
+    unplant(gainedRel);
+  }
+}
 
 function proveIgnorePlant() {
   const path = join(ROOT, ".gitignore");
@@ -373,7 +410,7 @@ if (baseline.length > 0) {
   for (const p of baseline.slice(0, 5)) console.log(`  ${p}`);
   process.exit(1);
 }
-for (const proof of [proveFilePlants, proveTrackedPlants, proveAppendedPlants, proveStatePlants, proveUpstreamPlants, provePalettePlant, proveCitationPlant, proveDensePlant, proveImmutability, proveAnchors, proveIgnorePlant, proveUnrunReport]) {
+for (const proof of [proveFilePlants, proveTrackedPlants, proveAppendedPlants, proveStatePlants, proveUpstreamPlants, provePalettePlant, proveCitationPlant, proveDensePlant, proveImmutability, proveAnchors, proveDisposition, proveIgnorePlant, proveUnrunReport]) {
   proof();
 }
 console.log(failures === 0 ? "every rule fires" : `${failures} rule(s) do not work`);

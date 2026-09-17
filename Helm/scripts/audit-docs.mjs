@@ -94,6 +94,18 @@ const NAME_CAP = 72;
 // A link into a numbered record folder is a citation, and a citation carries the record's title
 // in its paragraph, so the sentence stands without the click and cannot drift from what it cites.
 const RECORD_LINK = /(?:decisions|inherited|claims)\/(\d{4})-[a-z0-9-]+\.md$/;
+// A record the inherited folder gains at a re-alignment is cited by a record of the project's
+// own, the re-alignment's, which says what the rule did to the tree; reading a record is not
+// applying it, and a rule with no check reaches the tree only through the hand that says what it
+// did with it. The check decides the citation and review decides its honesty. Like every
+// history-reading check it binds from the arrival of its own scope sentence, and the folder's
+// first arrival, the adoption, is exempt, because the adoption record stands for it whole.
+const DISPOSITION_SCOPE = "records the inherited folder gained held to a citing record of the project's own";
+const INHERITED_CITATION = /inherited\/(\d{4})-[a-z0-9-]+\.md/g;
+// An arrow carried inside its style's repository is aligned at the host's own commit, its
+// inherited folder moving with every landing under the family audit, so no re-alignment gains it
+// a record and the disposition check does not apply there.
+const HOST_OWN_COMMIT = "at the host's own commit";
 // A prose paragraph that names this many references or more is an enumeration wearing prose, a
 // list or a table with its rows run together; measured over the family and over a project built
 // from it, everything at this count was a schema stated as prose or a set of bindings, and
@@ -489,6 +501,50 @@ function checkRecordNames() {
 checkRecordNames();
 checkUpstream();
 
+// Whether the upstream file aligns this tree at the host's own commit, as an arrow carried inside
+// its style's repository is.
+function alignedAtHost() {
+  const upstream = join(ROOT, "docs", "UPSTREAM.md");
+  return existsSync(upstream) && readFileSync(upstream, "utf-8").includes(HOST_OWN_COMMIT);
+}
+
+// The numbers of every inherited record a record of the project's own cites by a link.
+function citedInheritedNumbers() {
+  const cited = new Set();
+  const decisions = join(ROOT, "docs", "decisions");
+  for (const name of existsSync(decisions) ? readdirSync(decisions) : []) {
+    if (!name.endsWith(".md")) continue;
+    for (const match of readFileSync(join(decisions, name), "utf-8").matchAll(INHERITED_CITATION)) cited.add(match[1]);
+  }
+  return cited;
+}
+
+// Whether an inherited record is judged under this rule: not part of the folder's first arrival,
+// and either not committed yet or born in the commit that brought the scope sentence or after it.
+function gainedUnderRule(name, added, adoption, arrival) {
+  const born = added.get(`docs/inherited/${name}`);
+  if (born === adoption) return false;
+  if (born === undefined) return true;
+  return arrival !== null && !isBefore(born, arrival);
+}
+
+// Every record the inherited folder gained after adoption is cited by a record of the project's own.
+function checkDispositions() {
+  const inherited = join(ROOT, "docs", "inherited");
+  if (!existsSync(inherited) || alignedAtHost() || !git("ls-tree", "-r", "--name-only", "HEAD", "--", "docs/inherited").trim()) return;
+  const cited = citedInheritedNumbers();
+  const uncited = readdirSync(inherited).filter((name) => RECORD_NAME.test(name) && !cited.has(name.slice(0, 4))).sort();
+  if (uncited.length === 0) return;
+  const arrival = firstCommit(DISPOSITION_SCOPE, "scripts/audit-docs.mjs");
+  const added = addedCommits("docs/inherited");
+  const adoption = git("log", "--reverse", "--format=%H", "--diff-filter=A", "--", "docs/inherited").split(/\s+/).filter(Boolean)[0];
+  for (const name of uncited) {
+    if (!gainedUnderRule(name, added, adoption, arrival)) continue;
+    problems.push(`docs/inherited/${name}: gained by a re-alignment and cited by no record of this project's own; the re-alignment's record names each record the folder gained with what it bound and what changed, or that it bound nothing and why`);
+  }
+}
+checkDispositions();
+
 // The ignore file names every directory a second working tree may occupy, because a tree created
 // inside the repository is a nested checkout that a careless add records as an embedded repository.
 const WORKING_TREE_DIRS = [".worktrees/", ".claude/worktrees/"];
@@ -628,10 +684,12 @@ if (existsSync(pkg)) {
 const CHECK_NEEDS = [
   ["the STATE check", "STATE.md"],
   ["the upstream check", "docs/UPSTREAM.md"],
+  ["the disposition check", "docs/inherited"],
   ["the rooms check", "docs/ARCHITECTURE.md"],
   ["the docs-zone checks", "docs"],
 ];
 const unrun = CHECK_NEEDS.filter(([, need]) => !existsSync(join(ROOT, need))).map(([name, need]) => `${name} did not run: ${need} is absent from this tree`);
+if (existsSync(join(ROOT, "docs", "inherited")) && alignedAtHost()) unrun.push("the disposition check did not run: docs/UPSTREAM.md aligns this arrow at the host's own commit, so the family audit holds its inherited folder and no re-alignment gains it a record");
 const declaredFloor = existsSync(pkg) ? JSON.parse(readFileSync(pkg, "utf-8")).engines?.node?.match(/>=\s*(\d+(?:\.\d+)*)/)?.[1] : undefined;
 if (!declaredFloor) unrun.push("the version-story check did not run: package.json declares no engines.node floor");
 if (unrun.length > 0) {
