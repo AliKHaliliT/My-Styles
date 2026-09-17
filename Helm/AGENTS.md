@@ -133,7 +133,7 @@ The template's decision records travel as one folder. They are carried whole int
 The adoption is done when every item below holds, and the agent says so by naming the boundary it exhausted rather than by feeling finished. The gate decides what a check can decide; what it cannot, it names as review's, so a passing gate is never read as the whole.
 
 - **Inventory exhausted**: every tracked path is classified, and no path is left undecided.
-- **Audits green**: the docs audit, the lint, the type-check, and the tests pass on the final tree, which holds that every directory has a room, every document under `docs/` a species and a row, every record its immutability, every record the inherited folder gained a citing record of the project's own, and every documented parameter its name.
+- **Audits green**: the docs audit, the lint, the type-check, and the tests pass on the final tree, which holds that every directory has a room, every document under `docs/` a species and a row, every record its immutability, every record the inherited folder gained a citing record of the project's own, no record of the template's standing among the project's own, and every documented parameter its name.
 - **Debt paid**: the STATE debt list the adoption opened, inherited prose or inherited structure that could not be brought under the law in one change, is empty.
 - **Leftovers swept**: every rule the adoption or re-alignment retired has had what it required removed from the tree, and the inventory names the sweep.
 - **Pin recorded**: the first line of `UPSTREAM.md` names the template commit the project was aligned to, and the inherited folder holds that commit's records whole and nothing else.

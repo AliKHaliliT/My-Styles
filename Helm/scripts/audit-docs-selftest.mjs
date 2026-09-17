@@ -336,6 +336,32 @@ function proveAnchors() {
 }
 
 
+/** The lowest record number no record under docs/inherited uses, from one up; the folder may not exist yet. */
+function freeInheritedNumber() {
+  const inherited = join(ROOT, "docs", "inherited");
+  const taken = new Set(existsSync(inherited) ? readdirSync(inherited).map((name) => name.slice(0, 4)) : []);
+  for (let n = 1; n < 10000; n += 1) {
+    const candidate = String(n).padStart(4, "0");
+    if (!taken.has(candidate)) return candidate;
+  }
+  return "9999";
+}
+
+/** A record of the project's own whose body is an inherited record's is reported, whatever its number and status. */
+function proveTemplateCopy() {
+  const free = freeInheritedNumber();
+  const own = freeNumber();
+  const body = "\n\nStatus: Accepted\nDate: 2026-01-01\n\n## Decision\n\nPlanted twice.\n";
+  proveGroup(
+    "the template copy plant",
+    [
+      [`docs/inherited/${free}-planted-template.md`, `# ${free}. Planted template${body}`],
+      [`docs/decisions/${own}-planted-template.md`, `# ${own}. Planted template${body.replace("Status: Accepted", "Status: Superseded by 0999")}`],
+    ],
+    [`is the template's record docs/inherited/${free}-planted-template.md`],
+  );
+}
+
 /** A record the inherited folder gains with no citing record fails, and the same record cited passes. */
 function proveDisposition() {
   const decisions = join(ROOT, "docs", "decisions");
@@ -345,15 +371,7 @@ function proveDisposition() {
   }
   const inherited = join(ROOT, "docs", "inherited");
   const existed = existsSync(inherited);
-  const taken = new Set(existed ? readdirSync(inherited).map((name) => name.slice(0, 4)) : []);
-  let free = "0001";
-  for (let n = 1; n < 10000; n += 1) {
-    const candidate = String(n).padStart(4, "0");
-    if (!taken.has(candidate)) {
-      free = candidate;
-      break;
-    }
-  }
+  const free = freeInheritedNumber();
   const own = freeNumber();
   const gainedRel = `docs/inherited/${free}-planted-gained.md`;
   const citingRel = `docs/decisions/${own}-planted-disposition.md`;
@@ -410,7 +428,7 @@ if (baseline.length > 0) {
   for (const p of baseline.slice(0, 5)) console.log(`  ${p}`);
   process.exit(1);
 }
-for (const proof of [proveFilePlants, proveTrackedPlants, proveAppendedPlants, proveStatePlants, proveUpstreamPlants, provePalettePlant, proveCitationPlant, proveDensePlant, proveImmutability, proveAnchors, proveDisposition, proveIgnorePlant, proveUnrunReport]) {
+for (const proof of [proveFilePlants, proveTrackedPlants, proveAppendedPlants, proveStatePlants, proveUpstreamPlants, provePalettePlant, proveCitationPlant, proveDensePlant, proveImmutability, proveAnchors, proveTemplateCopy, proveDisposition, proveIgnorePlant, proveUnrunReport]) {
   proof();
 }
 console.log(failures === 0 ? "every rule fires" : `${failures} rule(s) do not work`);

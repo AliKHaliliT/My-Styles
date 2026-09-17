@@ -239,6 +239,28 @@ def check_dispositions(problems: list[str], root: Path) -> None:
         )
 
 
+def record_body(text: str) -> str:
+    """A record's text beyond its heading and its Status line, the two lines a copy under another number changes."""
+    lines = text.replace("\r\n", "\n").strip().split("\n")
+    return "\n".join(line for line in lines[1:] if not line.startswith("Status: ")).strip()
+
+
+def check_template_copies(problems: list[str], root: Path) -> None:
+    """No record of the project's own is an inherited record's body under another number."""
+    inherited = root / "docs/inherited"
+    decisions = root / "docs/decisions"
+    if not inherited.is_dir() or not decisions.is_dir():
+        return
+    bodies = {record_body(p.read_text(encoding="utf-8")): p.name for p in inherited.glob("*.md")}
+    for own in sorted(decisions.glob("*.md")):
+        twin = bodies.get(record_body(own.read_text(encoding="utf-8")))
+        if twin is not None:
+            problems.append(
+                f"docs/decisions/{own.name}: is the template's record docs/inherited/{twin} under this project's number;"
+                " docs/decisions/ holds the project's own decisions and nothing else, so delete it, the inherited folder carries it"
+            )
+
+
 def living_documents(root: Path) -> list[str]:
     """The spine plus the enumerable organic zone: docs/*.md and the arrow manifests.
 
@@ -891,6 +913,7 @@ CHECK_NEEDS = (
     ("check_state", "STATE.md"),
     ("check_upstream", "docs/UPSTREAM.md"),
     ("check_dispositions", "docs/inherited"),
+    ("check_template_copies", "docs/inherited"),
     ("check_reviews", "docs/reviews"),
     ("check_arrows", "docs/arrows"),
     ("check_pins", "docs/claims"),
@@ -923,6 +946,7 @@ def run(root: Path) -> tuple[list[str], list[str]]:
     check_record_names(problems, root)
     check_records(problems, root)
     check_dispositions(problems, root)
+    check_template_copies(problems, root)
     check_record_immutability(problems, root)
     check_figures(problems, root)
     check_reviews(problems, root)
@@ -1575,6 +1599,37 @@ def prove_queue_age() -> int:
     return failures
 
 
+def free_number(folder: Path, start: int) -> str:
+    """The lowest record number from the start that no record in the folder uses, for a plant that must not collide."""
+    taken = {p.name[:4] for p in folder.glob("*.md")}
+    return next(f"{n:04d}" for n in range(start, 10000) if f"{n:04d}" not in taken)
+
+
+def prove_template_copy() -> int:
+    """A record of the project's own whose body is an inherited record's is reported, whatever its number and status."""
+    decisions = ROOT / "docs/decisions"
+    inherited_dir = ROOT / "docs/inherited"
+    existed = inherited_dir.exists()
+    inherited_dir.mkdir(exist_ok=True)
+    free = free_number(inherited_dir, 1)
+    own = free_number(decisions, 900)
+    body = "\n\nStatus: Accepted\nDate: 2026-01-01\n\n## Decision\n\nPlanted twice.\n"
+    template = inherited_dir / f"{free}-planted-template.md"
+    copy = decisions / f"{own}-planted-template.md"
+    try:
+        template.write_text(f"# {free}. Planted template" + body, encoding="utf-8")
+        copy.write_text(f"# {own}. Planted template" + body.replace("Status: Accepted", "Status: Superseded by 0999"), encoding="utf-8")
+        if any(f"is the template's record docs/inherited/{template.name}" in p for p in run(ROOT)[0]):
+            return 0
+        print("WRONG: a record of this project's own carrying an inherited record's body raised nothing")
+        return 1
+    finally:
+        copy.unlink(missing_ok=True)
+        template.unlink(missing_ok=True)
+        if not existed and not any(inherited_dir.iterdir()):
+            inherited_dir.rmdir()
+
+
 def prove_disposition() -> int:
     """A record the inherited folder gains with no citing record fails, and the same record cited passes.
 
@@ -1587,10 +1642,8 @@ def prove_disposition() -> int:
     inherited_dir = ROOT / "docs/inherited"
     existed = inherited_dir.exists()
     inherited_dir.mkdir(exist_ok=True)
-    taken = {p.name[:4] for p in inherited_dir.glob("*.md")}
-    free = next(f"{n:04d}" for n in range(1, 10000) if f"{n:04d}" not in taken)
-    own_taken = {p.name[:4] for p in decisions.glob("*.md")}
-    own = next(f"{n:04d}" for n in range(900, 10000) if f"{n:04d}" not in own_taken)
+    free = free_number(inherited_dir, 1)
+    own = free_number(decisions, 900)
     gained = inherited_dir / f"{free}-planted-gained.md"
     citing = decisions / f"{own}-planted-disposition.md"
     try:
@@ -1733,6 +1786,7 @@ def selftest() -> int:
         prove_duplicate_numbers,
         prove_immutability,
         prove_queue_age,
+        prove_template_copy,
         prove_disposition,
         prove_anchors,
         prove_ignore_plant,

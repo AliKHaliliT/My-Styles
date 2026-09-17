@@ -545,6 +545,31 @@ function checkDispositions() {
 }
 checkDispositions();
 
+// A record's text beyond its heading and its Status line, the two lines a copy under another number changes.
+function recordBody(text) {
+  const lines = text.replace(/\r\n/g, "\n").trim().split("\n");
+  return lines.slice(1).filter((line) => !line.startsWith("Status: ")).join("\n").trim();
+}
+
+// No record of the project's own is an inherited record's body under another number.
+function checkTemplateCopies() {
+  const inherited = join(ROOT, "docs", "inherited");
+  const decisions = join(ROOT, "docs", "decisions");
+  if (!existsSync(inherited) || !existsSync(decisions)) return;
+  const bodies = new Map();
+  for (const name of readdirSync(inherited)) {
+    if (name.endsWith(".md")) bodies.set(recordBody(readFileSync(join(inherited, name), "utf-8")), name);
+  }
+  for (const name of readdirSync(decisions).sort()) {
+    if (!name.endsWith(".md")) continue;
+    const twin = bodies.get(recordBody(readFileSync(join(decisions, name), "utf-8")));
+    if (twin !== undefined) {
+      problems.push(`docs/decisions/${name}: is the template's record docs/inherited/${twin} under this project's number; docs/decisions/ holds the project's own decisions and nothing else, so delete it, the inherited folder carries it`);
+    }
+  }
+}
+checkTemplateCopies();
+
 // The ignore file names every directory a second working tree may occupy, because a tree created
 // inside the repository is a nested checkout that a careless add records as an embedded repository.
 const WORKING_TREE_DIRS = [".worktrees/", ".claude/worktrees/"];
@@ -685,6 +710,7 @@ const CHECK_NEEDS = [
   ["the STATE check", "STATE.md"],
   ["the upstream check", "docs/UPSTREAM.md"],
   ["the disposition check", "docs/inherited"],
+  ["the template-copy check", "docs/inherited"],
   ["the rooms check", "docs/ARCHITECTURE.md"],
   ["the docs-zone checks", "docs"],
 ];
