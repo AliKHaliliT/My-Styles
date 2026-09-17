@@ -170,6 +170,7 @@ function proveTrackedPlants() {
       ["ROGUE-PLANTED.txt", "nobody named this\n"],
       ["docs/planted.png", "not a document\n"],
       ["docs/planted-folder/GUIDE.md", "# Guide\n"],
+      ["docs/PLANTED-DASHES.md", "\u2014 \u2014 \u2014\n"],
     ],
     [
       "stray-planted/: exists in the tree but has no room",
@@ -178,6 +179,7 @@ function proveTrackedPlants() {
       "docs/planted.png: docs/ holds markdown documents only",
       "docs/planted-folder/ has no row in the AGENTS.md index",
       "a file below a docs/ subfolder is a dated record named YYYY-MM-DD-short-kebab-title.md",
+      "docs/PLANTED-DASHES.md carries 3 em dashes; the budget is 2 per file",
     ],
     true,
   );

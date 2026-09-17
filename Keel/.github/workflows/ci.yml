@@ -18,11 +18,6 @@ jobs:
         with:
           # Record immutability is checked against history, so the clone cannot be shallow.
           fetch-depth: 0
-      - name: Em dash budget, two per file
-        run: |
-          git grep -PIno "\x{2014}" -- . > em-dashes.tmp || true
-          awk -F: '{count[$1]++} END {bad = 0; for (f in count) if (count[f] > 2) { printf "%s carries %d em dashes; the budget is two per file\n", f, count[f]; bad = 1 }; exit bad}' em-dashes.tmp
-          rm em-dashes.tmp
       - name: Prose heuristics, advisory
         continue-on-error: true
         run: |

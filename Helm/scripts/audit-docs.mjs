@@ -106,6 +106,11 @@ const INHERITED_CITATION = /inherited\/(\d{4})-[a-z0-9-]+\.md/g;
 // inherited folder moving with every landing under the family audit, so no re-alignment gains it
 // a record and the disposition check does not apply there.
 const HOST_OWN_COMMIT = "at the host's own commit";
+// A tracked file carries at most this many em dashes, because the plague arrives as clusters and a
+// cluster is countable; the count runs here rather than in the workflow alone, so a tree with no
+// remote is held to it. A file holding a NUL byte is binary and is not read for it.
+const EM_DASH_BUDGET = 2;
+const EM_DASH = Buffer.from("\u2014", "utf-8");
 // A prose paragraph that names this many references or more is an enumeration wearing prose, a
 // list or a table with its rows run together; measured over the family and over a project built
 // from it, everything at this count was a schema stated as prose or a set of bindings, and
@@ -569,6 +574,20 @@ function checkTemplateCopies() {
   }
 }
 checkTemplateCopies();
+
+// Every tracked text file stays within the em dash budget.
+function checkEmDashes() {
+  for (const rel of trackedFiles()) {
+    const path = join(ROOT, rel);
+    if (!existsSync(path) || statSync(path).isDirectory()) continue;
+    const bytes = readFileSync(path);
+    if (bytes.includes(0)) continue;
+    let count = 0;
+    for (let at = bytes.indexOf(EM_DASH); at !== -1; at = bytes.indexOf(EM_DASH, at + EM_DASH.length)) count += 1;
+    if (count > EM_DASH_BUDGET) problems.push(`${rel} carries ${count} em dashes; the budget is ${EM_DASH_BUDGET} per file`);
+  }
+}
+checkEmDashes();
 
 // The ignore file names every directory a second working tree may occupy, because a tree created
 // inside the repository is a nested checkout that a careless add records as an embedded repository.

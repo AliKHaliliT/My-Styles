@@ -111,6 +111,11 @@ INHERITED_CITATION = re.compile(r"inherited/(\d{4})-[a-z0-9-]+\.md")
 # inherited folder moving with every landing under the family audit, so no re-alignment gains it
 # a record and the disposition check does not apply there.
 HOST_OWN_COMMIT = "at the host's own commit"
+# A tracked file carries at most this many em dashes, because the plague arrives as clusters and a
+# cluster is countable; the count runs here rather than in the workflow alone, so a tree with no
+# remote is held to it. A file holding a NUL byte is binary and is not read for it.
+EM_DASH_BUDGET = 2
+EM_DASH = "\u2014".encode()
 # A prose paragraph that names this many references or more is an enumeration wearing prose, a
 # list or a table with its rows run together; measured over the family and over a project built
 # from it, everything at this count was a schema stated as prose or a set of bindings, and
@@ -287,6 +292,20 @@ def check_template_copies(problems: list[str]) -> None:
                 f"docs/decisions/{own.name}: is the template's record docs/inherited/{twin} under this project's number;"
                 " docs/decisions/ holds the project's own decisions and nothing else, so delete it, the inherited folder carries it"
             )
+
+
+def check_em_dashes(problems: list[str]) -> None:
+    """Every tracked text file stays within the em dash budget, counted here so a tree with no remote is held to it."""
+    for rel in tracked_files():
+        path = ROOT / rel
+        if not path.is_file():
+            continue
+        data = path.read_bytes()
+        if b"\0" in data:
+            continue
+        count = data.count(EM_DASH)
+        if count > EM_DASH_BUDGET:
+            problems.append(f"{rel} carries {count} em dashes; the budget is {EM_DASH_BUDGET} per file")
 
 
 def declared_names() -> str:
@@ -1049,6 +1068,7 @@ def run() -> tuple[list[str], list[str], list[Path]]:
     check_upstream(problems)
     check_dispositions(problems)
     check_template_copies(problems)
+    check_em_dashes(problems)
     check_rooms(problems)
     check_ignored_working_trees(problems)
     held = check_layout(problems)
@@ -1091,6 +1111,7 @@ TRACKED_PLANTS = [
     ("docs/planted.png", "not a document\n", "docs/planted.png: docs/ holds markdown documents only"),
     ("docs/planted-folder/GUIDE.md", "# Guide\n", "docs/planted-folder/ has no row in the AGENTS.md index"),
     ("docs/planted-folder/GUIDE.md", "# Guide\n", "a file below a docs/ subfolder is a dated record named YYYY-MM-DD-short-kebab-title.md"),
+    ("docs/PLANTED-DASHES.md", "\u2014 \u2014 \u2014\n", "docs/PLANTED-DASHES.md carries 3 em dashes; the budget is 2 per file"),
 ]
 
 # A source file carrying one defect per docstring rule, planted under the first package root.

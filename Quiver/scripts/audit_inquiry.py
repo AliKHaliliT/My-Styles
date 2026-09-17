@@ -116,6 +116,11 @@ INHERITED_CITATION = re.compile(r"inherited/(\d{4})-[a-z0-9-]+\.md")
 # inherited folder moving with every landing under the family audit, so no re-alignment gains it
 # a record and the disposition check does not apply there.
 HOST_OWN_COMMIT = "at the host's own commit"
+# A tracked file carries at most this many em dashes, because the plague arrives as clusters and a
+# cluster is countable; the count runs here rather than in the workflow alone, so a tree with no
+# remote is held to it. A file holding a NUL byte is binary and is not read for it.
+EM_DASH_BUDGET = 2
+EM_DASH = "\u2014".encode()
 # A prose paragraph that names this many references or more is an enumeration wearing prose, a
 # list or a table with its rows run together; measured over the family and over a project built
 # from it, everything at this count was a schema stated as prose or a set of bindings, and
@@ -259,6 +264,22 @@ def check_template_copies(problems: list[str], root: Path) -> None:
                 f"docs/decisions/{own.name}: is the template's record docs/inherited/{twin} under this project's number;"
                 " docs/decisions/ holds the project's own decisions and nothing else, so delete it, the inherited folder carries it"
             )
+
+
+def check_em_dashes(problems: list[str], root: Path) -> None:
+    """Every tracked text file of the inquiry layer stays within the em dash budget; an arrow's audit counts its own."""
+    if root != ROOT:
+        return
+    for rel in tracked_files():
+        path = root / rel
+        if rel.startswith("arrows/") or not path.is_file():
+            continue
+        data = path.read_bytes()
+        if b"\0" in data:
+            continue
+        count = data.count(EM_DASH)
+        if count > EM_DASH_BUDGET:
+            problems.append(f"{rel} carries {count} em dashes; the budget is {EM_DASH_BUDGET} per file")
 
 
 def living_documents(root: Path) -> list[str]:
@@ -947,6 +968,7 @@ def run(root: Path) -> tuple[list[str], list[str]]:
     check_records(problems, root)
     check_dispositions(problems, root)
     check_template_copies(problems, root)
+    check_em_dashes(problems, root)
     check_record_immutability(problems, root)
     check_figures(problems, root)
     check_reviews(problems, root)
@@ -1057,6 +1079,7 @@ TRACKED_PLANTS = [
     ("docs/diagram.png", "not a document\n", "docs/ holds markdown documents only"),
     ("stray/note.txt", "nobody gave this a room\n", "stray/: exists in the tree but has no room"),
     ("ROGUE.txt", "nobody named this\n", "ROGUE.txt: sits at the root but neither the map nor the baseline names it"),
+    ("docs/PLANTED-DASHES.md", "\u2014 \u2014 \u2014\n", "docs/PLANTED-DASHES.md carries 3 em dashes; the budget is 2 per file"),
 ]
 
 # The well-formed pass cites this key, planted in the bibliography for the review plants alone.
