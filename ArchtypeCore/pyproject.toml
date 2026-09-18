@@ -102,6 +102,11 @@ ignore_missing_imports = true
 # its neighbour fails on the day it is written; replay a run with --randomly-seed=<printed>.
 asyncio_mode = "auto"
 testpaths = ["tests"]
+# A suite cannot reach a provider or the network, because pytest-socket refuses every connection
+# that would leave the loopback, so an adapter that resolves its credentials from the environment
+# fails here before it bills; a test that must reach a host names it with @pytest.mark.allow_hosts,
+# in the open. The loopback stays open because the event loop wakes itself through a socket pair.
+addopts = "--allow-hosts=127.0.0.1,::1"
 # The application is run in place rather than installed, so the suite needs the repository
 # root on the import path to reach `app`.
 pythonpath = ["."]

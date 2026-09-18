@@ -15,6 +15,9 @@ import { server } from "@/mocks/node"
 import { setTokenProvider } from "@/shared/api"
 
 beforeAll(() => {
+  // No request leaves the loopback. A request no handler answers is refused here, so a call that
+  // would reach a real host fails in the test instead, and a test that must reach one names it
+  // in a handler, in the open.
   server.listen({ onUnhandledRequest: "error" })
 })
 

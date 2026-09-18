@@ -5,6 +5,7 @@
 pytest
 pytest-asyncio
 pytest-randomly
+pytest-socket
 # The suite boots the application through Starlette's in-process test client, which speaks
 # through httpx2.
 httpx2

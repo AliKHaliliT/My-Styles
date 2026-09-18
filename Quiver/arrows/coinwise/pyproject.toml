@@ -37,6 +37,7 @@ dev = [
     "hypothesis",
     "pytest",
     "pytest-randomly",
+    "pytest-socket",
     "ruff",
     "mypy",
     "import-linter",
@@ -107,6 +108,11 @@ implicit_reexport = true
 # The suite runs in a shuffled order under a seed the run prints, so a test that leans on
 # its neighbour fails on the day it is written; replay a run with --randomly-seed=<printed>.
 testpaths = ["tests"]
+# A suite cannot reach a provider or the network, because pytest-socket refuses every connection
+# that would leave the loopback, so an adapter that resolves its credentials from the environment
+# fails here before it bills; a test that must reach a host names it with @pytest.mark.allow_hosts,
+# in the open. The loopback stays open because the event loop wakes itself through a socket pair.
+addopts = "--allow-hosts=127.0.0.1,::1"
 # A deprecation warning is a removal notice at least two releases early, so it gates here
 # rather than scrolling past unread. Any exception is a named ignore for one specific
 # message with a reason beside it, never a blanket.
