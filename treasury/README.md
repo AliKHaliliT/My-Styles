@@ -40,6 +40,7 @@ method rather than from anyone's recollection of the last one.
 | [0003-security-vocabulary](0003-security-vocabulary/) | 2026-08-22 | 13,764 named security concepts folded to a 1,996 entry vocabulary in eight families |
 | [0004-research-methodology-vocabulary](0004-research-methodology-vocabulary/) | 2026-08-27 | 22,924 named research-methodology concepts folded to a 2,908 entry vocabulary in thirteen families |
 | [0005-agent-skills](0005-agent-skills/) | 2026-09-16 | 2,272 named agent skills read against the family's law, 26 candidates, eight adopted |
+| [0006-invariant-binding](0006-invariant-binding/) | 2026-09-18 | 2,280 named mechanisms for binding a stated invariant to something that holds it, folded to 166 entries in eight families |
 
 ## Family rulings
 
@@ -86,6 +87,7 @@ check this folder; the question may already be settled.
 | [0032](decisions/0032-dispose-of-the-upstream-entry-of-2026-09-17-on-record-links.md) | The entry from three seats at ec94df4405f3, kept; a record may be edited at a link target alone, decided by the audit, and every record of the project's own has its links held to resolve |
 | [0033](decisions/0033-dispose-of-the-upstream-entry-of-2026-09-09-on-a-suite-reaching-a-provider.md) | The entry from a package-style project at e069bab89f81, kept in the family's form; every Python suite refuses a connection that leaves the loopback and the client suite's refusal of unhandled requests is named as the same rule |
 | [0034](decisions/0034-define-the-landing-where-the-repository-names-no-remote.md) | Without a remote the branch protocol keeps its merge, gate, fast-forward, and deletion; the docs audit fails a local branch already merged into main and names the workflow's landed-branches step as not run for want of a remote |
+| [0035](decisions/0035-keep-an-invariants-ledger-and-refuse-the-cost-line-and-the-hook.md) | Study 0006's disposition: every seat keeps a ledger of its product's invariants, each row a claim, its holder and its rung, the audit holding the pointers and review the truth; the cost column and the commit hook refused with the conditions that reopen them |
 
 ## Rules of the folder
 

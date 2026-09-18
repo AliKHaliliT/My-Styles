@@ -2,7 +2,7 @@
 
 The treasury exists so the next design starts from evidence rather than from
 memory, and the method that produces the evidence has to meet the same
-standard. This file is that method, written from the five studies that have run
+standard. This file is that method, written from the six studies that have run
 under it. It is living guidance, rewritten in place as the practice sharpens,
 and it is the only treasury-level guide; guidance on consuming a particular
 study's findings stays beside that study.
@@ -205,6 +205,45 @@ spending tokens on a scratch file nobody will open.
   thousand lines may have read nothing from half the sources, because reading
   by position samples whichever source sorts first. The sources never
   sampled in one study held six of its candidates.
+- Write a ban against a shape, never against a character, and give every ban
+  a plant that must pass beside the plant that must fire. A colon ban written
+  as any colon in any field flagged sixteen published identifiers whose colon
+  was part of the name, and a repair pass sent against that finding would
+  have renamed sixteen real concepts to earn a clean run. Narrowed to a colon
+  followed by a space inside the disambiguator alone, it flagged two, both
+  real.
+- Set the disambiguator cap at twenty words or cap only the gloss at the
+  fold. A twelve-word cap at the sweep was exceeded by twenty-five entries at
+  thirteen to seventeen words, because a name that needs a disambiguator
+  usually needs a clause, and the cap was written for the fold's gloss.
+- Name the material a check binds before writing it. One study copied the
+  tracked prose law's dash rule into its scaffolding checker, where the
+  method says it has no jurisdiction; it never fired, and had it fired it
+  would have sent a repair into files that never ship.
+- An instrument that assumes a format measures its own assumption. A coverage
+  reader counting only bulleted lines reported a pass as naming no source
+  when it had named thirteen. Count by content and not by markup.
+- A probe reads the whole entry. A hand check that printed six lines after a
+  heading reported nineteen names homeless that sat on the seventh, minutes
+  after an audit script had been written to avoid exactly that, so a repair
+  would have grown a duplicate. The loss audit reads each fold file whole.
+- Verify a count against the source file, never a rendered page. Asking a
+  second reader to count a long page reproduces the first reader's problem
+  instead of testing it; the one claim verified in study 0006 was the one
+  whose pass named a source file that could be fetched as bytes and counted
+  by a script. A pass that can choose between a page and the file behind it
+  names the file.
+- Expect the loss audit to find a missing family, not only missing names. In
+  one study the seven planned families divided the machinery of a subject
+  and all three published lists of the subject's content fell through the
+  gaps between them; an eighth family for the content lifted the affected
+  groups from 35, 73 and 86 percent survival to 86, 99 and 96. A hole shaped
+  like a whole group is a family the map lacks, and the fix is to commission
+  it, never to stuff the names into a neighbour.
+- Start the fold only when every review has written to disk. Twenty-nine
+  names landed after the fold passes began reading the corpus, and each
+  affected family had to be sent the late list by hand; keep both corpus
+  versions when it happens, so what the fold read is recoverable.
 
 ## What a study leaves behind
 
