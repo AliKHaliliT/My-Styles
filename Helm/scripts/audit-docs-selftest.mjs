@@ -485,6 +485,31 @@ function proveIgnorePlant() {
 }
 
 
+/** A local branch already merged into main is reported, and the branch is removed again. */
+function proveStaleBranch() {
+  if (git("rev-parse", "--verify", "--quiet", "refs/heads/main").trim() === "") {
+    console.log("stale branch plant skipped: no local branch named main");
+    return;
+  }
+  const name = "planted-stale-branch";
+  git("branch", name, "main");
+  try {
+    expect(audit(), `branch ${name} is already merged into main`, "the stale branch plant");
+  } finally {
+    git("branch", "-D", name);
+  }
+}
+
+/** A repository naming no remote reports the workflow as not run; the rehearsal's child is where this fires. */
+function proveNoRemoteReport() {
+  if (git("remote").trim() !== "") {
+    console.log("no-remote report skipped: this repository names a remote, so the rehearsal's child proves it");
+    return;
+  }
+  const done = spawnSync(process.execPath, [AUDIT], { cwd: ROOT, encoding: "utf-8" });
+  if (!`${done.stdout}${done.stderr}`.includes("names no remote")) wrong("a repository with no remote did not report the workflow as not run");
+}
+
 /** Hiding a check's need names the check as not run in the audit's own output, and the file comes back. */
 function proveUnrunReport() {
   const path = join(ROOT, "STATE.md");
@@ -512,7 +537,7 @@ if (baseline.length > 0) {
   for (const p of baseline.slice(0, 5)) console.log(`  ${p}`);
   process.exit(1);
 }
-for (const proof of [proveFilePlants, proveTrackedPlants, proveAppendedPlants, proveStatePlants, proveUpstreamPlants, provePalettePlant, proveCitationPlant, proveDensePlant, proveVocabularyPlant, proveSpellingPlant, proveImmutability, proveLinkRepair, proveRecordLinkPlant, proveAnchors, proveTemplateCopy, proveDisposition, proveIgnorePlant, proveUnrunReport]) {
+for (const proof of [proveFilePlants, proveTrackedPlants, proveAppendedPlants, proveStatePlants, proveUpstreamPlants, provePalettePlant, proveCitationPlant, proveDensePlant, proveVocabularyPlant, proveSpellingPlant, proveImmutability, proveLinkRepair, proveRecordLinkPlant, proveAnchors, proveTemplateCopy, proveDisposition, proveIgnorePlant, proveStaleBranch, proveNoRemoteReport, proveUnrunReport]) {
   proof();
 }
 console.log(failures === 0 ? "every rule fires" : `${failures} rule(s) do not work`);

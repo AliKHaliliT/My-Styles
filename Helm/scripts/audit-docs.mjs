@@ -671,6 +671,24 @@ function checkIgnoredWorkingTrees() {
 
 checkIgnoredWorkingTrees();
 
+// Whether the tree has a local branch named main, which the stale-branch check reads against.
+function localMain() {
+  return git("rev-parse", "--verify", "--quiet", "refs/heads/main").trim() !== "";
+}
+
+// No local branch beside main and the ones checked out is already merged into main, or a landed branch outlives its landing.
+function checkStaleBranches() {
+  if (!localMain()) return;
+  for (const line of git("for-each-ref", "--format=%(refname:short)%09%(worktreepath)", "refs/heads/").split("\n")) {
+    const [name, worktree] = line.split("\t");
+    if (!name || name === "main" || worktree) continue;
+    if (git("rev-list", "--count", `main..${name}`).trim() === "0") {
+      problems.push(`branch ${name} is already merged into main and still exists; a landed branch is deleted in the push that moves main, and a local one goes with it`);
+    }
+  }
+}
+checkStaleBranches();
+
 // Every tracked directory at the root and one level below src/, and every root file, has a room
 // in the map or the baseline; that is the depth the form draws, and deeper structure is the
 // layer rule's own. A directory is housed when its name is drawn in the map's tree, or the
@@ -838,6 +856,8 @@ const unrun = CHECK_NEEDS.filter(([, need]) => !existsSync(join(ROOT, need))).ma
 if (existsSync(join(ROOT, "docs", "inherited")) && alignedAtHost()) unrun.push("the disposition check did not run: docs/UPSTREAM.md aligns this arrow at the host's own commit, so the family audit holds its inherited folder and no re-alignment gains it a record");
 const declaredFloor = existsSync(pkg) ? JSON.parse(readFileSync(pkg, "utf-8")).engines?.node?.match(/>=\s*(\d+(?:\.\d+)*)/)?.[1] : undefined;
 if (!codespellPresent()) unrun.push("the spelling advisory did not run: codespell is not on PATH; the workflow installs it with pipx, or install it yourself");
+if (!localMain()) unrun.push("the stale-branch check did not run: no local branch named main");
+if (git("remote").trim() === "") unrun.push("the workflow did not run: this repository names no remote, so its landed-branches step, the one check beyond the gate's commands it carries, ran nowhere");
 if (!declaredFloor) unrun.push("the version-story check did not run: package.json declares no engines.node floor");
 if (unrun.length > 0) {
   console.log(`${unrun.length} check(s) did not run on this tree, each named with what it needs:`);

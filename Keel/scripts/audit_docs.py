@@ -368,6 +368,26 @@ def advise_spelling(advice: list[str]) -> None:
     advice.extend(f"{line.strip()}; correct it, or name a domain term in the ignore list" for line in done.stdout.splitlines() if line.strip())
 
 
+def local_main() -> bool:
+    """Whether the tree has a local branch named main, which the stale-branch check reads against."""
+    return bool(git("rev-parse", "--verify", "--quiet", "refs/heads/main").strip())
+
+
+def check_stale_branches(problems: list[str]) -> None:
+    """No local branch beside main and the ones checked out is already merged into main, or a landed branch outlives its landing."""
+    if not local_main():
+        return
+    for line in git("for-each-ref", "--format=%(refname:short)%09%(worktreepath)", "refs/heads/").splitlines():
+        name, _, worktree = line.partition("\t")
+        if not name or name == "main" or worktree:
+            continue
+        if git("rev-list", "--count", f"main..{name}").strip() == "0":
+            problems.append(
+                f"branch {name} is already merged into main and still exists;"
+                " a landed branch is deleted in the push that moves main, and a local one goes with it"
+            )
+
+
 def declared_names() -> str:
     """The project file and every source file as one text, where a dotted name may be declared rather than claimed.
 
@@ -1150,6 +1170,13 @@ def unrun_checks() -> list[str]:
         unrun.append("check_import_graph did not run: pyproject.toml names no importlinter root_packages")
     if shutil.which("codespell") is None:
         unrun.append("advise_spelling did not run: codespell is not on PATH; the development dependencies carry it, or pipx install codespell")
+    if not local_main():
+        unrun.append("check_stale_branches did not run: no local branch named main")
+    if not git("remote").strip():
+        unrun.append(
+            "the workflow did not run: this repository names no remote, so its landed-branches step,"
+            " the one check beyond the gate's commands it carries, ran nowhere"
+        )
     if declared_python() is None:
         unrun.append("check_version_story did not run: pyproject.toml pins no ruff target-version")
     return unrun
@@ -1171,6 +1198,7 @@ def run() -> tuple[list[str], list[str], list[Path]]:
     check_em_dashes(problems)
     check_rooms(problems)
     check_ignored_working_trees(problems)
+    check_stale_branches(problems)
     held = check_layout(problems)
     check_import_graph(problems)
     check_record_immutability(problems)
@@ -1728,6 +1756,29 @@ def prove_spelling_plant() -> int:
         readme.write_bytes(original)
 
 
+def prove_stale_branch() -> int:
+    """A local branch already merged into main is reported, and the branch is removed again."""
+    if not local_main():
+        print("stale branch plant skipped: no local branch named main")
+        return 0
+    name = "planted-stale-branch"
+    git("branch", name, "main")
+    try:
+        return expect(run()[0], f"branch {name} is already merged into main", "the stale branch plant")
+    finally:
+        git("branch", "-D", name)
+
+
+def prove_no_remote_report() -> int:
+    """A repository naming no remote reports the workflow as not run; the rehearsal's child is where this fires."""
+    if git("remote").strip():
+        print("no-remote report skipped: this repository names a remote, so the rehearsal's child proves it")
+        return 0
+    if any("names no remote" in line for line in unrun_checks()):
+        return 0
+    return wrong("a repository with no remote did not report the workflow as not run")
+
+
 def prove_anchors() -> int:
     """Each history-reading rule's scope sentence is dated by the commit that introduced it."""
     failures = 0
@@ -1811,6 +1862,8 @@ def selftest() -> int:
         prove_disposition,
         prove_anchors,
         prove_ignore_plant,
+        prove_stale_branch,
+        prove_no_remote_report,
         prove_unrun_report,
     )
     failures = sum(proof() for proof in proofs)

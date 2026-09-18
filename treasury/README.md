@@ -85,6 +85,7 @@ check this folder; the question may already be settled.
 | [0031](decisions/0031-hold-a-child-to-the-records-its-re-alignment-gained.md) | A measured child held only what went red in its terminal, so re-alignment writes a record disposing of every record it gained and the audit holds the list, a template record under the project's own number fails, and the docs audit counts the em dash budget in place of the workflow |
 | [0032](decisions/0032-dispose-of-the-upstream-entry-of-2026-09-17-on-record-links.md) | The entry from three seats at ec94df4405f3, kept; a record may be edited at a link target alone, decided by the audit, and every record of the project's own has its links held to resolve |
 | [0033](decisions/0033-dispose-of-the-upstream-entry-of-2026-09-09-on-a-suite-reaching-a-provider.md) | The entry from a package-style project at e069bab89f81, kept in the family's form; every Python suite refuses a connection that leaves the loopback and the client suite's refusal of unhandled requests is named as the same rule |
+| [0034](decisions/0034-define-the-landing-where-the-repository-names-no-remote.md) | Without a remote the branch protocol keeps its merge, gate, fast-forward, and deletion; the docs audit fails a local branch already merged into main and names the workflow's landed-branches step as not run for want of a remote |
 
 ## Rules of the folder
 

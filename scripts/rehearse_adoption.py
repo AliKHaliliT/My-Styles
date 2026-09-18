@@ -154,8 +154,12 @@ def strip_demo_inquiry(child: Path, today: str) -> None:
 
 
 def build_history(child: Path) -> None:
-    """Two commits, the audit arriving in the second, then a checkout with Windows line endings."""
-    git(child, "init", "-q")
+    """Two commits on main, the audit arriving in the second, then a checkout with Windows line endings.
+
+    The child names no remote, as a project that has not pushed anywhere does, so the audit's
+    report of the workflow's unrun check is proven here.
+    """
+    git(child, "init", "-q", "-b", "main")
     git(child, "config", "user.email", "rehearsal@example.invalid")
     git(child, "config", "user.name", "Rehearsal")
     git(child, "config", "core.longpaths", "true")
@@ -179,6 +183,8 @@ def rehearse(seat: str, audit: list[str], selftest: list[str] | None, style: str
     build_history(child)
     findings: list[str] = []
     audited = run(audit, child)
+    if "names no remote" not in audited.stdout:
+        findings.append(f"{seat}: the child's audit did not name the missing remote:\n{audited.stdout}")
     if audited.returncode != 0:
         findings.append(f"{seat}: the child's audit failed:\n{audited.stdout}{audited.stderr}")
     if selftest is not None:
