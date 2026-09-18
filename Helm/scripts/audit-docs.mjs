@@ -13,7 +13,7 @@
 
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
-import { dirname, join, relative, resolve } from "node:path";
+import { dirname, join, posix, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -71,13 +71,17 @@ const FLOOR_CLAIM = /Node(?:\.js)? (\d+(?:\.\d+)?)\+/g;
  * A changed diff line that is not a Status line; the +++ and --- headers are excluded by the
  * lookahead and skipped by name where the diff is read.
  */
-const ILLEGAL_RECORD_EDIT = /^[-+](?![-+])(?!Status: )/;
+// A changed diff line, added or removed. A record's changed lines are judged in pairs: a Status
+// line may move, and a link target may move to one that resolves, because a path points at the
+// present while the record's words describe the past.
+const CHANGED_LINE = /^[-+](?![-+])/;
+const LINK_TARGET = /\]\(([^)\s]+)\)/g;
 /**
  * This sentence dates the immutability rule's arrival in the tree's own history, so it is what
  * the check searches for, never a function's name, which a child's past may already carry.
  * Changing what the check covers changes this sentence, and the anchor moves forward with it.
  */
-const IMMUTABILITY_SCOPE = "records held immutable beyond their Status line: every file below a subfolder of docs/";
+const IMMUTABILITY_SCOPE = "records held immutable beyond their Status line and a link target repaired to resolve: every file below a subfolder of docs/";
 // A queued, deferred, or blocked entry that stands unchanged for two horizons is a decision record
 // trying to be born, and the file cannot show it, because a date is the entry's last-verified stamp
 // rather than its birthday; so the age is read from history, from the first commit that carried the
@@ -589,6 +593,25 @@ function checkEmDashes() {
 }
 checkEmDashes();
 
+// Every relative link in a record of the project's own resolves; the inherited folder is checked where it was written.
+function checkRecordLinks() {
+  const docsRoot = join(ROOT, "docs");
+  if (!existsSync(docsRoot)) return;
+  for (const full of walkAll(docsRoot)) {
+    const rel = relative(ROOT, full).split(/[\\/]/).join("/");
+    if (!rel.endsWith(".md") || rel.split("/").length < 3 || rel.startsWith("docs/inherited/")) continue;
+    const prose = readFileSync(full, "utf-8").replace(BACKTICK, (m) => " ".repeat(m.length));
+    for (const match of prose.matchAll(LINK)) {
+      const target = match[1];
+      if (/^(https?:\/\/|#|mailto:)/.test(target)) continue;
+      if (!existsSync(resolve(dirname(full), target.split("#")[0]))) {
+        problems.push(`${rel}:${lineOf(prose, match.index)}: links to ${target}, which does not resolve`);
+      }
+    }
+  }
+}
+checkRecordLinks();
+
 // The ignore file names every directory a second working tree may occupy, because a tree created
 // inside the repository is a nested checkout that a careless add records as an embedded repository.
 const WORKING_TREE_DIRS = [".worktrees/", ".claude/worktrees/"];
@@ -638,7 +661,8 @@ if (existsSync(archPath)) {
   }
 }
 
-// A record changes only on its Status line, in the working tree and in every commit since this
+// A record changes only on its Status line or at a link target that resolves, in the working tree
+// and in every commit since this
 // scope arrived. The rule binds from the commit that brought its current scope sentence into
 // the tree, found in git's own history, so an adopting project is held from its adoption
 // forward, never re-litigates a past it did not write under the rule, and is never caught by
@@ -646,21 +670,52 @@ if (existsSync(archPath)) {
 // so it fails rather than quietly checking less.
 // Every subfolder of docs/ is a record folder, so the diff is read over docs/ and only files
 // below a subfolder count; the flat living documents at the top change freely.
-function flagIllegalEdits(where, diff) {
+// The record a diff header names, or nothing when the file is a flat living document at the top of docs/.
+function recordOf(header) {
+  const path = header.slice(6);
+  const below = path.includes("docs/") ? path.split("docs/")[1] : "";
+  return below.includes("/") ? path : "";
+}
+
+// Every hunk that changes a record, as the record's path with its removed and its added lines.
+function recordHunks(diff) {
+  const hunks = [];
   let current = "";
-  const flagged = new Set();
+  let hunk = null;
   for (const line of diff.split("\n")) {
-    if (line.startsWith("+++ b/")) {
-      current = line.slice(6);
-      const below = current.includes("docs/") ? current.split("docs/")[1] : "";
-      if (!below.includes("/")) current = "";
+    if (line.startsWith("+++ b/")) current = recordOf(line);
+    if (line.startsWith("+++ b/") || line.startsWith("@@")) {
+      hunk = current ? { record: current, minus: [], plus: [] } : null;
+      if (hunk !== null) hunks.push(hunk);
       continue;
     }
-    if (!current) continue;
-    if (/^(--- |\+\+\+ |@@|diff |index |similarity |rename )/.test(line)) continue;
-    if (ILLEGAL_RECORD_EDIT.test(line) && !flagged.has(current)) {
-      flagged.add(current);
-      problems.push(`${current}: edited beyond its Status line in ${where}; a record is immutable, so supersede it instead`);
+    if (hunk !== null && CHANGED_LINE.test(line)) (line[0] === "-" ? hunk.minus : hunk.plus).push(line.slice(1));
+  }
+  return hunks.filter((h) => h.minus.length + h.plus.length > 0);
+}
+
+// Whether a link target written in the record resolves, in the working tree or in the commit named by where.
+function targetResolves(where, record, target) {
+  const path = posix.normalize(posix.join(posix.dirname(record), target.split("#")[0]));
+  if (where === "the working tree") return existsSync(join(git("rev-parse", "--show-toplevel").trim(), path));
+  return git("ls-tree", "--full-tree", where, "--", path).trim() !== "";
+}
+
+// A changed line is legal when only its Status moved, or only its link targets moved and each new target resolves.
+function legalPair(where, record, oldLine, newLine) {
+  if (oldLine.startsWith("Status: ") && newLine.startsWith("Status: ")) return true;
+  if (oldLine.replace(LINK_TARGET, "]()") !== newLine.replace(LINK_TARGET, "]()")) return false;
+  return [...newLine.matchAll(LINK_TARGET)].every((match) => targetResolves(where, record, match[1]));
+}
+
+// Every record the diff changes beyond its Status line or a link target that resolves, reported once each.
+function flagIllegalEdits(where, diff) {
+  const flagged = new Set();
+  for (const { record, minus, plus } of recordHunks(diff)) {
+    const legal = minus.length === plus.length && minus.every((oldLine, i) => legalPair(where, record, oldLine, plus[i]));
+    if (!legal && !flagged.has(record)) {
+      flagged.add(record);
+      problems.push(`${record}: edited beyond its Status line in ${where}; a record is immutable, so supersede it instead, or repair a link target to one that resolves`);
     }
   }
 }
@@ -732,6 +787,7 @@ const CHECK_NEEDS = [
   ["the template-copy check", "docs/inherited"],
   ["the rooms check", "docs/ARCHITECTURE.md"],
   ["the docs-zone checks", "docs"],
+  ["the record-link check", "docs"],
 ];
 const unrun = CHECK_NEEDS.filter(([, need]) => !existsSync(join(ROOT, need))).map(([name, need]) => `${name} did not run: ${need} is absent from this tree`);
 if (existsSync(join(ROOT, "docs", "inherited")) && alignedAtHost()) unrun.push("the disposition check did not run: docs/UPSTREAM.md aligns this arrow at the host's own commit, so the family audit holds its inherited folder and no re-alignment gains it a record");

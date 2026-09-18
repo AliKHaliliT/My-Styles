@@ -14,6 +14,7 @@ Run with --selftest first on any change to this file, because a check that
 never fires and a check that cannot fire look identical.
 """
 
+import posixpath
 import re
 import subprocess
 import sys
@@ -78,15 +79,18 @@ LINK = re.compile(r"\]\(([^)\s]+)\)")
 PATH_TOKEN = re.compile(r"`([^`\n]+)`")
 # A figure a claim rests on, written on its own line so two records can be held to one value.
 FIGURE = re.compile(r"^figure ([a-z0-9_-]+): (.+?)\s*$", re.MULTILINE)
-# A changed diff line that is not a Status line; the +++ and --- headers are excluded by the
-# lookahead and skipped by name where the diff is read.
-ILLEGAL_RECORD_EDIT = re.compile(r"^[-+](?![-+])(?!Status: )")
+# A changed diff line, added or removed; the +++ and --- headers are excluded by the lookahead
+# and skipped by name where the diff is read. A record's changed lines are judged in pairs: a
+# Status line may move, and a link target may move to one that resolves, because a path points
+# at the present while the record's words describe the past.
+CHANGED_LINE = re.compile(r"^[-+](?![-+])")
+LINK_TARGET = re.compile(r"\]\(([^)\s]+)\)")
 # A name that stands before a slash anywhere in the map or the baseline is a housed directory.
 HOUSED = re.compile(r"([A-Za-z0-9_.-]+)/")
 # This sentence dates the immutability rule's arrival in the tree's own history, so it is what
 # the check searches for, never the function's name, which a child's past may already carry.
 # Changing what the check covers changes this sentence, and the anchor moves forward with it.
-IMMUTABILITY_SCOPE = "records held immutable beyond their Status line: every file below a subfolder of docs/ except the arrow manifests"
+IMMUTABILITY_SCOPE = "records held immutable beyond their Status line and a link target repaired to resolve: every file below a subfolder of docs/ except the arrow manifests"
 # A queued, deferred, or blocked entry that stands unchanged for two horizons is a decision
 # record trying to be born, and the file cannot show it, because a date is the entry's
 # last-verified stamp rather than its birthday; so the age is read from history, from the first
@@ -536,16 +540,35 @@ def check_references(problems: list[str], root: Path) -> None:
         if not path.exists():
             continue
         check_record_citations(problems, rel, path, path.read_text(encoding="utf-8"))
+        flag_dead_links(problems, rel, path)
         for line_no, line in enumerate(path.read_text(encoding="utf-8").split("\n"), 1):
-            for target in LINK.findall(line):
-                bare = target.split("#", 1)[0]
-                if not bare or "://" in bare or bare.startswith("mailto:"):
-                    continue
-                if not (path.parent / bare).exists():
-                    problems.append(f"{rel}:{line_no}: links to {target}, which does not resolve")
             for token in PATH_TOKEN.findall(line):
                 if claims_to_be_path(token, root) and not (root / token).exists():
                     problems.append(f"{rel}:{line_no}: names `{token}`, which does not exist")
+
+
+def flag_dead_links(problems: list[str], rel: str, path: Path) -> None:
+    """Every relative link in the file resolves from the file's own folder; a link inside a code span is a form, not a claim."""
+    prose = CODE_SPAN.sub(lambda m: re.sub(r"[^\n]", " ", m.group(0)), path.read_text(encoding="utf-8"))
+    for line_no, line in enumerate(prose.split("\n"), 1):
+        for target in LINK.findall(line):
+            bare = target.split("#", 1)[0]
+            if not bare or "://" in bare or bare.startswith("mailto:"):
+                continue
+            if not (path.parent / bare).exists():
+                problems.append(f"{rel}:{line_no}: links to {target}, which does not resolve")
+
+
+def check_record_links(problems: list[str], root: Path) -> None:
+    """Every relative link in a record of the project's own resolves; the inherited folder is checked where it was written."""
+    docs = root / "docs"
+    if not docs.is_dir():
+        return
+    for path in sorted(docs.rglob("*.md")):
+        rel = path.relative_to(root).as_posix()
+        if rel.count("/") < 2 or rel.startswith(("docs/inherited/", "docs/arrows/")):
+            continue
+        flag_dead_links(problems, rel, path)
 
 
 def check_upstream(problems: list[str], root: Path) -> None:
@@ -634,7 +657,7 @@ def check_ignored_working_trees(problems: list[str], root: Path) -> None:
 
 
 def check_record_immutability(problems: list[str], root: Path) -> None:
-    """A record changes only on its Status line, in the working tree and in every commit since this scope arrived.
+    """A record changes only on its Status line or at a link target that resolves, in the working tree and in every commit since this scope arrived.
 
     The rule binds from the commit that brought its current scope sentence into the tree, found
     in git's own history, so an adopting project is held from its adoption forward, never
@@ -671,24 +694,59 @@ def record_diffs() -> list[tuple[str, str]]:
     return diffs
 
 
-def flag_illegal_edits(problems: list[str], where: str, diff: str) -> None:
-    """Every record the diff changes beyond its Status line, reported once each; manifests are living and pass."""
+def record_of(header: str) -> str:
+    """The record a diff header names, or nothing when the file is a flat living document at the top of docs/."""
+    path = header[6:]
+    below = path.split("docs/", 1)[1] if "docs/" in path else ""
+    return path if "/" in below else ""
+
+
+def record_hunks(diff: str) -> list[tuple[str, list[str], list[str]]]:
+    """Every hunk that changes a record, as the record's path with its removed and its added lines."""
+    hunks: list[tuple[str, list[str], list[str]]] = []
     current = ""
-    flagged: set[str] = set()
+    hunk: tuple[str, list[str], list[str]] | None = None
     for line in diff.splitlines():
         if line.startswith("+++ b/"):
-            current = line[6:]
-            below = current.split("docs/", 1)[1] if "docs/" in current else ""
-            if "/" not in below or below.startswith("arrows/"):
-                current = ""
+            current = record_of(line)
+        if line.startswith(("+++ b/", "@@")):
+            hunk = (current, [], []) if current else None
+            if hunk is not None:
+                hunks.append(hunk)
             continue
-        if not current:
-            continue
-        if line.startswith(("--- ", "+++ ", "@@", "diff ", "index ", "similarity ", "rename ")):
-            continue
-        if ILLEGAL_RECORD_EDIT.match(line) and current not in flagged:
-            flagged.add(current)
-            problems.append(f"{current}: edited beyond its Status line in {where}; a record is immutable, so supersede it instead")
+        if hunk is not None and CHANGED_LINE.match(line):
+            (hunk[1] if line[0] == "-" else hunk[2]).append(line[1:])
+    return [h for h in hunks if h[1] or h[2]]
+
+
+def target_resolves(where: str, record: str, target: str) -> bool:
+    """Whether a link target written in the record resolves, in the working tree or in the commit named by where."""
+    path = posixpath.normpath(posixpath.join(posixpath.dirname(record), target.split("#", 1)[0]))
+    if where == "the working tree":
+        return (Path(git("rev-parse", "--show-toplevel")) / path).exists()
+    return bool(git("ls-tree", "--full-tree", where, "--", path))
+
+
+def legal_pair(where: str, record: str, old: str, new: str) -> bool:
+    """A changed line is legal when only its Status moved, or only its link targets moved and each new target resolves."""
+    if old.startswith("Status: ") and new.startswith("Status: "):
+        return True
+    if LINK_TARGET.sub("]()", old) != LINK_TARGET.sub("]()", new):
+        return False
+    return all(target_resolves(where, record, target) for target in LINK_TARGET.findall(new))
+
+
+def flag_illegal_edits(problems: list[str], where: str, diff: str) -> None:
+    """Every record the diff changes beyond its Status line or a link target that resolves, reported once each."""
+    flagged: set[str] = set()
+    for record, minus, plus in record_hunks(diff):
+        legal = len(minus) == len(plus) and all(legal_pair(where, record, old, new) for old, new in zip(minus, plus, strict=True))
+        if not legal and record not in flagged:
+            flagged.add(record)
+            problems.append(
+                f"{record}: edited beyond its Status line in {where}; a record is immutable, so supersede it instead,"
+                " or repair a link target to one that resolves"
+            )
 
 
 def check_figures(problems: list[str], root: Path) -> None:
@@ -938,6 +996,7 @@ CHECK_NEEDS = (
     ("check_reviews", "docs/reviews"),
     ("check_arrows", "docs/arrows"),
     ("check_pins", "docs/claims"),
+    ("check_record_links", "docs"),
 )
 
 
@@ -961,6 +1020,7 @@ def run(root: Path) -> tuple[list[str], list[str]]:
             advise_dense_paragraphs(advice, rel, (root / rel).read_text(encoding="utf-8"))
     check_living(problems, root)
     check_references(problems, root)
+    check_record_links(problems, root)
     check_rooms(problems, root)
     check_ignored_working_trees(problems, root)
     check_upstream(problems, root)
@@ -1694,6 +1754,73 @@ def prove_disposition() -> int:
     return failures
 
 
+def record_with_link(folders: tuple[str, ...]) -> tuple[Path, str] | None:
+    """The first record of the project's own in the folders that carries a relative link, with that link's target."""
+    for folder in folders:
+        for record in sorted((ROOT / folder).glob("*.md")):
+            for target in LINK.findall(CODE_SPAN.sub(" ", record.read_text(encoding="utf-8"))):
+                if not target.startswith(("http://", "https://", "#", "mailto:")):
+                    return record, target
+    return None
+
+
+def prove_link_repair() -> int:
+    """A link target repaired to one that resolves passes; a changed link text or a target that does not resolve fails."""
+    found = record_with_link(("docs/decisions", "docs/claims"))
+    if found is None:
+        print("link repair plants skipped: no record of this project's own carries a relative link")
+        return 0
+    record, target = found
+    failures = 0
+    original = record.read_bytes()
+    text = original.decode("utf-8")
+    other = "../CONVENTIONS.md" if target.split("#", 1)[0] != "../CONVENTIONS.md" else "../ARCHITECTURE.md"
+    try:
+        record.write_bytes(text.replace(f"]({target})", f"]({other})", 1).encode("utf-8"))
+        if any("edited beyond its Status line" in p for p in run(ROOT)[0]):
+            failures += 1
+            print(f"WRONG: repairing a link target in {record.name} to one that resolves was reported as an illegal edit")
+        record.write_bytes(text.replace(f"]({target})", "](../GHOST-PLANTED.md)", 1).encode("utf-8"))
+        if not any("edited beyond its Status line" in p for p in run(ROOT)[0]):
+            failures += 1
+            print(f"WRONG: a link target in {record.name} pointed at a ghost raised nothing")
+        record.write_bytes(text.replace(f"]({target})", f" planted]({target})", 1).encode("utf-8"))
+        if not any("edited beyond its Status line" in p for p in run(ROOT)[0]):
+            failures += 1
+            print(f"WRONG: a link's text in {record.name} changed and raised nothing")
+    finally:
+        record.write_bytes(original)
+    return failures
+
+
+def prove_record_link_plant() -> int:
+    """A dead link in a record of the project's own is reported, and the same link in an inherited record is not."""
+    decisions = ROOT / "docs/decisions"
+    inherited_dir = ROOT / "docs/inherited"
+    existed = inherited_dir.exists()
+    inherited_dir.mkdir(exist_ok=True)
+    own = decisions / f"{free_number(decisions, 900)}-planted-dead-link.md"
+    carried = inherited_dir / f"{free_number(inherited_dir, 1)}-planted-dead-link.md"
+    body = "\n\nStatus: Accepted\nDate: 2026-01-01\n\n## Decision\n\nSee [gone](../GONE-PLANTED.md)"
+    failures = 0
+    try:
+        own.write_text(f"# {own.name[:4]}. Planted dead link" + body + " here.\n", encoding="utf-8")
+        carried.write_text(f"# {carried.name[:4]}. Planted dead link" + body + " there.\n", encoding="utf-8")
+        problems = run(ROOT)[0]
+        if not any(f"docs/decisions/{own.name}:8: links to ../GONE-PLANTED.md, which does not resolve" in p for p in problems):
+            failures += 1
+            print("WRONG: a dead link in a record of this project's own raised nothing")
+        if any("docs/inherited/" in p and "does not resolve" in p for p in problems):
+            failures += 1
+            print("WRONG: a dead link in an inherited record was reported; inherited records are checked where they were written")
+    finally:
+        own.unlink(missing_ok=True)
+        carried.unlink(missing_ok=True)
+        if not existed and not any(inherited_dir.iterdir()):
+            inherited_dir.rmdir()
+    return failures
+
+
 def prove_anchors() -> int:
     """Each history-reading rule's scope sentence is dated by the commit that introduced it.
 
@@ -1808,6 +1935,8 @@ def selftest() -> int:
         prove_dense_plant,
         prove_duplicate_numbers,
         prove_immutability,
+        prove_link_repair,
+        prove_record_link_plant,
         prove_queue_age,
         prove_template_copy,
         prove_disposition,

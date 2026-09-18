@@ -323,9 +323,63 @@ function proveImmutability() {
   }
 }
 
+/** The first record of the project's own that carries a relative link, with that link's target, or null. */
+function recordWithLink() {
+  const folder = join(ROOT, "docs", "decisions");
+  for (const name of readdirSync(folder).sort()) {
+    if (!name.endsWith(".md")) continue;
+    for (const match of readFileSync(join(folder, name), "utf-8").matchAll(/\]\(([^)\s]+)\)/g)) {
+      if (!/^(https?:\/\/|#|mailto:)/.test(match[1])) return [join(folder, name), name, match[1]];
+    }
+  }
+  return null;
+}
+
+/** A link target repaired to one that resolves passes; a changed link text or a target that does not resolve fails. */
+function proveLinkRepair() {
+  const found = recordWithLink();
+  if (found === null) {
+    console.log("link repair plants skipped: no record of this project's own carries a relative link");
+    return;
+  }
+  const [path, name, target] = found;
+  const original = readFileSync(path);
+  const text = original.toString("utf-8");
+  const other = target.split("#")[0] !== "../CONVENTIONS.md" ? "../CONVENTIONS.md" : "../ARCHITECTURE.md";
+  try {
+    writeFileSync(path, text.replace(`](${target})`, `](${other})`));
+    if (audit().some((p) => p.includes("edited beyond its Status line"))) wrong(`repairing a link target in ${name} to one that resolves was reported as an illegal edit`);
+    writeFileSync(path, text.replace(`](${target})`, "](../GHOST-PLANTED.md)"));
+    expect(audit(), "edited beyond its Status line", `a link target in ${name} pointed at a ghost`);
+    writeFileSync(path, text.replace(`](${target})`, ` planted](${target})`));
+    expect(audit(), "edited beyond its Status line", `a link's text in ${name} changed`);
+  } finally {
+    writeFileSync(path, original);
+  }
+}
+
+/** A dead link in a record of the project's own is reported, and the same link in an inherited record is not. */
+function proveRecordLinkPlant() {
+  const own = freeNumber();
+  const carried = freeInheritedNumber();
+  const body = "\n\nStatus: Accepted\nDate: 2026-01-01\n\n## Decision\n\nSee [gone](../GONE-PLANTED.md)";
+  const ownRel = `docs/decisions/${own}-planted-dead-link.md`;
+  const carriedRel = `docs/inherited/${carried}-planted-dead-link.md`;
+  plant(ownRel, `# ${own}. Planted dead link${body} here.\n`);
+  plant(carriedRel, `# ${carried}. Planted dead link${body} there.\n`);
+  try {
+    const problems = audit();
+    expect(problems, `${ownRel}:8: links to ../GONE-PLANTED.md, which does not resolve`, "the dead link plant");
+    if (problems.some((p) => p.includes("docs/inherited/") && p.includes("does not resolve"))) wrong("a dead link in an inherited record was reported; inherited records are checked where they were written");
+  } finally {
+    unplant(ownRel);
+    unplant(carriedRel);
+  }
+}
+
 function proveAnchors() {
   const scopes = [
-    ["immutability", "records held immutable beyond their Status line: every file below a subfolder of docs/"],
+    ["immutability", "records held immutable beyond their Status line and a link target repaired to resolve: every file below a subfolder of docs/"],
     ["queue age", "entries of Next, Deferred, and Blocked held to two horizons of unchanged text"],
     ["filename cap", "record filenames held to seventy-two characters"],
     ["disposition", "records the inherited folder gained held to a citing record of the project's own"],
@@ -430,7 +484,7 @@ if (baseline.length > 0) {
   for (const p of baseline.slice(0, 5)) console.log(`  ${p}`);
   process.exit(1);
 }
-for (const proof of [proveFilePlants, proveTrackedPlants, proveAppendedPlants, proveStatePlants, proveUpstreamPlants, provePalettePlant, proveCitationPlant, proveDensePlant, proveImmutability, proveAnchors, proveTemplateCopy, proveDisposition, proveIgnorePlant, proveUnrunReport]) {
+for (const proof of [proveFilePlants, proveTrackedPlants, proveAppendedPlants, proveStatePlants, proveUpstreamPlants, provePalettePlant, proveCitationPlant, proveDensePlant, proveImmutability, proveLinkRepair, proveRecordLinkPlant, proveAnchors, proveTemplateCopy, proveDisposition, proveIgnorePlant, proveUnrunReport]) {
   proof();
 }
 console.log(failures === 0 ? "every rule fires" : `${failures} rule(s) do not work`);

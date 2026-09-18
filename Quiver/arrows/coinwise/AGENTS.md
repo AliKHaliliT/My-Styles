@@ -150,7 +150,7 @@ This is the single index of the project's technical documentation. A document th
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | The annotated map of the whole template. Read before any structural change. |
 | [docs/CONVENTIONS.md](docs/CONVENTIONS.md) | The documentation rulebook: document species, schemas, naming. Frozen; do not edit. Read before writing or changing any documentation. |
 | [docs/BASELINE.md](docs/BASELINE.md) | The repository baseline: always-present files, never-tracked files, and their modification rules. Read before adding, removing, or reshaping root-level or dot files. |
-| [docs/decisions/](docs/decisions/) | This arrow's own immutable decision records. Read the relevant record before revisiting a settled topic; never edit an accepted record. |
+| [docs/decisions/](docs/decisions/) | This arrow's own immutable decision records. Read the relevant record before revisiting a settled topic; never edit an accepted record beyond its status line and a dead link's target. |
 | [docs/inherited/](docs/inherited/) | Keel's decision records, carried whole and byte-identical at the host's pin. Read for the reasoning behind every carried rule; never edited or added to here. |
 | [docs/UPSTREAM.md](docs/UPSTREAM.md) | What this arrow has for its style: improvements to offer and workarounds to confess, each an entry until re-alignment resolves it. Read before re-aligning. |
 

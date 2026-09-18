@@ -144,7 +144,7 @@ This is the single index of the project's technical documentation. A document th
 | [docs/BIBLIOGRAPHY.md](docs/BIBLIOGRAPHY.md) | Every work consulted, as self-contained citations addressed by key. |
 | [docs/CONVENTIONS.md](docs/CONVENTIONS.md) | The documentation rulebook: species, schemas, claims, pins, naming. Frozen; do not edit. Read before writing or changing any documentation. |
 | [docs/BASELINE.md](docs/BASELINE.md) | The repository baseline: always-present files, never-tracked files, and their modification rules. |
-| [docs/decisions/](docs/decisions/) | Immutable decision records holding the project's "why". Read the relevant record before revisiting a settled topic; never edit an accepted record. |
+| [docs/decisions/](docs/decisions/) | Immutable decision records holding the project's "why". Read the relevant record before revisiting a settled topic; never edit an accepted record beyond its status line and a dead link's target. |
 | [docs/claims/](docs/claims/) | Immutable claim records holding what the inquiry holds true, on what evidence, at which pin. |
 | [docs/arrows/](docs/arrows/) | One living manifest per arrow: its style, the part of the question it serves, and the claims resting on it. |
 | [docs/reviews/](docs/reviews/) | One immutable record per pass over the literature: the slice, the boundary searched, the stages run or collapsed, what was found and what it changed. |

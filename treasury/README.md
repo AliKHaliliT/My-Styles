@@ -83,6 +83,7 @@ check this folder; the question may already be settled.
 | [0029](decisions/0029-speed-the-gate-without-loosening-it-and-land-through-a-branch.md) | The gate runs concurrently, the audits gather history in one call and remember it for a process, the host audit names shared record numbers, and every seat lands through a branch merged with main and gated whole; skipping unchanged checks, a type-check daemon, and lighter proofs refused |
 | [0030](decisions/0030-take-eight-rules-from-the-skills-study-and-refuse-the-rest.md) | Study 0005's disposition: the failure proof for tests and seven checks in, the rest refused with their reopening conditions or already held |
 | [0031](decisions/0031-hold-a-child-to-the-records-its-re-alignment-gained.md) | A measured child held only what went red in its terminal, so re-alignment writes a record disposing of every record it gained and the audit holds the list, a template record under the project's own number fails, and the docs audit counts the em dash budget in place of the workflow |
+| [0032](decisions/0032-dispose-of-the-upstream-entry-of-2026-09-17-on-record-links.md) | The entry from three seats at ec94df4405f3, kept; a record may be edited at a link target alone, decided by the audit, and every record of the project's own has its links held to resolve |
 
 ## Rules of the folder
 
