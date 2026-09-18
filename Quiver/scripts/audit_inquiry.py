@@ -16,6 +16,7 @@ never fires and a check that cannot fire look identical.
 
 import posixpath
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -125,6 +126,21 @@ HOST_OWN_COMMIT = "at the host's own commit"
 # remote is held to it. A file holding a NUL byte is binary and is not read for it.
 EM_DASH_BUDGET = 2
 EM_DASH = "\u2014".encode()
+# The vocabulary the prose law bans, advised and never gated, because an honest domain term
+# reads the same as a tell; the workflow's list, moved here so a tree with no remote hears it.
+VOCABULARY = re.compile(
+    r"paradigm shift|game.changer|ever-evolving|cutting.edge|\bdelve|\btapestry\b|\bsupercharge|\btransformative\b"
+    r"|\bmultifaceted\b|\bmeticulous\b|\bparamount\b|\bembark\b|it.s worth noting|at the end of the day"
+    r"|in today.s world|let.s dive|going forward|a testament to|marks a pivotal|plays a vital role|experts agree"
+    r"|studies show|widely regarded as",
+    re.IGNORECASE,
+)
+# What the two advisories skip: the workflows, the rulebook that lists the tells, and this
+# script, which carries the list, and the arrows, whose own audits read them; a record is skipped
+# by its depth under docs/.
+VOCABULARY_SKIP = ("arrows/", ".github/", "docs/CONVENTIONS.md", "scripts/audit_inquiry.py")
+CODESPELL_SKIP = ".git,node_modules,.hypothesis,__pycache__,dist,package-lock.json,*.svg,*.png,*.ico,*.woff,*.woff2,*.map,decisions,claims,reviews,inherited,mockServiceWorker.js,arrows"
+CODESPELL_IGNORE = "accreting,afterall"
 # A prose paragraph that names this many references or more is an enumeration wearing prose, a
 # list or a table with its rows run together; measured over the family and over a project built
 # from it, everything at this count was a schema stated as prose or a set of bindings, and
@@ -284,6 +300,37 @@ def check_em_dashes(problems: list[str], root: Path) -> None:
         count = data.count(EM_DASH)
         if count > EM_DASH_BUDGET:
             problems.append(f"{rel} carries {count} em dashes; the budget is {EM_DASH_BUDGET} per file")
+
+
+def advise_vocabulary(advice: list[str], root: Path) -> None:
+    """The prose law's banned vocabulary in living prose and code, advised because an honest term reads like a tell."""
+    if root != ROOT:
+        return
+    for rel in tracked_files():
+        path = root / rel
+        if rel.startswith(VOCABULARY_SKIP) or (rel.startswith("docs/") and rel.count("/") >= 2) or not path.is_file():
+            continue
+        data = path.read_bytes()
+        if b"\0" in data:
+            continue
+        for number, line in enumerate(data.decode("utf-8", errors="replace").splitlines(), 1):
+            hit = VOCABULARY.search(line)
+            if hit:
+                advice.append(f"{rel}:{number}: inflated vocabulary or weasel attribution, {hit.group(0)!r}; the verdict is review's")
+
+
+def advise_spelling(advice: list[str], root: Path) -> None:
+    """Misspellings in living prose and code, advised where codespell is installed and named as not run elsewhere.
+
+    The pass spawns a process, so it runs once per audit command rather than with the checks the
+    proofs repeat forty times, and its proof calls it directly.
+    """
+    tool = shutil.which("codespell")
+    if tool is None or root != ROOT:
+        return
+    # The tool is a development dependency of the arrows and the arguments are this script's own constants.
+    done = subprocess.run([tool, "--skip", CODESPELL_SKIP, "--ignore-words-list", CODESPELL_IGNORE, "."], cwd=root, capture_output=True, text=True, check=False)
+    advice.extend(f"{line.strip()}; correct it, or name a domain term in the ignore list" for line in done.stdout.splitlines() if line.strip())
 
 
 def living_documents(root: Path) -> list[str]:
@@ -1008,6 +1055,8 @@ def unrun_checks(root: Path) -> list[str]:
             "check_dispositions did not run: docs/UPSTREAM.md aligns this arrow at the host's own commit,"
             " so the family audit holds its inherited folder and no re-alignment gains it a record"
         )
+    if shutil.which("codespell") is None:
+        unrun.append("advise_spelling did not run: codespell is not on PATH; the arrows' development dependencies carry it, or pipx install codespell")
     return unrun
 
 
@@ -1018,6 +1067,7 @@ def run(root: Path) -> tuple[list[str], list[str]]:
     for rel in living_documents(root):
         if (root / rel).exists():
             advise_dense_paragraphs(advice, rel, (root / rel).read_text(encoding="utf-8"))
+    advise_vocabulary(advice, root)
     check_living(problems, root)
     check_references(problems, root)
     check_record_links(problems, root)
@@ -1821,6 +1871,39 @@ def prove_record_link_plant() -> int:
     return failures
 
 
+def prove_vocabulary_plant() -> int:
+    """A banned word appended to the guide is advised, and the bytes come back."""
+    agents = ROOT / "AGENTS.md"
+    original = agents.read_bytes()
+    agents.write_bytes(original + b"\nWe delve into it here.\n")
+    try:
+        if any("inflated vocabulary" in a and "'delve'" in a and "AGENTS.md" in a for a in run(ROOT)[1]):
+            return 0
+        print("WRONG: a banned word appended to AGENTS.md raised no vocabulary advice")
+        return 1
+    finally:
+        agents.write_bytes(original)
+
+
+def prove_spelling_plant() -> int:
+    """A misspelling appended to the README is advised where codespell is installed, and the bytes come back."""
+    readme = ROOT / "README.md"
+    if shutil.which("codespell") is None:
+        print("spelling plant skipped: codespell is not on PATH")
+        return 0
+    original = readme.read_bytes()
+    readme.write_bytes(original + b"\nThe reciever waits here.\n")  # codespell:ignore reciever
+    try:
+        advice: list[str] = []
+        advise_spelling(advice, ROOT)
+        if any("reciever ==> receiver" in a for a in advice):  # codespell:ignore reciever
+            return 0
+        print("WRONG: a misspelling appended to README.md raised no spelling advice")
+        return 1
+    finally:
+        readme.write_bytes(original)
+
+
 def prove_anchors() -> int:
     """Each history-reading rule's scope sentence is dated by the commit that introduced it.
 
@@ -1933,6 +2016,8 @@ def selftest() -> int:
         prove_figure_pair,
         prove_citation_plant,
         prove_dense_plant,
+        prove_vocabulary_plant,
+        prove_spelling_plant,
         prove_duplicate_numbers,
         prove_immutability,
         prove_link_repair,
@@ -1958,6 +2043,7 @@ def main() -> int:
     if "--selftest" in sys.argv:
         return selftest()
     problems, advice = run(ROOT)
+    advise_spelling(advice, ROOT)
     unrun = unrun_checks(ROOT)
     if unrun:
         print(f"{len(unrun)} check(s) did not run on this tree, each named with what it needs:")

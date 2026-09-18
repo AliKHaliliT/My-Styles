@@ -11,7 +11,7 @@
  * nobody rewrites the past.
  */
 
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { dirname, join, posix, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -115,6 +115,14 @@ const HOST_OWN_COMMIT = "at the host's own commit";
 // remote is held to it. A file holding a NUL byte is binary and is not read for it.
 const EM_DASH_BUDGET = 2;
 const EM_DASH = Buffer.from("\u2014", "utf-8");
+// The vocabulary the prose law bans, advised and never gated, because an honest domain term
+// reads the same as a tell; the workflow's list, moved here so a tree with no remote hears it.
+const VOCABULARY = /paradigm shift|game.changer|ever-evolving|cutting.edge|\bdelve|\btapestry\b|\bsupercharge|\btransformative\b|\bmultifaceted\b|\bmeticulous\b|\bparamount\b|\bembark\b|it.s worth noting|at the end of the day|in today.s world|let.s dive|going forward|a testament to|marks a pivotal|plays a vital role|experts agree|studies show|widely regarded as/i;
+// What the two advisories skip: the workflows, the rulebook that lists the tells, and this
+// script, which carries the list; a record is skipped by its depth under docs/.
+const VOCABULARY_SKIP = [".github/", "docs/CONVENTIONS.md", "scripts/audit-docs.mjs", "scripts/audit-docs-selftest.mjs"];
+const CODESPELL_SKIP = ".git,node_modules,.hypothesis,__pycache__,dist,package-lock.json,*.svg,*.png,*.ico,*.woff,*.woff2,*.map,decisions,claims,reviews,inherited,mockServiceWorker.js";
+const CODESPELL_IGNORE = "accreting,afterall";
 // A prose paragraph that names this many references or more is an enumeration wearing prose, a
 // list or a table with its rows run together; measured over the family and over a project built
 // from it, everything at this count was a schema stated as prose or a set of bindings, and
@@ -612,6 +620,43 @@ function checkRecordLinks() {
 }
 checkRecordLinks();
 
+// Whether a tracked file is read for the vocabulary: not a workflow, the rulebook, this script, a record, or a binary.
+function readForVocabulary(rel) {
+  if (VOCABULARY_SKIP.some((skip) => rel.startsWith(skip))) return false;
+  if (rel.startsWith("docs/") && rel.split("/").length > 2) return false;
+  const path = join(ROOT, rel);
+  return existsSync(path) && !statSync(path).isDirectory();
+}
+
+// The prose law's banned vocabulary in living prose and code, advised because an honest term reads like a tell.
+function adviseVocabulary() {
+  for (const rel of trackedFiles().filter(readForVocabulary)) {
+    const bytes = readFileSync(join(ROOT, rel));
+    if (bytes.includes(0)) continue;
+    bytes.toString("utf-8").split("\n").forEach((line, index) => {
+      const hit = line.match(VOCABULARY);
+      if (hit) advice.push(`${rel}:${index + 1}: inflated vocabulary or weasel attribution, '${hit[0]}'; the verdict is review's`);
+    });
+  }
+}
+
+// Whether codespell is on the path; the spelling advisory runs only where it is and is named as not run elsewhere.
+function codespellPresent() {
+  return spawnSync("codespell", ["--version"], { encoding: "utf-8" }).status === 0;
+}
+
+// Misspellings in living prose and code, advised where codespell is installed; the pass spawns a process,
+// so it runs once per audit command, and the selftest proves it by the audit's own output.
+function adviseSpelling() {
+  if (!codespellPresent()) return;
+  const done = spawnSync("codespell", ["--skip", CODESPELL_SKIP, "--ignore-words-list", CODESPELL_IGNORE, "."], { cwd: ROOT, encoding: "utf-8" });
+  for (const line of `${done.stdout}`.split("\n")) {
+    if (line.trim()) advice.push(`${line.trim()}; correct it, or name a domain term in the ignore list`);
+  }
+}
+adviseVocabulary();
+adviseSpelling();
+
 // The ignore file names every directory a second working tree may occupy, because a tree created
 // inside the repository is a nested checkout that a careless add records as an embedded repository.
 const WORKING_TREE_DIRS = [".worktrees/", ".claude/worktrees/"];
@@ -792,6 +837,7 @@ const CHECK_NEEDS = [
 const unrun = CHECK_NEEDS.filter(([, need]) => !existsSync(join(ROOT, need))).map(([name, need]) => `${name} did not run: ${need} is absent from this tree`);
 if (existsSync(join(ROOT, "docs", "inherited")) && alignedAtHost()) unrun.push("the disposition check did not run: docs/UPSTREAM.md aligns this arrow at the host's own commit, so the family audit holds its inherited folder and no re-alignment gains it a record");
 const declaredFloor = existsSync(pkg) ? JSON.parse(readFileSync(pkg, "utf-8")).engines?.node?.match(/>=\s*(\d+(?:\.\d+)*)/)?.[1] : undefined;
+if (!codespellPresent()) unrun.push("the spelling advisory did not run: codespell is not on PATH; the workflow installs it with pipx, or install it yourself");
 if (!declaredFloor) unrun.push("the version-story check did not run: package.json declares no engines.node floor");
 if (unrun.length > 0) {
   console.log(`${unrun.length} check(s) did not run on this tree, each named with what it needs:`);

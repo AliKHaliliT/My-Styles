@@ -20,8 +20,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      # The seats' docs audits count the budget inside each seat; this job covers the treasury
-      # and the root scripts, which no seat audits, and reads the whole tree once more.
+      # The seats' docs audits count the budget and advise on vocabulary and spelling inside each
+      # seat; this job covers the treasury and the root scripts, which no seat audits, and reads the
+      # whole tree once more. The audit scripts carry the vocabulary list, so the grep skips them.
       - name: Em dash budget, two per file
         run: |
           git grep -PIno "\x{2014}" -- . > em-dashes.tmp || true
@@ -30,7 +31,7 @@ jobs:
       - name: Prose heuristics, advisory
         continue-on-error: true
         run: |
-          if git grep -inE "paradigm shift|game.changer|ever-evolving|cutting.edge|\bdelve|\btapestry\b|\bsupercharge|\btransformative\b|\bmultifaceted\b|\bmeticulous\b|\bparamount\b|\bembark\b|it.s worth noting|at the end of the day|in today.s world|let.s dive|going forward|a testament to|marks a pivotal|plays a vital role|experts agree|studies show|widely regarded as" -- . ":(exclude)*.github*" ":(exclude)*docs/CONVENTIONS.md" ":(exclude)*docs/decisions/*" ":(exclude)*docs/claims/*" ":(exclude)treasury"; then
+          if git grep -inE "paradigm shift|game.changer|ever-evolving|cutting.edge|\bdelve|\btapestry\b|\bsupercharge|\btransformative\b|\bmultifaceted\b|\bmeticulous\b|\bparamount\b|\bembark\b|it.s worth noting|at the end of the day|in today.s world|let.s dive|going forward|a testament to|marks a pivotal|plays a vital role|experts agree|studies show|widely regarded as" -- . ":(exclude)*.github*" ":(exclude)*docs/CONVENTIONS.md" ":(exclude)*docs/decisions/*" ":(exclude)*docs/claims/*" ":(exclude)treasury" ":(exclude)*scripts/audit_docs.py" ":(exclude)*scripts/audit_inquiry.py" ":(exclude)*scripts/audit-docs.mjs" ":(exclude)*scripts/audit-docs-selftest.mjs"; then
             echo "Inflated vocabulary or weasel attribution in living prose; the verdict is review's."
             exit 1
           fi
@@ -209,6 +210,8 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
         with:
           python-version: "3.14"
+      - name: Install codespell for the spelling advisory
+        run: python -m pip install codespell
       - name: Audit selftest
         run: python scripts/audit_inquiry.py --selftest
       - name: Audit
@@ -273,7 +276,10 @@ jobs:
             exit 1
           fi
       - name: Install
-        run: npm ci
+        run: |
+          npm ci
+          # The docs audit's spelling advisory runs where codespell is installed.
+          pipx install codespell
       - name: Lint
         run: npm run lint
       - name: Type-check

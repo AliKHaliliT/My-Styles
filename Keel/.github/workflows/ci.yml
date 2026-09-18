@@ -18,20 +18,6 @@ jobs:
         with:
           # Record immutability is checked against history, so the clone cannot be shallow.
           fetch-depth: 0
-      - name: Prose heuristics, advisory
-        continue-on-error: true
-        run: |
-          if git grep -inE "paradigm shift|game.changer|ever-evolving|cutting.edge|\bdelve|\btapestry\b|\bsupercharge|\btransformative\b|\bmultifaceted\b|\bmeticulous\b|\bparamount\b|\bembark\b|it.s worth noting|at the end of the day|in today.s world|let.s dive|going forward|a testament to|marks a pivotal|plays a vital role|experts agree|studies show|widely regarded as" -- . ":(exclude)*.github*" ":(exclude)*docs/CONVENTIONS.md" ":(exclude)*docs/decisions/*" ":(exclude)*docs/claims/*" ":(exclude)treasury"; then
-            echo "Inflated vocabulary or weasel attribution in living prose; the verdict is review's."
-            exit 1
-          fi
-      - name: Spelling, advisory
-        continue-on-error: true
-        run: |
-          if ! pipx run codespell==2.4.3 --skip ".git,node_modules,.hypothesis,__pycache__,dist,package-lock.json,*.svg,*.png,*.ico,*.woff,*.woff2,*.map,treasury,decisions,claims,reviews,inherited,mockServiceWorker.js" --ignore-words-list "accreting,afterall" .; then
-            echo "Misspellings in living prose or code; correct each, or name a domain term in the ignore list."
-            exit 1
-          fi
       - name: Landed branches are gone
         run: |
           git fetch --prune origin '+refs/heads/*:refs/remotes/origin/*'

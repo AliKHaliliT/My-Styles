@@ -18,6 +18,7 @@ check that cannot fire look identical.
 import ast
 import posixpath
 import re
+import shutil
 import subprocess
 import sys
 import tomllib
@@ -120,6 +121,20 @@ HOST_OWN_COMMIT = "at the host's own commit"
 # remote is held to it. A file holding a NUL byte is binary and is not read for it.
 EM_DASH_BUDGET = 2
 EM_DASH = "\u2014".encode()
+# The vocabulary the prose law bans, advised and never gated, because an honest domain term
+# reads the same as a tell; the workflow's list, moved here so a tree with no remote hears it.
+VOCABULARY = re.compile(
+    r"paradigm shift|game.changer|ever-evolving|cutting.edge|\bdelve|\btapestry\b|\bsupercharge|\btransformative\b"
+    r"|\bmultifaceted\b|\bmeticulous\b|\bparamount\b|\bembark\b|it.s worth noting|at the end of the day"
+    r"|in today.s world|let.s dive|going forward|a testament to|marks a pivotal|plays a vital role|experts agree"
+    r"|studies show|widely regarded as",
+    re.IGNORECASE,
+)
+# What the two advisories skip: the workflows, the rulebook that lists the tells, and this
+# script, which carries the list; a record is skipped by its depth under docs/.
+VOCABULARY_SKIP = (".github/", "docs/CONVENTIONS.md", "scripts/audit_docs.py")
+CODESPELL_SKIP = ".git,node_modules,.hypothesis,__pycache__,dist,package-lock.json,*.svg,*.png,*.ico,*.woff,*.woff2,*.map,decisions,claims,reviews,inherited,mockServiceWorker.js"
+CODESPELL_IGNORE = "accreting,afterall"
 # A prose paragraph that names this many references or more is an enumeration wearing prose, a
 # list or a table with its rows run together; measured over the family and over a project built
 # from it, everything at this count was a schema stated as prose or a set of bindings, and
@@ -322,6 +337,35 @@ def check_record_links(problems: list[str]) -> None:
         if rel.count("/") < 2 or rel.startswith("docs/inherited/"):
             continue
         check_links(problems, rel, path, path.read_text(encoding="utf-8"))
+
+
+def advise_vocabulary(advice: list[str]) -> None:
+    """The prose law's banned vocabulary in living prose and code, advised because an honest term reads like a tell."""
+    for rel in tracked_files():
+        path = ROOT / rel
+        if rel.startswith(VOCABULARY_SKIP) or (rel.startswith("docs/") and rel.count("/") >= 2) or not path.is_file():
+            continue
+        data = path.read_bytes()
+        if b"\0" in data:
+            continue
+        for number, line in enumerate(data.decode("utf-8", errors="replace").splitlines(), 1):
+            hit = VOCABULARY.search(line)
+            if hit:
+                advice.append(f"{rel}:{number}: inflated vocabulary or weasel attribution, {hit.group(0)!r}; the verdict is review's")
+
+
+def advise_spelling(advice: list[str]) -> None:
+    """Misspellings in living prose and code, advised where codespell is installed and named as not run elsewhere.
+
+    The pass spawns a process, so it runs once per audit command rather than with the checks the
+    proofs repeat forty times, and its proof calls it directly.
+    """
+    tool = shutil.which("codespell")
+    if tool is None:
+        return
+    # The tool is a development dependency of the seat and the arguments are this script's own constants.
+    done = subprocess.run([tool, "--skip", CODESPELL_SKIP, "--ignore-words-list", CODESPELL_IGNORE, "."], cwd=ROOT, capture_output=True, text=True, check=False)  # noqa: S603
+    advice.extend(f"{line.strip()}; correct it, or name a domain term in the ignore list" for line in done.stdout.splitlines() if line.strip())
 
 
 def declared_names() -> str:
@@ -1104,6 +1148,8 @@ def unrun_checks() -> list[str]:
     roots = tomllib.loads(pyproject.read_text(encoding="utf-8")).get("tool", {}).get("importlinter", {}).get("root_packages", []) if pyproject.exists() else []
     if not roots:
         unrun.append("check_import_graph did not run: pyproject.toml names no importlinter root_packages")
+    if shutil.which("codespell") is None:
+        unrun.append("advise_spelling did not run: codespell is not on PATH; the development dependencies carry it, or pipx install codespell")
     if declared_python() is None:
         unrun.append("check_version_story did not run: pyproject.toml pins no ruff target-version")
     return unrun
@@ -1114,6 +1160,7 @@ def run() -> tuple[list[str], list[str], list[Path]]:
     problems: list[str] = []
     advice: list[str] = []
     advise_forms(advice)
+    advise_vocabulary(advice)
     check_documents(problems)
     check_record_links(problems)
     check_docs_zone(problems)
@@ -1647,6 +1694,40 @@ def prove_record_link_plant() -> int:
     return failures
 
 
+def prove_vocabulary_plant() -> int:
+    """A banned word appended to the guide is advised, and the bytes come back."""
+    agents = ROOT / "AGENTS.md"
+    if not agents.exists():
+        print("vocabulary plant skipped: no AGENTS.md in this tree")
+        return 0
+    original = agents.read_bytes()
+    agents.write_bytes(original + b"\nWe delve into it here.\n")
+    try:
+        if any("inflated vocabulary" in a and "'delve'" in a and "AGENTS.md" in a for a in run()[1]):
+            return 0
+        return wrong("a banned word appended to AGENTS.md raised no vocabulary advice")
+    finally:
+        agents.write_bytes(original)
+
+
+def prove_spelling_plant() -> int:
+    """A misspelling appended to the README is advised where codespell is installed, and the bytes come back."""
+    readme = ROOT / "README.md"
+    if shutil.which("codespell") is None or not readme.exists():
+        print("spelling plant skipped: codespell is not on PATH or no README.md in this tree")
+        return 0
+    original = readme.read_bytes()
+    readme.write_bytes(original + b"\nThe reciever waits here.\n")  # codespell:ignore reciever
+    try:
+        advice: list[str] = []
+        advise_spelling(advice)
+        if any("reciever ==> receiver" in a for a in advice):  # codespell:ignore reciever
+            return 0
+        return wrong("a misspelling appended to README.md raised no spelling advice")
+    finally:
+        readme.write_bytes(original)
+
+
 def prove_anchors() -> int:
     """Each history-reading rule's scope sentence is dated by the commit that introduced it."""
     failures = 0
@@ -1721,6 +1802,8 @@ def selftest() -> int:
         prove_module_plant,
         prove_citation_plant,
         prove_dense_plant,
+        prove_vocabulary_plant,
+        prove_spelling_plant,
         prove_immutability,
         prove_link_repair,
         prove_record_link_plant,
@@ -1740,6 +1823,7 @@ def main() -> int:
     if "--selftest" in sys.argv:
         return selftest()
     problems, advice, held = run()
+    advise_spelling(advice)
     unrun = unrun_checks()
     if unrun:
         print(f"{len(unrun)} check(s) did not run on this tree, each named with what it needs:")

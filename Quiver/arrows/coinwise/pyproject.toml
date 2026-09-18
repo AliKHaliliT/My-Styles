@@ -38,6 +38,7 @@ dev = [
     "pytest",
     "pytest-randomly",
     "pytest-socket",
+    "codespell",
     "ruff",
     "mypy",
     "import-linter",

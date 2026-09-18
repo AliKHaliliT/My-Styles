@@ -304,6 +304,34 @@ function proveDensePlant() {
   }
 }
 
+/** A banned word appended to the guide is advised, and the bytes come back. */
+function proveVocabularyPlant() {
+  const agents = join(ROOT, "AGENTS.md");
+  const original = readFileSync(agents);
+  writeFileSync(agents, Buffer.concat([original, Buffer.from("\nWe delve into it here.\n")]));
+  try {
+    if (!adviceLines().some((line) => line.includes("inflated vocabulary") && line.includes("'delve'") && line.includes("AGENTS.md"))) wrong("a banned word appended to AGENTS.md raised no vocabulary advice");
+  } finally {
+    writeFileSync(agents, original);
+  }
+}
+
+/** A misspelling appended to the README is advised where codespell is installed, and the bytes come back. */
+function proveSpellingPlant() {
+  if (spawnSync("codespell", ["--version"], { encoding: "utf-8" }).status !== 0) {
+    console.log("spelling plant skipped: codespell is not on PATH");
+    return;
+  }
+  const readme = join(ROOT, "README.md");
+  const original = readFileSync(readme);
+  writeFileSync(readme, Buffer.concat([original, Buffer.from("\nThe reciever waits here.\n")])); // codespell:ignore reciever
+  try {
+    if (!adviceLines().some((line) => line.includes("reciever ==> receiver"))) wrong("a misspelling appended to README.md raised no spelling advice"); // codespell:ignore reciever
+  } finally {
+    writeFileSync(readme, original);
+  }
+}
+
 function proveImmutability() {
   const folder = join(ROOT, "docs", "decisions");
   const name = readdirSync(folder).sort().find((entry) => readFileSync(join(folder, entry), "utf-8").includes("\nStatus: Accepted\n"));
@@ -484,7 +512,7 @@ if (baseline.length > 0) {
   for (const p of baseline.slice(0, 5)) console.log(`  ${p}`);
   process.exit(1);
 }
-for (const proof of [proveFilePlants, proveTrackedPlants, proveAppendedPlants, proveStatePlants, proveUpstreamPlants, provePalettePlant, proveCitationPlant, proveDensePlant, proveImmutability, proveLinkRepair, proveRecordLinkPlant, proveAnchors, proveTemplateCopy, proveDisposition, proveIgnorePlant, proveUnrunReport]) {
+for (const proof of [proveFilePlants, proveTrackedPlants, proveAppendedPlants, proveStatePlants, proveUpstreamPlants, provePalettePlant, proveCitationPlant, proveDensePlant, proveVocabularyPlant, proveSpellingPlant, proveImmutability, proveLinkRepair, proveRecordLinkPlant, proveAnchors, proveTemplateCopy, proveDisposition, proveIgnorePlant, proveUnrunReport]) {
   proof();
 }
 console.log(failures === 0 ? "every rule fires" : `${failures} rule(s) do not work`);
