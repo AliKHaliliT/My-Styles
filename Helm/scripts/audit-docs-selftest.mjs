@@ -397,6 +397,26 @@ function proveImmutability() {
   }
 }
 
+/** One word added to a list line inside an accepted record fails, because a list marker is content and not a diff header. */
+function proveBulletEdit() {
+  const folder = join(ROOT, "docs", "decisions");
+  for (const name of readdirSync(folder).sort()) {
+    const path = join(folder, name);
+    const original = readFileSync(path);
+    const text = original.toString("utf-8");
+    const bullet = text.split(/\r?\n/).find((line) => line.startsWith("- "));
+    if (!/\r?\nStatus: Accepted\r?\n/.test(text) || bullet === undefined) continue;
+    try {
+      writeFileSync(path, Buffer.from(text.replace(bullet, `${bullet} planted`)));
+      expect(audit(), "edited beyond its Status line", `a bullet edit to ${name}`);
+    } finally {
+      writeFileSync(path, original);
+    }
+    return;
+  }
+  console.log("bullet edit plant skipped: no accepted record of this project's own carries a list line");
+}
+
 /** The first record of the project's own that carries a relative link, with that link's target, or null. */
 function recordWithLink() {
   const folder = join(ROOT, "docs", "decisions");
@@ -453,7 +473,7 @@ function proveRecordLinkPlant() {
 
 function proveAnchors() {
   const scopes = [
-    ["immutability", "records held immutable beyond their Status line and a link target repaired to resolve: every file below a subfolder of docs/"],
+    ["immutability", "records held immutable on every line beyond their Status line and a link target repaired to resolve: every file below a subfolder of docs/"],
     ["queue age", "entries of Next, Deferred, and Blocked held to two horizons of unchanged text"],
     ["filename cap", "record filenames held to seventy-two characters"],
     ["disposition", "records the inherited folder gained held to a citing record of the project's own"],
@@ -584,7 +604,7 @@ if (baseline.length > 0) {
   for (const p of baseline.slice(0, 5)) console.log(`  ${p}`);
   process.exit(1);
 }
-for (const proof of [proveFilePlants, proveTrackedPlants, proveRecordDashes, proveAppendedPlants, proveInvariantPlants, proveStatePlants, proveUpstreamPlants, provePalettePlant, proveCitationPlant, proveDensePlant, proveVocabularyPlant, proveSpellingPlant, proveImmutability, proveLinkRepair, proveRecordLinkPlant, proveAnchors, proveTemplateCopy, proveDisposition, proveIgnorePlant, proveStaleBranch, proveNoRemoteReport, proveUnrunReport]) {
+for (const proof of [proveFilePlants, proveTrackedPlants, proveRecordDashes, proveAppendedPlants, proveInvariantPlants, proveStatePlants, proveUpstreamPlants, provePalettePlant, proveCitationPlant, proveDensePlant, proveVocabularyPlant, proveSpellingPlant, proveImmutability, proveBulletEdit, proveLinkRepair, proveRecordLinkPlant, proveAnchors, proveTemplateCopy, proveDisposition, proveIgnorePlant, proveStaleBranch, proveNoRemoteReport, proveUnrunReport]) {
   proof();
 }
 console.log(failures === 0 ? "every rule fires" : `${failures} rule(s) do not work`);

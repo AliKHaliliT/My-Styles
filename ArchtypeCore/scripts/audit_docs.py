@@ -73,11 +73,12 @@ SKIP_DIRS = {".git", "node_modules", "__pycache__", ".ruff_cache", ".venv", "dis
 # Only a claim with the trailing plus is a floor claim; a bare version mention could be
 # talking about anything, and a check may never imply more than it decides.
 FLOOR_CLAIM = re.compile(r"Python (\d+\.\d+)\+")
-# A changed diff line, added or removed; the +++ and --- headers are excluded by the lookahead
-# and skipped by name where the diff is read. A record's changed lines are judged in pairs: a
+# A record's changed lines are read from the diff by hunk: after a hunk header every line that
+# opens with a minus or a plus is a removed or an added line, whatever its content begins with,
+# so a bullet edited inside a record counts like any other line; the +++ and --- file headers
+# arrive before the first hunk and are never read as lines. Changed lines are judged in pairs: a
 # Status line may move, and a link target may move to one that resolves, because a path points
 # at the present while the record's words describe the past.
-CHANGED_LINE = re.compile(r"^[-+](?![-+])")
 LINK_TARGET = re.compile(r"\]\(([^)\s]+)\)")
 NUMPY_SECTION = re.compile(
     r"^[ \t]*(Parameters|Returns|Raises|Attributes|Yields|Warns|Notes|Usage|Examples|See Also|References)[ \t]*\n[ \t]*-{3,}[ \t]*$",
@@ -87,7 +88,7 @@ TRIO = ("Parameters", "Returns", "Raises")
 # This sentence dates the immutability rule's arrival in the tree's own history, so it is what
 # the check searches for, never the function's name, which a child's past may already carry.
 # Changing what the check covers changes this sentence, and the anchor moves forward with it.
-IMMUTABILITY_SCOPE = "records held immutable beyond their Status line and a link target repaired to resolve: every file below a subfolder of docs/"
+IMMUTABILITY_SCOPE = "records held immutable on every line beyond their Status line and a link target repaired to resolve: every file below a subfolder of docs/"
 # A queued, deferred, or blocked entry that stands unchanged for two horizons is a decision
 # record trying to be born, and the file cannot show it, because a date is the entry's
 # last-verified stamp rather than its birthday; so the age is read from history, from the first
@@ -971,19 +972,20 @@ def record_of(header: str) -> str:
 
 
 def record_hunks(diff: str) -> list[tuple[str, list[str], list[str]]]:
-    """Every hunk that changes a record, as the record's path with its removed and its added lines."""
+    """Every hunk that changes a record, as the record's path with its removed and its added lines, a list marker counting like any first character."""
     hunks: list[tuple[str, list[str], list[str]]] = []
     current = ""
     hunk: tuple[str, list[str], list[str]] | None = None
     for line in diff.splitlines():
-        if line.startswith("+++ b/"):
+        if line.startswith("diff --"):
+            hunk = None
+        elif line.startswith("+++ b/"):
             current = record_of(line)
-        if line.startswith(("+++ b/", "@@")):
+        elif line.startswith("@@"):
             hunk = (current, [], []) if current else None
             if hunk is not None:
                 hunks.append(hunk)
-            continue
-        if hunk is not None and CHANGED_LINE.match(line):
+        elif hunk is not None and line[:1] in ("-", "+"):
             (hunk[1] if line[0] == "-" else hunk[2]).append(line[1:])
     return [h for h in hunks if h[1] or h[2]]
 
@@ -1741,6 +1743,23 @@ def prove_immutability() -> int:
     return failures
 
 
+def prove_bullet_edit() -> int:
+    """One word added to a list line inside an accepted record fails, because a list marker is content and not a diff header."""
+    for record in sorted((ROOT / "docs/decisions").glob("*.md")):
+        text = record.read_text(encoding="utf-8")
+        bullet = next((line for line in text.splitlines() if line.startswith("- ")), None)
+        if "\nStatus: Accepted\n" not in text or bullet is None:
+            continue
+        original = record.read_bytes()
+        try:
+            record.write_bytes(original.replace(bullet.encode(), f"{bullet} planted".encode(), 1))
+            return expect(run()[0], "edited beyond its Status line", f"a bullet edit to {record.name}")
+        finally:
+            record.write_bytes(original)
+    print("bullet edit plant skipped: no accepted record of this project's own carries a list line")
+    return 0
+
+
 def free_number(folder: Path, start: int) -> str:
     """The lowest record number from the start that no record in the folder uses, for a plant that must not collide."""
     taken = {p.name[:4] for p in folder.glob("*.md")}
@@ -2004,6 +2023,7 @@ def selftest() -> int:
         prove_vocabulary_plant,
         prove_spelling_plant,
         prove_immutability,
+        prove_bullet_edit,
         prove_link_repair,
         prove_record_link_plant,
         prove_template_copy,

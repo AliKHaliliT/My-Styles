@@ -81,18 +81,19 @@ LINK = re.compile(r"\]\(([^)\s]+)\)")
 PATH_TOKEN = re.compile(r"`([^`\n]+)`")
 # A figure a claim rests on, written on its own line so two records can be held to one value.
 FIGURE = re.compile(r"^figure ([a-z0-9_-]+): (.+?)\s*$", re.MULTILINE)
-# A changed diff line, added or removed; the +++ and --- headers are excluded by the lookahead
-# and skipped by name where the diff is read. A record's changed lines are judged in pairs: a
+# A record's changed lines are read from the diff by hunk: after a hunk header every line that
+# opens with a minus or a plus is a removed or an added line, whatever its content begins with,
+# so a bullet edited inside a record counts like any other line; the +++ and --- file headers
+# arrive before the first hunk and are never read as lines. Changed lines are judged in pairs: a
 # Status line may move, and a link target may move to one that resolves, because a path points
 # at the present while the record's words describe the past.
-CHANGED_LINE = re.compile(r"^[-+](?![-+])")
 LINK_TARGET = re.compile(r"\]\(([^)\s]+)\)")
 # A name that stands before a slash anywhere in the map or the baseline is a housed directory.
 HOUSED = re.compile(r"([A-Za-z0-9_.-]+)/")
 # This sentence dates the immutability rule's arrival in the tree's own history, so it is what
 # the check searches for, never the function's name, which a child's past may already carry.
 # Changing what the check covers changes this sentence, and the anchor moves forward with it.
-IMMUTABILITY_SCOPE = "records held immutable beyond their Status line and a link target repaired to resolve: every file below a subfolder of docs/ except the arrow manifests"
+IMMUTABILITY_SCOPE = "records held immutable on every line beyond their Status line and a link target repaired to resolve: every file below a subfolder of docs/ except the arrow manifests"
 # A queued, deferred, or blocked entry that stands unchanged for two horizons is a decision
 # record trying to be born, and the file cannot show it, because a date is the entry's
 # last-verified stamp rather than its birthday; so the age is read from history, from the first
@@ -856,19 +857,20 @@ def record_of(header: str) -> str:
 
 
 def record_hunks(diff: str) -> list[tuple[str, list[str], list[str]]]:
-    """Every hunk that changes a record, as the record's path with its removed and its added lines."""
+    """Every hunk that changes a record, as the record's path with its removed and its added lines, a list marker counting like any first character."""
     hunks: list[tuple[str, list[str], list[str]]] = []
     current = ""
     hunk: tuple[str, list[str], list[str]] | None = None
     for line in diff.splitlines():
-        if line.startswith("+++ b/"):
+        if line.startswith("diff --"):
+            hunk = None
+        elif line.startswith("+++ b/"):
             current = record_of(line)
-        if line.startswith(("+++ b/", "@@")):
+        elif line.startswith("@@"):
             hunk = (current, [], []) if current else None
             if hunk is not None:
                 hunks.append(hunk)
-            continue
-        if hunk is not None and CHANGED_LINE.match(line):
+        elif hunk is not None and line[:1] in ("-", "+"):
             (hunk[1] if line[0] == "-" else hunk[2]).append(line[1:])
     return [h for h in hunks if h[1] or h[2]]
 
@@ -1880,6 +1882,26 @@ def prove_immutability() -> int:
     return failures
 
 
+def prove_bullet_edit() -> int:
+    """One word added to a list line inside an accepted record fails, because a list marker is content and not a diff header."""
+    for record in sorted((ROOT / "docs/decisions").glob("*.md")):
+        text = record.read_text(encoding="utf-8")
+        bullet = next((line for line in text.splitlines() if line.startswith("- ")), None)
+        if "\nStatus: Accepted\n" not in text or bullet is None:
+            continue
+        original = record.read_bytes()
+        try:
+            record.write_bytes(original.replace(bullet.encode(), f"{bullet} planted".encode(), 1))
+            if any("edited beyond its Status line" in p for p in run(ROOT)[0]):
+                return 0
+            print(f"WRONG: a bullet edit to {record.name} raised nothing")
+            return 1
+        finally:
+            record.write_bytes(original)
+    print("bullet edit plant skipped: no accepted record of this project's own carries a list line")
+    return 0
+
+
 def prove_manifest_edit() -> int:
     """An edit to an arrow manifest's own words passes, because a manifest is a living document and never a record."""
     manifests = sorted((ROOT / "docs/arrows").glob("*.md")) if (ROOT / "docs/arrows").exists() else []
@@ -2252,6 +2274,7 @@ def selftest() -> int:
         prove_spelling_plant,
         prove_duplicate_numbers,
         prove_immutability,
+        prove_bullet_edit,
         prove_manifest_edit,
         prove_link_repair,
         prove_record_link_plant,

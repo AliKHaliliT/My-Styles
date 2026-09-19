@@ -69,20 +69,21 @@ const SKIP_DIRS = new Set([".git", "node_modules", "__pycache__", "dist", "build
  */
 const FLOOR_CLAIM = /Node(?:\.js)? (\d+(?:\.\d+)?)\+/g;
 /**
- * A changed diff line that is not a Status line; the +++ and --- headers are excluded by the
- * lookahead and skipped by name where the diff is read.
+ * A record's changed lines are read from the diff by hunk: after a hunk header every line that
+ * opens with a minus or a plus is a removed or an added line, whatever its content begins with,
+ * so a bullet edited inside a record counts like any other line; the +++ and --- file headers
+ * arrive before the first hunk and are never read as lines.
  */
-// A changed diff line, added or removed. A record's changed lines are judged in pairs: a Status
-// line may move, and a link target may move to one that resolves, because a path points at the
-// present while the record's words describe the past.
-const CHANGED_LINE = /^[-+](?![-+])/;
+// A record's changed lines are judged in pairs: a Status line may move, and a link target may
+// move to one that resolves, because a path points at the present while the record's words
+// describe the past.
 const LINK_TARGET = /\]\(([^)\s]+)\)/g;
 /**
  * This sentence dates the immutability rule's arrival in the tree's own history, so it is what
  * the check searches for, never a function's name, which a child's past may already carry.
  * Changing what the check covers changes this sentence, and the anchor moves forward with it.
  */
-const IMMUTABILITY_SCOPE = "records held immutable beyond their Status line and a link target repaired to resolve: every file below a subfolder of docs/";
+const IMMUTABILITY_SCOPE = "records held immutable on every line beyond their Status line and a link target repaired to resolve: every file below a subfolder of docs/";
 // A queued, deferred, or blocked entry that stands unchanged for two horizons is a decision record
 // trying to be born, and the file cannot show it, because a date is the entry's last-verified stamp
 // rather than its birthday; so the age is read from history, from the first commit that carried the
@@ -830,21 +831,27 @@ function recordOf(header) {
   return below.includes("/") ? path : "";
 }
 
-// Every hunk that changes a record, as the record's path with its removed and its added lines.
+// Every hunk that changes a record, as the record's path with its removed and its added lines, a
+// list marker counting like any first character.
 function recordHunks(diff) {
   const hunks = [];
   let current = "";
   let hunk = null;
   for (const line of diff.split("\n")) {
-    if (line.startsWith("+++ b/")) current = recordOf(line);
-    if (line.startsWith("+++ b/") || line.startsWith("@@")) {
+    if (line.startsWith("diff --")) hunk = null;
+    else if (line.startsWith("+++ b/")) current = recordOf(line);
+    else if (line.startsWith("@@")) {
       hunk = current ? { record: current, minus: [], plus: [] } : null;
       if (hunk !== null) hunks.push(hunk);
-      continue;
-    }
-    if (hunk !== null && CHANGED_LINE.test(line)) (line[0] === "-" ? hunk.minus : hunk.plus).push(line.slice(1));
+    } else if (hunk !== null) pushChanged(hunk, line);
   }
   return hunks.filter((h) => h.minus.length + h.plus.length > 0);
+}
+
+// A line inside a hunk that opens with a minus or a plus is a removed or an added line of the record.
+function pushChanged(hunk, line) {
+  if (line.startsWith("-")) hunk.minus.push(line.slice(1));
+  else if (line.startsWith("+")) hunk.plus.push(line.slice(1));
 }
 
 // Whether a link target written in the record resolves, in the working tree or in the commit named by where.
