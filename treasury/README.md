@@ -25,6 +25,10 @@ the order to move through its families.
 [Study 0004's](0004-research-methodology-vocabulary/HOW-TO-USE.md) covers why
 the price a method names is the finding rather than a decoration, and how to look
 a name up rather than reading the vocabulary through.
+[Study 0006's](0006-invariant-binding/HOW-TO-USE.md) covers how to write a row
+of an invariants ledger and lists the twenty-two shapes a claim takes, so a
+writer names what a product promises from the field's vocabulary rather than
+from memory.
 
 Before running a new study, read [the method](HOW-TO-RUN-A-STUDY.md). It
 carries the six stages, the checks to write between them, and what the
