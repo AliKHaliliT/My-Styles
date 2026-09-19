@@ -849,10 +849,10 @@ def record_diffs() -> list[tuple[str, str]]:
 
 
 def record_of(header: str) -> str:
-    """The record a diff header names, or nothing when the file is a flat living document at the top of docs/."""
+    """The record a diff header names, or nothing for a flat living document at the top of docs/ or for an arrow manifest, which is living too."""
     path = header[6:]
     below = path.split("docs/", 1)[1] if "docs/" in path else ""
-    return path if "/" in below else ""
+    return path if "/" in below and not below.startswith("arrows/") else ""
 
 
 def record_hunks(diff: str) -> list[tuple[str, list[str], list[str]]]:
@@ -1880,6 +1880,26 @@ def prove_immutability() -> int:
     return failures
 
 
+def prove_manifest_edit() -> int:
+    """An edit to an arrow manifest's own words passes, because a manifest is a living document and never a record."""
+    manifests = sorted((ROOT / "docs/arrows").glob("*.md")) if (ROOT / "docs/arrows").exists() else []
+    if not manifests:
+        print("manifest edit plant skipped: no arrow manifest in this tree")
+        return 0
+    manifest = manifests[0]
+    original = manifest.read_bytes()
+    try:
+        first, _, rest = original.decode("utf-8").partition("\n")
+        manifest.write_bytes(f"{first} planted\n{rest}".encode())
+        problems, _ = run(ROOT)
+        if any(f"docs/arrows/{manifest.name}: edited beyond its Status line" in p for p in problems):
+            print(f"WRONG: an edit to the manifest {manifest.name} was reported as an illegal edit to a record")
+            return 1
+    finally:
+        manifest.write_bytes(original)
+    return 0
+
+
 def prove_queue_age() -> int:
     """A queued entry written today passes; the firing case needs history this tree may lack.
 
@@ -2232,6 +2252,7 @@ def selftest() -> int:
         prove_spelling_plant,
         prove_duplicate_numbers,
         prove_immutability,
+        prove_manifest_edit,
         prove_link_repair,
         prove_record_link_plant,
         prove_queue_age,
