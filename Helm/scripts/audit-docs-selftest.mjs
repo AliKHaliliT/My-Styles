@@ -185,6 +185,13 @@ function proveTrackedPlants() {
   );
 }
 
+/** A record over the budget born in this working tree is judged; one born before the rule arrived is left to history, so the rehearsal proves that half. */
+function proveRecordDashes() {
+  const number = freeNumber();
+  const rel = `docs/decisions/${number}-planted-dashes.md`;
+  proveGroup("a record over the budget born now", [[rel, `# ${number}. Planted dashes\n\nStatus: Accepted\nDate: 2026-01-01\n\n\u2014 \u2014 \u2014\n`]], [`${rel} carries 3 em dashes; the budget is 2 per file`], true);
+}
+
 function proveAppendedPlants() {
   const engines = JSON.parse(readFileSync(join(ROOT, "package.json"), "utf-8")).engines?.node?.match(/>=\s*(\d+(?:\.\d+)*)/)?.[1];
   const claimed = engines === "18" ? "20" : "18";
@@ -411,6 +418,7 @@ function proveAnchors() {
     ["queue age", "entries of Next, Deferred, and Blocked held to two horizons of unchanged text"],
     ["filename cap", "record filenames held to seventy-two characters"],
     ["disposition", "records the inherited folder gained held to a citing record of the project's own"],
+    ["em dash budget", "records held to the em dash budget of two per file"],
   ];
   for (const [label, scope] of scopes) {
     const arrival = git("log", "--reverse", "--format=%H", "-S", scope, "--", "scripts/audit-docs.mjs").split(/\s+/).filter(Boolean)[0];
@@ -537,7 +545,7 @@ if (baseline.length > 0) {
   for (const p of baseline.slice(0, 5)) console.log(`  ${p}`);
   process.exit(1);
 }
-for (const proof of [proveFilePlants, proveTrackedPlants, proveAppendedPlants, proveStatePlants, proveUpstreamPlants, provePalettePlant, proveCitationPlant, proveDensePlant, proveVocabularyPlant, proveSpellingPlant, proveImmutability, proveLinkRepair, proveRecordLinkPlant, proveAnchors, proveTemplateCopy, proveDisposition, proveIgnorePlant, proveStaleBranch, proveNoRemoteReport, proveUnrunReport]) {
+for (const proof of [proveFilePlants, proveTrackedPlants, proveRecordDashes, proveAppendedPlants, proveStatePlants, proveUpstreamPlants, provePalettePlant, proveCitationPlant, proveDensePlant, proveVocabularyPlant, proveSpellingPlant, proveImmutability, proveLinkRepair, proveRecordLinkPlant, proveAnchors, proveTemplateCopy, proveDisposition, proveIgnorePlant, proveStaleBranch, proveNoRemoteReport, proveUnrunReport]) {
   proof();
 }
 console.log(failures === 0 ? "every rule fires" : `${failures} rule(s) do not work`);

@@ -73,6 +73,10 @@ def shape_child(child: Path, style: str, pin: str, today: str) -> None:
     # A long-named record committed before the audit arrives; the cap must leave it alone.
     long_record = decisions / f"{own + 1:04d}-{LONG_TITLE}.md"
     long_record.write_text(record_text(f"{own + 1:04d}", "A record from before the cap arrived", today), encoding="utf-8")
+    # A record over the em dash budget committed before the audit arrives; the count must leave it alone.
+    dashed_record = decisions / f"{own + 2:04d}-a-record-from-before-the-budget-arrived.md"
+    dashed_text = record_text(f"{own + 2:04d}", "A record from before the budget arrived", today)
+    dashed_record.write_text(dashed_text.replace("It has one.", "It has one \u2014 with three dashes \u2014 from before the count \u2014 arrived."), encoding="utf-8")
     (child / "docs/UPSTREAM.md").write_text(
         "# Upstream\n\n"
         f"Aligned to {style} at `{pin}`.\n\n"

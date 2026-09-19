@@ -115,6 +115,11 @@ const HOST_OWN_COMMIT = "at the host's own commit";
 // remote is held to it. A file holding a NUL byte is binary and is not read for it.
 const EM_DASH_BUDGET = 2;
 const EM_DASH = Buffer.from("\u2014", "utf-8");
+// A record over the budget admits no edit that could bring it under, so the count over records binds
+// from the arrival of its own scope sentence like every history-reading check, and a record born
+// before that arrival is never judged; every other tracked file can be edited and is held whatever
+// its age. The inherited folder is counted where it was written.
+const EM_DASH_SCOPE = "records held to the em dash budget of two per file";
 // The vocabulary the prose law bans, advised and never gated, because an honest domain term
 // reads the same as a tell; the workflow's list, moved here so a tree with no remote hears it.
 const VOCABULARY = /paradigm shift|game.changer|ever-evolving|cutting.edge|\bdelve|\btapestry\b|\bsupercharge|\btransformative\b|\bmultifaceted\b|\bmeticulous\b|\bparamount\b|\bembark\b|it.s worth noting|at the end of the day|in today.s world|let.s dive|going forward|a testament to|marks a pivotal|plays a vital role|experts agree|studies show|widely regarded as/i;
@@ -587,16 +592,41 @@ function checkTemplateCopies() {
 }
 checkTemplateCopies();
 
-// Every tracked text file stays within the em dash budget.
+// Whether a tracked path is a record, a file below a subfolder of docs/, which immutability keeps from being edited.
+function isRecord(rel) {
+  return rel.startsWith("docs/") && rel.split("/").length > 2;
+}
+
+// Whether a file's count is judged, which every editable file's is and a record's only when born in
+// the commit that brought the scope or after it.
+function judgedForDashes(rel, born, arrival) {
+  if (!isRecord(rel)) return true;
+  return born === undefined || (arrival !== null && !isBefore(born, arrival));
+}
+
+// How many em dashes a file's bytes carry, or zero for a binary.
+function emDashCount(bytes) {
+  if (bytes.includes(0)) return 0;
+  let count = 0;
+  for (let at = bytes.indexOf(EM_DASH); at !== -1; at = bytes.indexOf(EM_DASH, at + EM_DASH.length)) count += 1;
+  return count;
+}
+
+// Every tracked text file stays within the em dash budget, a record from the rule's arrival on, since a
+// record admits no edit that could bring it under; the inherited folder is counted where it was written.
 function checkEmDashes() {
+  const over = [];
   for (const rel of trackedFiles()) {
     const path = join(ROOT, rel);
-    if (!existsSync(path) || statSync(path).isDirectory()) continue;
-    const bytes = readFileSync(path);
-    if (bytes.includes(0)) continue;
-    let count = 0;
-    for (let at = bytes.indexOf(EM_DASH); at !== -1; at = bytes.indexOf(EM_DASH, at + EM_DASH.length)) count += 1;
-    if (count > EM_DASH_BUDGET) problems.push(`${rel} carries ${count} em dashes; the budget is ${EM_DASH_BUDGET} per file`);
+    if (rel.startsWith("docs/inherited/") || !existsSync(path) || statSync(path).isDirectory()) continue;
+    const count = emDashCount(readFileSync(path));
+    if (count > EM_DASH_BUDGET) over.push([rel, count]);
+  }
+  if (over.length === 0) return;
+  const arrival = firstCommit(EM_DASH_SCOPE, "scripts/audit-docs.mjs");
+  const added = addedCommits("docs");
+  for (const [rel, count] of over) {
+    if (judgedForDashes(rel, added.get(rel), arrival)) problems.push(`${rel} carries ${count} em dashes; the budget is ${EM_DASH_BUDGET} per file`);
   }
 }
 checkEmDashes();

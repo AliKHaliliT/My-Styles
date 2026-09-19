@@ -121,6 +121,11 @@ HOST_OWN_COMMIT = "at the host's own commit"
 # remote is held to it. A file holding a NUL byte is binary and is not read for it.
 EM_DASH_BUDGET = 2
 EM_DASH = "\u2014".encode()
+# A record over the budget admits no edit that could bring it under, so the count over records
+# binds from the arrival of its own scope sentence like every history-reading check, and a record
+# born before that arrival is never judged; every other tracked file can be edited and is held
+# whatever its age. The inherited folder is counted where it was written.
+EM_DASH_SCOPE = "records held to the em dash budget of two per file"
 # The vocabulary the prose law bans, advised and never gated, because an honest domain term
 # reads the same as a tell; the workflow's list, moved here so a tree with no remote hears it.
 VOCABULARY = re.compile(
@@ -313,17 +318,34 @@ def check_template_copies(problems: list[str]) -> None:
             )
 
 
+def is_record(rel: str) -> bool:
+    """Whether a tracked path is a record, a file below a subfolder of docs/, which immutability keeps from being edited."""
+    return rel.startswith("docs/") and rel.count("/") >= 2
+
+
+def judged_for_dashes(rel: str, born: str | None, arrival: str | None) -> bool:
+    """Whether a file's count is judged, which every editable file's is and a record's only when born in the commit that brought the scope or after it."""
+    if not is_record(rel):
+        return True
+    return born is None or (arrival is not None and not is_before(born, arrival))
+
+
 def check_em_dashes(problems: list[str]) -> None:
-    """Every tracked text file stays within the em dash budget, counted here so a tree with no remote is held to it."""
+    """Every tracked text file stays within the em dash budget, a record from the rule's arrival on, since a record admits no edit that could bring it under."""
+    over: list[tuple[str, int]] = []
     for rel in tracked_files():
         path = ROOT / rel
-        if not path.is_file():
+        if rel.startswith("docs/inherited/") or not path.is_file():
             continue
         data = path.read_bytes()
-        if b"\0" in data:
-            continue
-        count = data.count(EM_DASH)
-        if count > EM_DASH_BUDGET:
+        if b"\0" not in data and data.count(EM_DASH) > EM_DASH_BUDGET:
+            over.append((rel, data.count(EM_DASH)))
+    if not over:
+        return
+    arrival = first_commit(EM_DASH_SCOPE, "scripts/audit_docs.py")
+    added = added_commits("docs")
+    for rel, count in over:
+        if judged_for_dashes(rel, added.get(rel), arrival):
             problems.append(f"{rel} carries {count} em dashes; the budget is {EM_DASH_BUDGET} per file")
 
 
@@ -1349,6 +1371,23 @@ def prove_tracked_plants() -> int:
     return failures
 
 
+def prove_record_dashes() -> int:
+    """A record over the budget born in this working tree is judged; one born before the rule arrived is left to history, so the rehearsal proves that half."""
+    decisions = ROOT / "docs/decisions"
+    if not decisions.is_dir():
+        print("record dash plant skipped: no docs/decisions in this tree")
+        return 0
+    rel = f"docs/decisions/{free_number(decisions, 900)}-planted-dashes.md"
+    target = ROOT / rel
+    target.write_text(f"# {rel[15:19]}. Planted dashes\n\nStatus: Accepted\nDate: 2026-01-01\n\n\u2014 \u2014 \u2014\n", encoding="utf-8")
+    git("add", "-N", "--", rel)
+    try:
+        return expect(run()[0], f"{rel} carries 3 em dashes; the budget is {EM_DASH_BUDGET} per file", "a record over the budget born now")
+    finally:
+        git("rm", "--cached", "-q", "--", rel)
+        target.unlink(missing_ok=True)
+
+
 def prove_twin_numbers() -> int:
     """Two records sharing one number are reported, naming both."""
     taken = {p.name[:4] for p in (ROOT / "docs/decisions").glob("*.md")}
@@ -1782,7 +1821,7 @@ def prove_no_remote_report() -> int:
 def prove_anchors() -> int:
     """Each history-reading rule's scope sentence is dated by the commit that introduced it."""
     failures = 0
-    for name, scope in (("immutability", IMMUTABILITY_SCOPE), ("queue age", STATE_AGE_SCOPE), ("filename cap", RECORD_NAME_SCOPE), ("disposition", DISPOSITION_SCOPE)):
+    for name, scope in (("immutability", IMMUTABILITY_SCOPE), ("queue age", STATE_AGE_SCOPE), ("filename cap", RECORD_NAME_SCOPE), ("disposition", DISPOSITION_SCOPE), ("em dash budget", EM_DASH_SCOPE)):
         arrival = git("log", "--reverse", "--format=%H", "-S", scope, "--", "scripts/audit_docs.py").split()
         if not arrival:
             print(f"anchor plant skipped: the {name} scope sentence has not reached history yet")
@@ -1843,6 +1882,7 @@ def selftest() -> int:
         prove_file_plants,
         prove_append_plants,
         prove_tracked_plants,
+        prove_record_dashes,
         prove_twin_numbers,
         prove_state_plants,
         prove_upstream_plants,

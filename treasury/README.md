@@ -88,6 +88,7 @@ check this folder; the question may already be settled.
 | [0033](decisions/0033-dispose-of-the-upstream-entry-of-2026-09-09-on-a-suite-reaching-a-provider.md) | The entry from a package-style project at e069bab89f81, kept in the family's form; every Python suite refuses a connection that leaves the loopback and the client suite's refusal of unhandled requests is named as the same rule |
 | [0034](decisions/0034-define-the-landing-where-the-repository-names-no-remote.md) | Without a remote the branch protocol keeps its merge, gate, fast-forward, and deletion; the docs audit fails a local branch already merged into main and names the workflow's landed-branches step as not run for want of a remote |
 | [0035](decisions/0035-keep-an-invariants-ledger-and-refuse-the-cost-line-and-the-hook.md) | Study 0006's disposition: every seat keeps a ledger of its product's invariants, each row a claim, its holder and its rung, the audit holding the pointers and review the truth; the cost column and the commit hook refused with the conditions that reopen them |
+| [0036](decisions/0036-dispose-of-the-upstream-entry-of-2026-09-18-on-the-em-dash-count.md) | The entry from three seats at 6dab73e5a818, kept; the em dash count over records binds from the arrival of its scope sentence, so a record older than the rule is never judged and a red tree's selftest runs again |
 
 ## Rules of the folder
 
