@@ -35,6 +35,7 @@ helm/
 │   ├── ARCHITECTURE.md         # This file; the annotated map of the template
 │   ├── BASELINE.md             # The repository baseline (always-present files and their rules)
 │   ├── CONVENTIONS.md          # The documentation rulebook (frozen; do not edit)
+│   ├── INVARIANTS.md           # What must stay true about the product, each claim with its holder and rung
 │   └── decisions/              # Immutable decision records; the project's "why" log
 │
 ├── public/                     # Static assets served as-is; holds the untracked msw worker after install

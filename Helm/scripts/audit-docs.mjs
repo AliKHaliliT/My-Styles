@@ -25,6 +25,7 @@ const LIVING = [
   "docs/ARCHITECTURE.md",
   "docs/BASELINE.md",
   "docs/CONVENTIONS.md",
+  "docs/INVARIANTS.md",
 ];
 
 /** An entry older than this is expired and must be re-verified before anything relies on it. */
@@ -36,9 +37,9 @@ const HORIZON_DAYS = 90;
 const NOW_HORIZON_DAYS = 30;
 /** Now is for in-flight work only; past this many entries the section is accreting, not tracking. */
 const NOW_CAP = 5;
-/** Bounded documents fail past this; the manual, the map, the README, and the rulebook grow with the system. */
+/** Bounded documents fail past this; the manual, the map, the README, the rulebook, and the invariants ledger grow with the system. */
 const BUDGET_LINES = 150;
-const FREE_GROWING = new Set(["AGENTS.md", "docs/ARCHITECTURE.md", "README.md", "docs/CONVENTIONS.md"]);
+const FREE_GROWING = new Set(["AGENTS.md", "docs/ARCHITECTURE.md", "README.md", "docs/CONVENTIONS.md", "docs/INVARIANTS.md"]);
 
 const BACKTICK = /`([^`\n]+)`/g;
 const LINK = /\[[^\]]*\]\(([^)\s]+)\)/g;
@@ -383,7 +384,7 @@ if (existsSync(docsDir)) {
     if (entry.replace(/-/g, "").replace(/\.md$/, "") !== entry.replace(/-/g, "").replace(/\.md$/, "").toUpperCase()) {
       problems.push(`docs/${entry}: organic documents are UPPERCASE markdown`);
     }
-    if (!["ARCHITECTURE.md", "CONVENTIONS.md", "BASELINE.md", "UPSTREAM.md"].includes(entry)) {
+    if (!["ARCHITECTURE.md", "CONVENTIONS.md", "BASELINE.md", "UPSTREAM.md", "INVARIANTS.md"].includes(entry)) {
       const lines = readFileSync(full, "utf-8").split("\n").length;
       if (lines > BUDGET_LINES) {
         problems.push(`docs/${entry}: ${lines} lines against the ${BUDGET_LINES}-line budget; split by fission`);
@@ -591,6 +592,65 @@ function checkTemplateCopies() {
   }
 }
 checkTemplateCopies();
+
+// The invariants ledger's header row, the words a rung may be, and the shape of a holder: a tracked path
+// in backticks with an optional quoted needle the file must contain, or the word review, which pairs only
+// with the review rung. Every review row is advised on every run, so a claim nothing decides cannot hide
+// behind a green; whether a row is honest stays with review.
+const INVARIANTS_HEADER = "| Claim | Held by | Rung |";
+const RUNGS = ["impossible", "generated cases", "listed cases", "advised", "review"];
+const HOLDER = /^`([^`]+)`(?: "([^"]+)")?$/;
+
+// Every row of the ledger's table after its header, as the line number and its cells, or null without the header.
+function invariantRows(text) {
+  const lines = text.replace(/\r\n/g, "\n").split("\n");
+  const start = lines.indexOf(INVARIANTS_HEADER);
+  if (start === -1) return null;
+  const rows = [];
+  for (let index = start + 2; index < lines.length && lines[index].startsWith("|"); index += 1) {
+    rows.push([index + 1, lines[index].trim().replace(/^\||\|$/g, "").split("|").map((cell) => cell.trim())]);
+  }
+  return rows;
+}
+
+// A holder is a tracked path that contains its needle, where one is given.
+function checkHolder(where, holder, tracked) {
+  const match = HOLDER.exec(holder);
+  if (match === null) problems.push(`${where}: a holder is a tracked path in backticks, with a quoted needle where the file holds more than one thing, or the word review`);
+  else if (!tracked.has(match[1])) problems.push(`${where}: holder ${match[1]} is not a tracked file`);
+  else if (match[2] !== undefined && !readFileSync(join(ROOT, match[1]), "utf-8").includes(match[2])) problems.push(`${where}: holder ${match[1]} does not contain '${match[2]}'`);
+}
+
+// One row holds three cells, a rung from the list, review paired with review, and a holder in the tree.
+function checkInvariantRow(where, cells, tracked) {
+  if (cells.length !== 3 || cells.some((cell) => !cell)) {
+    problems.push(`${where}: a row is a claim, a holder, and a rung, three cells and none empty`);
+    return;
+  }
+  const [claim, holder, rung] = cells;
+  if (!RUNGS.includes(rung)) problems.push(`${where}: rung '${rung}' is not one of ${RUNGS.join(", ")}`);
+  if (holder === "review") {
+    advice.push(`${where}: held by review alone, so nothing decides it; ${claim}`);
+    if (rung !== "review") problems.push(`${where}: a holder of review pairs only with the rung review`);
+    return;
+  }
+  if (rung === "review") problems.push(`${where}: the rung review pairs only with a holder of review`);
+  checkHolder(where, holder, tracked);
+}
+
+// Every row of the invariants ledger names a holder in the tree and a rung from the list, and every review row is advised.
+function checkInvariants() {
+  const ledger = join(ROOT, "docs", "INVARIANTS.md");
+  if (!existsSync(ledger)) return;
+  const rows = invariantRows(readFileSync(ledger, "utf-8"));
+  if (rows === null) {
+    problems.push(`docs/INVARIANTS.md: no table under the header ${INVARIANTS_HEADER}`);
+    return;
+  }
+  const tracked = new Set(trackedFiles());
+  for (const [line, cells] of rows) checkInvariantRow(`docs/INVARIANTS.md:${line}`, cells, tracked);
+}
+checkInvariants();
 
 // Whether a tracked path is a record, a file below a subfolder of docs/, which immutability keeps from being edited.
 function isRecord(rel) {
@@ -876,6 +936,7 @@ if (existsSync(pkg)) {
 const CHECK_NEEDS = [
   ["the STATE check", "STATE.md"],
   ["the upstream check", "docs/UPSTREAM.md"],
+  ["the invariants check", "docs/INVARIANTS.md"],
   ["the disposition check", "docs/inherited"],
   ["the template-copy check", "docs/inherited"],
   ["the rooms check", "docs/ARCHITECTURE.md"],

@@ -65,6 +65,7 @@ my_project/
 │   ├── ARCHITECTURE.md         # This file; the annotated map of the template
 │   ├── BASELINE.md             # The repository baseline (always-present files and their rules)
 │   ├── CONVENTIONS.md          # The documentation rulebook (frozen; do not edit)
+│   ├── INVARIANTS.md           # What must stay true about the product, each claim with its holder and rung
 │   └── decisions/              # Immutable decision records; the project's "why" log
 │
 ├── engines/                    # Self-contained, framework-free business engines (portable Clean Architecture cores)

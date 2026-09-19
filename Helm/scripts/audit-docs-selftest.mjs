@@ -215,6 +215,45 @@ function proveAppendedPlants() {
   if (!engines) console.log("version plant skipped: package.json declares no engines floor");
 }
 
+// Rows the invariants proof inserts below the ledger's header, each with the finding it must raise; a row
+// whose finding is null must pass, and the review row among them must also be advised.
+const INVARIANT_PLANTS = [
+  ["| Planted claim with a ghost holder. | `docs/GHOST-PLANTED.md` | listed cases |", "holder docs/GHOST-PLANTED.md is not a tracked file"],
+  ['| Planted claim with a missing needle. | `AGENTS.md` "planted needle nobody wrote" | listed cases |', "does not contain 'planted needle nobody wrote'"],
+  ['| Planted claim with a rung off the list. | `AGENTS.md` "Documentation index" | proved |', "rung 'proved' is not one of"],
+  ["| Planted claim held by review under another rung. | review | impossible |", "a holder of review pairs only with the rung review"],
+  ['| Planted claim with a file holder under the review rung. | `AGENTS.md` "Documentation index" | review |', "the rung review pairs only with a holder of review"],
+  ["| Planted claim short of a cell. | review |", "three cells and none empty"],
+  ["| Planted claim held by review. | review | review |", null],
+  ['| Planted legal claim with a needle. | `AGENTS.md` "Documentation index" | listed cases |', null],
+];
+
+/** Each malformed or unbound row raises its finding, a legal row raises none, the review row is advised, and the bytes come back. */
+function proveInvariantPlants() {
+  const path = join(ROOT, "docs", "INVARIANTS.md");
+  if (!existsSync(path)) {
+    console.log("invariant plants skipped: no docs/INVARIANTS.md in this tree");
+    return;
+  }
+  const original = readFileSync(path);
+  const lines = original.toString("utf-8").replace(/\r\n/g, "\n").split("\n");
+  const separator = lines.indexOf("| Claim | Held by | Rung |") + 1;
+  const planted = INVARIANT_PLANTS.map(([row]) => row);
+  writeFileSync(path, [...lines.slice(0, separator + 1), ...planted, ...lines.slice(separator + 1)].join("\n"));
+  try {
+    const all = audit();
+    const problems = all.filter((line) => !line.startsWith("  "));
+    INVARIANT_PLANTS.forEach(([row, needle], offset) => {
+      const where = `docs/INVARIANTS.md:${separator + 2 + offset}:`;
+      if (needle !== null) expect(problems, needle, `invariant plant ${JSON.stringify(row)}`);
+      else if (problems.some((p) => p.startsWith(where))) wrong(`the legal invariant row ${JSON.stringify(row)} was reported`);
+    });
+    expect(all, "held by review alone", "the review row");
+  } finally {
+    writeFileSync(path, original);
+  }
+}
+
 function proveStatePlants() {
   const path = join(ROOT, "STATE.md");
   if (!existsSync(path)) {
@@ -545,7 +584,7 @@ if (baseline.length > 0) {
   for (const p of baseline.slice(0, 5)) console.log(`  ${p}`);
   process.exit(1);
 }
-for (const proof of [proveFilePlants, proveTrackedPlants, proveRecordDashes, proveAppendedPlants, proveStatePlants, proveUpstreamPlants, provePalettePlant, proveCitationPlant, proveDensePlant, proveVocabularyPlant, proveSpellingPlant, proveImmutability, proveLinkRepair, proveRecordLinkPlant, proveAnchors, proveTemplateCopy, proveDisposition, proveIgnorePlant, proveStaleBranch, proveNoRemoteReport, proveUnrunReport]) {
+for (const proof of [proveFilePlants, proveTrackedPlants, proveRecordDashes, proveAppendedPlants, proveInvariantPlants, proveStatePlants, proveUpstreamPlants, provePalettePlant, proveCitationPlant, proveDensePlant, proveVocabularyPlant, proveSpellingPlant, proveImmutability, proveLinkRepair, proveRecordLinkPlant, proveAnchors, proveTemplateCopy, proveDisposition, proveIgnorePlant, proveStaleBranch, proveNoRemoteReport, proveUnrunReport]) {
   proof();
 }
 console.log(failures === 0 ? "every rule fires" : `${failures} rule(s) do not work`);

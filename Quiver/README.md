@@ -37,6 +37,7 @@ Quiver/
     ARCHITECTURE.md      The map of the inquiry.
     BIBLIOGRAPHY.md      Every consulted work, cited by key.
     CONVENTIONS.md       The frozen documentation rulebook.
+    INVARIANTS.md        What must stay true about the inquiry layer, each claim with its holder and rung.
     BASELINE.md          The repository baseline.
     decisions/           Immutable decision records.
     claims/              Immutable claim records, the inquiry's knowledge.

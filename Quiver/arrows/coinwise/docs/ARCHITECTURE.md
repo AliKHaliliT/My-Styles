@@ -15,6 +15,7 @@ coinwise/
 │   ├── ARCHITECTURE.md         # This file; the annotated map of the arrow
 │   ├── BASELINE.md             # The repository baseline (always-present files and their rules)
 │   ├── CONVENTIONS.md          # The documentation rulebook (frozen; do not edit)
+│   ├── INVARIANTS.md           # What must stay true about the product, each claim with its holder and rung
 │   ├── UPSTREAM.md             # What this arrow has for its style, until re-alignment resolves it
 │   ├── decisions/              # This arrow's own immutable decision records
 │   └── inherited/              # Keel's decision records, carried whole and byte-identical at the pin

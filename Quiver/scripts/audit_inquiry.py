@@ -34,9 +34,10 @@ LIVING = [
     "docs/BIBLIOGRAPHY.md",
     "docs/CONVENTIONS.md",
     "docs/BASELINE.md",
+    "docs/INVARIANTS.md",
 ]
-# The rulebook grows with the law it states, as the manual and the map grow with the system.
-FREE_GROWING = {"AGENTS.md", "README.md", "docs/ARCHITECTURE.md", "docs/BIBLIOGRAPHY.md", "docs/UPSTREAM.md", "docs/CONVENTIONS.md"}
+# The rulebook grows with the law it states, as the manual, the map, and the invariants ledger grow with the system.
+FREE_GROWING = {"AGENTS.md", "README.md", "docs/ARCHITECTURE.md", "docs/BIBLIOGRAPHY.md", "docs/UPSTREAM.md", "docs/CONVENTIONS.md", "docs/INVARIANTS.md"}
 BUDGET_LINES = 150
 HORIZON_DAYS = 90
 # In-flight work that has not moved in this long is either finished or stalled, and Now is
@@ -144,6 +145,13 @@ VOCABULARY = re.compile(
 # script, which carries the list, and the arrows, whose own audits read them; a record is skipped
 # by its depth under docs/.
 VOCABULARY_SKIP = ("arrows/", ".github/", "docs/CONVENTIONS.md", "scripts/audit_inquiry.py")
+# The invariants ledger's header row, the words a rung may be, and the shape of a holder: a tracked
+# path in backticks with an optional quoted needle the file must contain, or the word review, which
+# pairs only with the review rung. Every review row is advised on every run, so a claim nothing
+# decides cannot hide behind a green; whether a row is honest stays with review.
+INVARIANTS_HEADER = "| Claim | Held by | Rung |"
+RUNGS = ("impossible", "generated cases", "listed cases", "advised", "review")
+HOLDER = re.compile(r'^`([^`]+)`(?: "([^"]+)")?$')
 CODESPELL_SKIP = ".git,node_modules,.hypothesis,__pycache__,dist,package-lock.json,*.svg,*.png,*.ico,*.woff,*.woff2,*.map,decisions,claims,reviews,inherited,mockServiceWorker.js,arrows"
 CODESPELL_IGNORE = "accreting,afterall"
 # A prose paragraph that names this many references or more is an enumeration wearing prose, a
@@ -648,6 +656,63 @@ def flag_dead_links(problems: list[str], rel: str, path: Path) -> None:
                 problems.append(f"{rel}:{line_no}: links to {target}, which does not resolve")
 
 
+def invariant_rows(text: str) -> list[tuple[int, list[str]]] | None:
+    """Every row of the ledger's table after its header, as the line number and its cells, or None without the header."""
+    lines = text.split("\n")
+    if INVARIANTS_HEADER not in lines:
+        return None
+    start = lines.index(INVARIANTS_HEADER)
+    rows: list[tuple[int, list[str]]] = []
+    for index in range(start + 2, len(lines)):
+        if not lines[index].startswith("|"):
+            break
+        rows.append((index + 1, [cell.strip() for cell in lines[index].strip().strip("|").split("|")]))
+    return rows
+
+
+def check_holder(problems: list[str], where: str, holder: str, tracked: set[str]) -> None:
+    """A holder is a tracked path that contains its needle, where one is given."""
+    match = HOLDER.match(holder)
+    if match is None:
+        problems.append(f"{where}: a holder is a tracked path in backticks, with a quoted needle where the file holds more than one thing, or the word review")
+    elif match.group(1) not in tracked:
+        problems.append(f"{where}: holder {match.group(1)} is not a tracked file")
+    elif match.group(2) is not None and match.group(2) not in (ROOT / match.group(1)).read_text(encoding="utf-8", errors="replace"):
+        problems.append(f"{where}: holder {match.group(1)} does not contain {match.group(2)!r}")
+
+
+def check_invariant_row(problems: list[str], advice: list[str], where: str, cells: list[str], tracked: set[str]) -> None:
+    """One row holds three cells, a rung from the list, review paired with review, and a holder in the tree."""
+    if len(cells) != 3 or not all(cells):
+        problems.append(f"{where}: a row is a claim, a holder, and a rung, three cells and none empty")
+        return
+    claim, holder, rung = cells
+    if rung not in RUNGS:
+        problems.append(f"{where}: rung {rung!r} is not one of {', '.join(RUNGS)}")
+    if holder == "review":
+        advice.append(f"{where}: held by review alone, so nothing decides it; {claim}")
+        if rung != "review":
+            problems.append(f"{where}: a holder of review pairs only with the rung review")
+        return
+    if rung == "review":
+        problems.append(f"{where}: the rung review pairs only with a holder of review")
+    check_holder(problems, where, holder, tracked)
+
+
+def check_invariants(problems: list[str], advice: list[str], root: Path) -> None:
+    """Every row of the invariants ledger names a holder in the tree and a rung from the list, and every review row is advised."""
+    ledger = root / "docs/INVARIANTS.md"
+    if not ledger.exists():
+        return
+    rows = invariant_rows(ledger.read_text(encoding="utf-8"))
+    if rows is None:
+        problems.append(f"docs/INVARIANTS.md: no table under the header {INVARIANTS_HEADER}")
+        return
+    tracked = set(tracked_files())
+    for line, cells in rows:
+        check_invariant_row(problems, advice, f"docs/INVARIANTS.md:{line}", cells, tracked)
+
+
 def check_record_links(problems: list[str], root: Path) -> None:
     """Every relative link in a record of the project's own resolves; the inherited folder is checked where it was written."""
     docs = root / "docs"
@@ -1080,6 +1145,7 @@ def movement_base(problems: list[str], root: Path, arrow: str, number: str, pin:
 CHECK_NEEDS = (
     ("check_state", "STATE.md"),
     ("check_upstream", "docs/UPSTREAM.md"),
+    ("check_invariants", "docs/INVARIANTS.md"),
     ("check_dispositions", "docs/inherited"),
     ("check_template_copies", "docs/inherited"),
     ("check_reviews", "docs/reviews"),
@@ -1118,6 +1184,7 @@ def run(root: Path) -> tuple[list[str], list[str]]:
             advise_dense_paragraphs(advice, rel, (root / rel).read_text(encoding="utf-8"))
     advise_vocabulary(advice, root)
     check_living(problems, root)
+    check_invariants(problems, advice, root)
     check_references(problems, root)
     check_record_links(problems, root)
     check_rooms(problems, root)
@@ -1584,6 +1651,51 @@ def prove_inherited_record() -> int:
         inherited.unlink()
         if not inherited_existed:
             inherited_dir.rmdir()
+    return failures
+
+
+# Rows the invariants proof inserts below the ledger's header, each with the finding it must raise; a
+# row whose finding is None must pass, and the review row among them must also be advised.
+INVARIANT_PLANTS = [
+    ("| Planted claim with a ghost holder. | `docs/GHOST-PLANTED.md` | listed cases |", "holder docs/GHOST-PLANTED.md is not a tracked file"),
+    ('| Planted claim with a missing needle. | `AGENTS.md` "planted needle nobody wrote" | listed cases |', "does not contain 'planted needle nobody wrote'"),
+    ('| Planted claim with a rung off the list. | `AGENTS.md` "Documentation index" | proved |', "rung 'proved' is not one of"),
+    ("| Planted claim held by review under another rung. | review | impossible |", "a holder of review pairs only with the rung review"),
+    ('| Planted claim with a file holder under the review rung. | `AGENTS.md` "Documentation index" | review |', "the rung review pairs only with a holder of review"),
+    ("| Planted claim short of a cell. | review |", "three cells and none empty"),
+    ("| Planted claim held by review. | review | review |", None),
+    ('| Planted legal claim with a needle. | `AGENTS.md` "Documentation index" | listed cases |', None),
+]
+
+
+def prove_invariant_plants() -> int:
+    """Each malformed or unbound row raises its finding, a legal row raises none, the review row is advised, and the bytes come back."""
+    ledger = ROOT / "docs/INVARIANTS.md"
+    if not ledger.exists():
+        print("invariant plants skipped: no docs/INVARIANTS.md in this tree")
+        return 0
+    original = ledger.read_bytes()
+    lines = original.decode("utf-8").replace("\r\n", "\n").split("\n")
+    separator = lines.index(INVARIANTS_HEADER) + 1
+    planted = [row for row, _ in INVARIANT_PLANTS]
+    ledger.write_bytes("\n".join(lines[: separator + 1] + planted + lines[separator + 1 :]).encode("utf-8"))
+    failures = 0
+    try:
+        problems, advice = run(ROOT)
+        for offset, (row, needle) in enumerate(INVARIANT_PLANTS):
+            where = f"docs/INVARIANTS.md:{separator + 2 + offset}:"
+            if needle is not None:
+                if not any(needle in p for p in problems):
+                    failures += 1
+                    print(f"WRONG: invariant plant {row!r} did not raise {needle!r}")
+            elif any(p.startswith(where) for p in problems):
+                failures += 1
+                print(f"WRONG: the legal invariant row {row!r} was reported")
+        if not any("held by review alone" in a for a in advice):
+            failures += 1
+            print("WRONG: the review row was not advised")
+    finally:
+        ledger.write_bytes(original)
     return failures
 
 
@@ -2112,6 +2224,7 @@ def selftest() -> int:
         prove_record_dashes,
         prove_inherited_record,
         prove_upstream_plants,
+        prove_invariant_plants,
         prove_figure_pair,
         prove_citation_plant,
         prove_dense_plant,
