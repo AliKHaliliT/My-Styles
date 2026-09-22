@@ -66,7 +66,11 @@ search answers.
 6. Resolution. Where two families claim one name, it goes to the family that
    owns the subject, and the genuine synonyms of the discarded copy are
    carried across. Where one word names two different things, it becomes two
-   entries.
+   entries. Where an earlier study's findings already carry a name in bold,
+   the entry stays, and the index of shared names above the studies gains a
+   row naming every holder and, once every holder's entry has been read, the
+   word same or different. The treasury audit at the repository root lists
+   the rows a fold owes, and a study lands with its rows written.
 
 ## The checks worth writing every time
 
@@ -252,7 +256,9 @@ findings it produced. The record carries the question, the method, the funnel
 counts at every stage, the filters that explain why the counts fall, and how
 verification was done. The findings carry what is meant to be reread. A study
 whose findings need more guidance carries one uppercase guide beside its
-records, and the ledger in the README gains its row. Once the family decides
+records, the ledger in the README gains its row, and the index of shared names
+gains a row for every bold name the study holds that an earlier study also
+holds. Once the family decides
 what to do with the findings, that disposition, the adoptions, the refusals,
 and the reasons, becomes a record in the treasury's decisions folder, so the
 next analysis starts from the settled answer instead of re-deriving it.

@@ -29,6 +29,10 @@ a name up rather than reading the vocabulary through.
 of an invariants ledger and lists the twenty-two shapes a claim takes, so a
 writer names what a product promises from the field's vocabulary rather than
 from memory.
+A name that more than one study carries in bold is listed in
+[SHARED-NAMES.md](SHARED-NAMES.md) with the studies that hold it and whether
+they mean the same thing by it, so a reader weighing a technique finds every
+price the treasury has put on it.
 
 Before running a new study, read [the method](HOW-TO-RUN-A-STUDY.md). It
 carries the six stages, the checks to write between them, and what the
@@ -94,6 +98,7 @@ check this folder; the question may already be settled.
 | [0035](decisions/0035-keep-an-invariants-ledger-and-refuse-the-cost-line-and-the-hook.md) | Study 0006's disposition: every seat keeps a ledger of its product's invariants, each row a claim, its holder and its rung, the audit holding the pointers and review the truth; the cost column and the commit hook refused with the conditions that reopen them |
 | [0036](decisions/0036-dispose-of-the-upstream-entry-of-2026-09-18-on-the-em-dash-count.md) | The entry from three seats at 6dab73e5a818, kept; the em dash count over records binds from the arrival of its scope sentence, so a record older than the rule is never judged and a red tree's selftest runs again |
 | [0037](decisions/0037-dispose-of-the-upstream-entry-of-2026-09-19-on-the-manifest-read-as-a-record.md) | The entry from a host-style project at 4ff17f806f49, kept; the immutability check no longer reads an arrow manifest as a record, and testing it exposed the list-marker hole repaired in the seats' own records |
+| [0038](decisions/0038-refuse-a-maintained-wiki-over-the-treasury-and-index-the-names-its-studies-share.md) | A published pattern for an agent-maintained wiki refused, since the studies are records and a rewritten page is held by review alone; the names the studies share, 178 at the ruling with 98 naming one thing, indexed in SHARED-NAMES.md, which the root audit holds to the findings |
 
 ## Rules of the folder
 
@@ -113,6 +118,10 @@ check this folder; the question may already be settled.
   treasury-level guide: living, rewritten in place as the method sharpens,
   and kept as brief as the method allows. The two are different species,
   which is why one sits beside the records and the other above them.
+- SHARED-NAMES.md is the folder's one index across studies: a living table
+  of every name two or more studies carry in bold, held to the findings by
+  the treasury audit at the repository root, its meaning column review's.
+  It grows with every study and never says what a study says, only where.
 - Studies are records in the family's document taxonomy. They are exempt
   from the line budget, immutable once merged, and corrected only by a later
   study that names what it supersedes.

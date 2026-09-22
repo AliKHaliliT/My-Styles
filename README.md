@@ -32,6 +32,8 @@ A curated collection of my custom software engineering templates, architectural 
 
 The [treasury](treasury/) holds research findings that no single style owns,
 recorded so each new style is designed from evidence rather than from memory.
-One study per folder, the research record before the findings. Its first study
+One study per folder, the research record before the findings, and one living
+table of the names more than one study holds, saying whether the studies mean
+the same thing by each. Its first study
 reduces 14,765 named software engineering concepts to the 125 primitive
 operations underneath them.
