@@ -100,6 +100,7 @@ check this folder; the question may already be settled.
 | [0037](decisions/0037-dispose-of-the-upstream-entry-of-2026-09-19-on-the-manifest-read-as-a-record.md) | The entry from a host-style project at 4ff17f806f49, kept; the immutability check no longer reads an arrow manifest as a record, and testing it exposed the list-marker hole repaired in the seats' own records |
 | [0038](decisions/0038-refuse-a-maintained-wiki-over-the-treasury-and-index-the-names-its-studies-share.md) | A published pattern for an agent-maintained wiki refused, since the studies are records and a rewritten page is held by review alone; the names the studies share, 178 at the ruling with 98 naming one thing, indexed in SHARED-NAMES.md, which the root audit holds to the findings |
 | [0039](decisions/0039-dispose-of-the-upstream-entries-of-2026-09-09-and-2026-09-22-from-the-client-style-s-projects.md) | Six entries from three client-style projects at e069bab and a0db0a4; the two security waivers refused as template changes since the waiver is the form, and four kept: the advisory dismissal's home, the link-repair proof, the console comment, and the ignored path read as prose, each landed in its own records |
+| [0040](decisions/0040-leave-a-merged-record-s-defects-standing-and-renounce-the-erratum.md) | A defect found in a merged record stays, wording, figure or punctuation alike, superseded where it changes the decision and never edited; a new rule binds from its arrival and a widening check moves its anchor, so no exception list ever forms; the one erratum of 2026-08-24 renounced as an allowance and left standing as history |
 
 ## Rules of the folder
 
@@ -125,7 +126,10 @@ check this folder; the question may already be settled.
   It grows with every study and never says what a study says, only where.
 - Studies are records in the family's document taxonomy. They are exempt
   from the line budget, immutable once merged, and corrected only by a later
-  study that names what it supersedes.
+  study that names what it supersedes. A defect found in a study after it
+  merged stays, a miscount included; a later study supersedes it where the
+  defect changes a finding, and nothing supersedes a wording. The same holds
+  for every ruling in the decisions folder.
 - Files are self-contained. The method, the numbers, and the findings live
   in the files themselves, never behind an external link.
 - Every byte follows the family prose rules. Written for a public audience,
