@@ -447,6 +447,58 @@ def check_record_links(problems: list[str]) -> None:
         check_links(problems, rel, path, path.read_text(encoding="utf-8"))
 
 
+SPLICE = re.compile(r"(?:^|(?<=[.!?] )|(?<=\*\* ))([^.!?:*]{0,400}?): (?=[a-z])")
+
+
+def landing_base() -> str | None:
+    """The ref a record counts as landed against: main, or the remote's main where the checkout has no local one."""
+    for ref in ("main", "origin/main"):
+        if git("rev-parse", "--verify", "--quiet", ref).strip():
+            return ref
+    return None
+
+
+def unlanded_records() -> list[str]:
+    """Records of the project's own that main does not hold yet: new or changed in the working tree, or in commits main lacks."""
+    prefix = git("rev-parse", "--show-prefix").strip()
+    paths = set(git("diff", "--name-only", "--relative", "HEAD").split("\n"))
+    paths |= set(git("ls-files", "--others", "--exclude-standard").split("\n"))
+    base = landing_base()
+    if base is not None:
+        for top in git("log", "--name-only", "--format=", f"{base}..HEAD").split("\n"):
+            if top.startswith(prefix):
+                paths.add(top[len(prefix):])
+    return sorted(p for p in paths if p and is_record(p) and not p.startswith("docs/inherited/") and (ROOT / p).is_file())
+
+
+def splice_candidates(text: str) -> list[tuple[int, str]]:
+    """Each prose line where a colon closes a clause of three words or more and a lowercase letter follows, with that clause."""
+    found: list[tuple[int, str]] = []
+    fence = False
+    for number, line in enumerate(text.splitlines(), 1):
+        if line.startswith("```"):
+            fence = not fence
+        elif not fence and not line.startswith(("#", "|", "Status:", "Date:")):
+            clauses = [m.group(1).strip() for m in SPLICE.finditer(BACKTICK.sub(" ", line)) if len(m.group(1).split()) >= 3]
+            if clauses:
+                found.append((number, clauses[0][-40:]))
+    return found
+
+
+def advise_splices(advice: list[str]) -> None:
+    """A colon opening a lowercase clause in a record main does not hold yet, advised and never gated.
+
+    A list colon and a spliced one look alike to a machine, so the verdict is the writer's, and the
+    advisory falls silent once the record has landed, because a defect found in a merged record stays.
+    """
+    for rel in unlanded_records():
+        for number, clause in splice_candidates((ROOT / rel).read_text(encoding="utf-8")):
+            advice.append(
+                f"{rel}:{number}: the colon after {clause!r} opens a lowercase clause;"
+                " a list, a quote or a label keeps its colon, and a spliced clause becomes two sentences"
+            )
+
+
 def advise_vocabulary(advice: list[str]) -> None:
     """The prose law's banned vocabulary in living prose and code, advised because an honest term reads like a tell."""
     for rel in tracked_files():
@@ -1298,6 +1350,7 @@ def run() -> tuple[list[str], list[str], list[Path]]:
     advice: list[str] = []
     advise_forms(advice)
     advise_vocabulary(advice)
+    advise_splices(advice)
     check_documents(problems)
     check_invariants(problems, advice)
     check_record_links(problems)
@@ -1972,6 +2025,30 @@ def prove_vocabulary_plant() -> int:
         agents.write_bytes(original)
 
 
+def prove_splice_advice() -> int:
+    """A spliced clause in a record main does not hold is advised once, the label and the list intro beside it are not, and the record leaves."""
+    decisions = ROOT / "docs/decisions"
+    if not decisions.is_dir():
+        print("splice plant skipped: no docs/decisions in this tree")
+        return 0
+    number = free_number(decisions, 900)
+    record = decisions / f"{number}-planted-splice.md"
+    record.write_text(
+        f"# {number}. Planted splice\n\nStatus: Accepted\nDate: 2026-01-01\n\n## Context\n\n"
+        "The reader found the second defect, which is why: the dot was gone.\n"
+        "- **A label.** Rejected: it duplicates what the tree records.\n"
+        "The audit gains three checks:\n",
+        encoding="utf-8",
+    )
+    try:
+        found = [a for a in run()[1] if record.name in a and "lowercase clause" in a]
+        if len(found) == 1 and f"{record.name}:8:" in found[0]:
+            return 0
+        return wrong(f"a planted splice was advised {len(found)} time(s) instead of once at line 8, {found}")
+    finally:
+        record.unlink()
+
+
 def prove_spelling_plant() -> int:
     """A misspelling appended to the README is advised where codespell is installed, and the bytes come back."""
     readme = ROOT / "README.md"
@@ -2090,6 +2167,7 @@ def selftest() -> int:
         prove_citation_plant,
         prove_dense_plant,
         prove_vocabulary_plant,
+        prove_splice_advice,
         prove_spelling_plant,
         prove_immutability,
         prove_bullet_edit,

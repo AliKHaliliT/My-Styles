@@ -1,4 +1,4 @@
-"""Audit the treasury's index of the names its studies share.
+"""Audit the treasury's index of the names its studies share, and advise on a colon splice before a record lands.
 
 A study is an immutable record and never cites another study, so a name that
 two studies both carry in bold is joined nowhere unless a living file joins it.
@@ -16,9 +16,16 @@ name is the text between one pair of double asterisks, joined across a line
 break when a line ends inside the pair and never across a blank line, compared
 lowercased with its whitespace collapsed and trailing punctuation dropped. A
 name of one or two characters is not counted.
+
+The second duty is advice. The prose law bans a colon that splices two clauses and leaves the verdict
+to review, because a list colon and a spliced one look alike to a machine. In a treasury record that
+main does not hold yet, a colon that closes a clause of three words or more and opens a lowercase one
+is printed as advice, and the advice falls silent once the record has landed, since a defect found
+in a merged record stays.
 """
 
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -29,6 +36,57 @@ INDEX_REL = f"treasury/{INDEX_NAME}"
 HEADER = "| Name | Studies | Meaning |"
 MEANINGS = ("same", "different")
 BOLD = re.compile(r"\*\*([^*]+?)\*\*")
+CODE = re.compile(r"`[^`\n]*`")
+SPLICE = re.compile(r"(?:^|(?<=[.!?] )|(?<=\*\* ))([^.!?:*]{0,400}?): (?=[a-z])")
+RECORD = re.compile(r"treasury/(?:decisions/[^/]+|\d{4}-[^/]+/\d\d-[^/]+)\.md$")
+
+
+def git(*args: str) -> str:
+    """One git call against the repository this file lives in; empty when git says no."""
+    # The arguments are this script's own constants and git is the tool the family runs on.
+    done = subprocess.run(["git", *args], cwd=ROOT, capture_output=True, text=True, check=False)
+    return done.stdout if done.returncode == 0 else ""
+
+
+def landing_base() -> str | None:
+    """The ref a record counts as landed against: main, or the remote's main where the checkout has no local one."""
+    for ref in ("main", "origin/main"):
+        if git("rev-parse", "--verify", "--quiet", ref).strip():
+            return ref
+    return None
+
+
+def unlanded_records() -> list[str]:
+    """Treasury records that main does not hold yet: new or changed in the working tree, or in commits main lacks."""
+    paths = set(git("diff", "--name-only", "HEAD").split("\n")) | set(git("ls-files", "--others", "--exclude-standard").split("\n"))
+    base = landing_base()
+    if base is not None:
+        paths |= set(git("log", "--name-only", "--format=", f"{base}..HEAD").split("\n"))
+    return sorted(p for p in paths if RECORD.match(p) and (ROOT / p).is_file())
+
+
+def splice_candidates(text: str) -> list[tuple[int, str]]:
+    """Each prose line where a colon closes a clause of three words or more and a lowercase letter follows, with that clause."""
+    found: list[tuple[int, str]] = []
+    fence = False
+    for number, line in enumerate(text.splitlines(), 1):
+        if line.startswith("```"):
+            fence = not fence
+        elif not fence and not line.startswith(("#", "|", "Status:", "Date:")):
+            clauses = [m.group(1).strip() for m in SPLICE.finditer(CODE.sub(" ", line)) if len(m.group(1).split()) >= 3]
+            if clauses:
+                found.append((number, clauses[0][-40:]))
+    return found
+
+
+def advise_splices(advice: list[str]) -> None:
+    """A colon opening a lowercase clause in a treasury record main does not hold yet, advised and never gated."""
+    for rel in unlanded_records():
+        for number, clause in splice_candidates((ROOT / rel).read_text(encoding="utf-8")):
+            advice.append(
+                f"{rel}:{number}: the colon after {clause!r} opens a lowercase clause;"
+                " a list, a quote or a label keeps its colon, and a spliced clause becomes two sentences"
+            )
 
 
 def findings_files(treasury: Path) -> list[Path]:
@@ -126,15 +184,17 @@ def check_index(rows: list[tuple[int, list[str]]] | None, shared: dict[str, list
         )
 
 
-def run(treasury: Path) -> tuple[list[str], int]:
-    """Every problem in the index of shared names, and the count of shared names."""
+def run(treasury: Path) -> tuple[list[str], list[str], int]:
+    """Every problem in the index of shared names, every piece of advice, and the count of shared names."""
     shared = shared_names(treasury)
+    advice: list[str] = []
+    advise_splices(advice)
     index = treasury / INDEX_NAME
     if not index.exists():
-        return [f"{INDEX_REL} is missing; the treasury indexes every name its studies share"], len(shared)
+        return [f"{INDEX_REL} is missing; the treasury indexes every name its studies share"], advice, len(shared)
     problems: list[str] = []
     check_index(index_rows(index.read_text(encoding="utf-8")), shared, problems)
-    return problems, len(shared)
+    return problems, advice, len(shared)
 
 
 def expect(problems: list[str], needle: str, what: str) -> int:
@@ -161,9 +221,29 @@ def prove_reader() -> int:
     return 1
 
 
+def prove_splice_advice() -> int:
+    """A spliced clause in a treasury record main does not hold is advised once, the label and the list intro beside it are not, and the record leaves."""
+    record = TREASURY / "decisions" / "9900-planted-splice.md"
+    record.write_text(
+        "# 9900. Planted splice\n\nStatus: Accepted\nDate: 2026-01-01\n\n## Context\n\n"
+        "The reader found the second defect, which is why: the dot was gone.\n"
+        "- **A label.** Rejected: it duplicates what the tree records.\n"
+        "The audit gains three checks:\n",
+        encoding="utf-8",
+    )
+    try:
+        found = [a for a in run(TREASURY)[1] if record.name in a and "lowercase clause" in a]
+        if len(found) == 1 and f"{record.name}:8:" in found[0]:
+            return 0
+        print(f"WRONG: a planted splice was advised {len(found)} time(s) instead of once at line 8, {found}")
+        return 1
+    finally:
+        record.unlink()
+
+
 def selftest() -> int:
     """Every check fires on a planted defect and stays silent on a sound index."""
-    failures = prove_reader()
+    failures = prove_reader() + prove_splice_advice()
     shared = shared_names(TREASURY)
     if len(shared) < 2:
         print("WRONG: fewer than two shared names in the treasury; the plants need two rows")
@@ -196,9 +276,13 @@ def main() -> int:
     """Hold the index of shared names to the findings, or prove the checks when asked."""
     if "--selftest" in sys.argv[1:]:
         return selftest()
-    problems, count = run(TREASURY)
+    problems, advice, count = run(TREASURY)
     for problem in problems:
         print(problem)
+    if advice:
+        print(f"advisory, {len(advice)} item(s), decides nothing and gates nothing:")
+        for line in advice:
+            print(f"  {line}")
     if problems:
         print(f"\n{len(problems)} problem(s). The index of shared names does not match the findings.")
         return 1

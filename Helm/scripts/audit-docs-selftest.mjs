@@ -363,6 +363,20 @@ function proveVocabularyPlant() {
   }
 }
 
+/** A spliced clause in a record main does not hold is advised once, the label and the list intro beside it are not, and the record leaves. */
+function proveSpliceAdvice() {
+  const number = freeNumber();
+  const name = `${number}-planted-splice.md`;
+  const path = join(ROOT, "docs", "decisions", name);
+  writeFileSync(path, `# ${number}. Planted splice\n\nStatus: Accepted\nDate: 2026-01-01\n\n## Context\n\nThe reader found the second defect, which is why: the dot was gone.\n- **A label.** Rejected: it duplicates what the tree records.\nThe audit gains three checks:\n`);
+  try {
+    const found = adviceLines().filter((line) => line.includes(name) && line.includes("lowercase clause"));
+    if (found.length !== 1 || !found[0].includes(`${name}:8:`)) wrong(`a planted splice was advised ${found.length} time(s) instead of once at line 8`);
+  } finally {
+    unlinkSync(path);
+  }
+}
+
 /** A misspelling appended to the README is advised where codespell is installed, and the bytes come back. */
 function proveSpellingPlant() {
   if (spawnSync("codespell", ["--version"], { encoding: "utf-8" }).status !== 0) {
@@ -643,7 +657,7 @@ if (baseline.length > 0) {
   for (const p of baseline.slice(0, 5)) console.log(`  ${p}`);
   process.exit(1);
 }
-for (const proof of [proveFilePlants, proveTrackedPlants, proveRecordDashes, proveAppendedPlants, proveInvariantPlants, proveStatePlants, proveUpstreamPlants, provePalettePlant, proveCitationPlant, proveDensePlant, proveVocabularyPlant, proveSpellingPlant, proveImmutability, proveBulletEdit, proveLinkRepair, proveIgnoredPath, proveRecordLinkPlant, proveAnchors, proveTemplateCopy, proveDisposition, proveIgnorePlant, proveStaleBranch, proveNoRemoteReport, proveUnrunReport]) {
+for (const proof of [proveFilePlants, proveTrackedPlants, proveRecordDashes, proveAppendedPlants, proveInvariantPlants, proveStatePlants, proveUpstreamPlants, provePalettePlant, proveCitationPlant, proveDensePlant, proveVocabularyPlant, proveSpliceAdvice, proveSpellingPlant, proveImmutability, proveBulletEdit, proveLinkRepair, proveIgnoredPath, proveRecordLinkPlant, proveAnchors, proveTemplateCopy, proveDisposition, proveIgnorePlant, proveStaleBranch, proveNoRemoteReport, proveUnrunReport]) {
   proof();
 }
 console.log(failures === 0 ? "every rule fires" : `${failures} rule(s) do not work`);

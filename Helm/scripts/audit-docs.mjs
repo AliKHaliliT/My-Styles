@@ -740,6 +740,50 @@ function adviseVocabulary() {
   }
 }
 
+const SPLICE = /(?:^|(?<=[.!?] )|(?<=\*\* ))([^.!?:*]{0,400}?): (?=[a-z])/g;
+
+// The ref a record counts as landed against: main, or the remote's main where the checkout has no local one.
+function landingBase() {
+  for (const ref of ["main", "origin/main"]) if (git("rev-parse", "--verify", "--quiet", ref).trim()) return ref;
+  return null;
+}
+
+// Records of the project's own that main does not hold yet: new or changed in the working tree, or in commits main lacks.
+function unlandedRecords() {
+  const prefix = git("rev-parse", "--show-prefix").trim();
+  const paths = new Set([...git("diff", "--name-only", "--relative", "HEAD").split("\n"), ...git("ls-files", "--others", "--exclude-standard").split("\n")]);
+  const base = landingBase();
+  if (base !== null) {
+    for (const top of git("log", "--name-only", "--format=", `${base}..HEAD`).split("\n")) if (top.startsWith(prefix)) paths.add(top.slice(prefix.length));
+  }
+  return [...paths].filter((p) => p && isRecord(p) && !p.startsWith("docs/inherited/") && existsSync(join(ROOT, p))).sort();
+}
+
+// Each prose line where a colon closes a clause of three words or more and a lowercase letter follows, with that clause.
+function spliceCandidates(text) {
+  const found = [];
+  let fence = false;
+  text.split(/\r?\n/).forEach((line, index) => {
+    if (line.startsWith("```")) fence = !fence;
+    else if (!fence && !/^(#|\||Status:|Date:)/.test(line)) {
+      const clauses = [...line.replace(BACKTICK, " ").matchAll(SPLICE)].map((m) => m[1].trim()).filter((c) => c.split(/\s+/).length >= 3);
+      if (clauses.length > 0) found.push([index + 1, clauses[0].slice(-40)]);
+    }
+  });
+  return found;
+}
+
+// A colon opening a lowercase clause in a record main does not hold yet, advised and never gated. A list colon
+// and a spliced one look alike to a machine, so the verdict is the writer's, and the advisory falls silent
+// once the record has landed, because a defect found in a merged record stays.
+function adviseSplices() {
+  for (const rel of unlandedRecords()) {
+    for (const [line, clause] of spliceCandidates(readFileSync(join(ROOT, rel), "utf-8"))) {
+      advice.push(`${rel}:${line}: the colon after '${clause}' opens a lowercase clause; a list, a quote or a label keeps its colon, and a spliced clause becomes two sentences`);
+    }
+  }
+}
+
 // Whether codespell is on the path; the spelling advisory runs only where it is and is named as not run elsewhere.
 function codespellPresent() {
   return spawnSync("codespell", ["--version"], { encoding: "utf-8" }).status === 0;
@@ -755,6 +799,7 @@ function adviseSpelling() {
   }
 }
 adviseVocabulary();
+adviseSplices();
 adviseSpelling();
 
 // The ignore file names every directory a second working tree may occupy, because a tree created
