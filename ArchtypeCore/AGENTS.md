@@ -19,8 +19,11 @@ command, and it means a rule the tool fully decides has been broken. A warning i
 advice, it leaves the exit status clean, and it comes from a check that cannot
 decide its own question and so is not allowed to gate. Advice is not noise and
 not optional reading. Every warning is looked at and then either fixed or
-dismissed in writing, in the change that produced it, and a warning is never
-silenced with a suppression comment to make a run look clean. The advisory checks here are the credential heuristics, run as `ruff check --select S105,S106 .`, which read any suggestive string as a possible secret and are wrong often enough that they cannot be a gate, the docs audit's vocabulary advisory, which reads an honest domain term the same as a tell and so advises for review, its spelling advisory, which runs where codespell is installed and names itself as not run elsewhere, and its form advisory, which counts the references a prose paragraph names and cannot tell an enumeration from an argument, so it advises a list or a table and gates nothing. A check the tree gave nothing to run is named as not run, with what it needs, so a clean verdict never hides a check that never looked.
+dismissed in writing in the commit message of the change that produced it, so
+the judgment outlives the run that asked for it, and a warning is never
+silenced with a suppression comment to make a run look clean. A finding
+printed on every run by design, like a review row of the invariants ledger,
+was answered by the record that made it so and needs no repetition. The advisory checks here are the credential heuristics, run as `ruff check --select S105,S106 .`, which read any suggestive string as a possible secret and are wrong often enough that they cannot be a gate, the docs audit's vocabulary advisory, which reads an honest domain term the same as a tell and so advises for review, its spelling advisory, which runs where codespell is installed and names itself as not run elsewhere, and its form advisory, which counts the references a prose paragraph names and cannot tell an enumeration from an argument, so it advises a list or a table and gates nothing. A check the tree gave nothing to run is named as not run, with what it needs, so a clean verdict never hides a check that never looked.
 
 ## Hard rules
 
@@ -68,7 +71,7 @@ Closing a task follows one loop: run the checking commands above, weigh the chan
 - **Debt**: every shortcut taken is written in STATE.md before delivery, never carried in memory.
 - **Invariants bound**: every claim the change adds, moves, or retires has its row in `docs/INVARIANTS.md`, each row naming a holder in the tree and its rung, and a claim nothing decides is held by review and printed by the audit rather than carried in memory.
 - **Upstream honesty**: every workaround of template-owned bytes or template-prescribed behavior, and every improvement that qualified, is an entry in the project's `UPSTREAM.md` before delivery, nameless as to the project, and the closing note names each entry added by its heading, or says there is none.
-- **The commands**: every checking command above has passed against the final state of the tree, which is the tree that gets pushed, so a merge or a rebase after the last run makes a new final tree and the commands run again on it, and every advisory finding printed along the way has been read and then fixed or dismissed in writing.
+- **The commands**: every checking command above has passed against the final state of the tree, which is the tree that gets pushed, so a merge or a rebase after the last run makes a new final tree and the commands run again on it, and every advisory finding printed along the way has been read and then fixed or dismissed in the commit message.
 - **The hard rules**: the change disagrees with no review-held clause of this guide's Hard rules, re-read now, not recalled.
 
 ## The upstream report
