@@ -56,6 +56,28 @@ def record_text(number: str, title: str, today: str) -> str:
     )
 
 
+def write_superseded_pair(decisions: Path, number: int, today: str) -> None:
+    """An own record superseded in the prescribed form, and the superseder linking it from the body.
+
+    The templates' own first records are accepted, so their selftests never meet a first record whose
+    only link sits on the Status line, the one line the link-repair clause leaves free. A project's
+    first record is often superseded, so the child carries the case and the proof must land in a body.
+    """
+    old_name = f"{number:04d}-a-record-superseded-in-the-prescribed-form.md"
+    new_name = f"{number + 1:04d}-a-record-that-supersedes-an-earlier-one.md"
+    old_text = record_text(f"{number:04d}", "A record superseded in the prescribed form", today)
+    (decisions / old_name).write_text(
+        old_text.replace("Status: Accepted", f"Status: Superseded by [{number + 1:04d}]({new_name})"), encoding="utf-8"
+    )
+    new_text = record_text(f"{number + 1:04d}", "A record that supersedes an earlier one", today)
+    (decisions / new_name).write_text(
+        new_text.replace(
+            "It has one.", f"It supersedes [{number:04d}, a record superseded in the prescribed form]({old_name})."
+        ),
+        encoding="utf-8",
+    )
+
+
 def shape_child(child: Path, style: str, pin: str, today: str) -> None:
     """Give the copy the shape adoption gives a project."""
     decisions = child / "docs/decisions"
@@ -77,6 +99,7 @@ def shape_child(child: Path, style: str, pin: str, today: str) -> None:
     dashed_record = decisions / f"{own + 2:04d}-a-record-from-before-the-budget-arrived.md"
     dashed_text = record_text(f"{own + 2:04d}", "A record from before the budget arrived", today)
     dashed_record.write_text(dashed_text.replace("It has one.", "It has one \u2014 with three dashes \u2014 from before the count \u2014 arrived."), encoding="utf-8")
+    write_superseded_pair(decisions, own + 3, today)
     (child / "docs/UPSTREAM.md").write_text(
         "# Upstream\n\n"
         f"Aligned to {style} at `{pin}`.\n\n"

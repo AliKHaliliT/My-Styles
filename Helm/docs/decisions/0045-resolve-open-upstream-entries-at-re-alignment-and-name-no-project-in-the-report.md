@@ -1,6 +1,6 @@
 # 0045. Resolve open upstream entries at re-alignment and name no project in the report
 
-Status: Superseded by 0048
+Status: Superseded by [0048](0048-keep-upstream-entries-in-one-living-document-until-they-resolve.md)
 Date: 2026-09-07
 
 ## Context

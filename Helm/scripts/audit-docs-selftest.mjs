@@ -417,16 +417,38 @@ function proveBulletEdit() {
   console.log("bullet edit plant skipped: no accepted record of this project's own carries a list line");
 }
 
-/** The first record of the project's own that carries a relative link, with that link's target, or null. */
+/**
+ * The first relative link target on a line of a record other than its Status line, or null. A
+ * superseded record links its superseder from its Status line, the one line every edit is legal on,
+ * so a plant there proves nothing about the clause that binds the body.
+ */
+function bodyLink(text) {
+  for (const line of text.split(/\r?\n/)) {
+    if (line.startsWith("Status:")) continue;
+    for (const match of line.matchAll(/\]\(([^)\s]+)\)/g)) {
+      if (!/^(https?:\/\/|#|mailto:)/.test(match[1])) return match[1];
+    }
+  }
+  return null;
+}
+
+/** The first record of the project's own with a relative link outside its Status line, with that link's target, or null. */
 function recordWithLink() {
   const folder = join(ROOT, "docs", "decisions");
   for (const name of readdirSync(folder).sort()) {
     if (!name.endsWith(".md")) continue;
-    for (const match of readFileSync(join(folder, name), "utf-8").matchAll(/\]\(([^)\s]+)\)/g)) {
-      if (!/^(https?:\/\/|#|mailto:)/.test(match[1])) return [join(folder, name), name, match[1]];
-    }
+    const target = bodyLink(readFileSync(join(folder, name), "utf-8"));
+    if (target !== null) return [join(folder, name), name, target];
   }
   return null;
+}
+
+/** The text with the first `](target)` outside its Status line replaced, so the plant lands where the clause binds. */
+function plantLink(text, target, replacement) {
+  const lines = text.split("\n");
+  const index = lines.findIndex((line) => !line.startsWith("Status:") && line.includes(`](${target})`));
+  if (index !== -1) lines[index] = lines[index].replace(`](${target})`, replacement);
+  return lines.join("\n");
 }
 
 /** A link target repaired to one that resolves passes; a changed link text or a target that does not resolve fails. */
@@ -441,11 +463,11 @@ function proveLinkRepair() {
   const text = original.toString("utf-8");
   const other = target.split("#")[0] !== "../CONVENTIONS.md" ? "../CONVENTIONS.md" : "../ARCHITECTURE.md";
   try {
-    writeFileSync(path, text.replace(`](${target})`, `](${other})`));
+    writeFileSync(path, plantLink(text, target, `](${other})`));
     if (audit().some((p) => p.includes("edited beyond its Status line"))) wrong(`repairing a link target in ${name} to one that resolves was reported as an illegal edit`);
-    writeFileSync(path, text.replace(`](${target})`, "](../GHOST-PLANTED.md)"));
+    writeFileSync(path, plantLink(text, target, "](../GHOST-PLANTED.md)"));
     expect(audit(), "edited beyond its Status line", `a link target in ${name} pointed at a ghost`);
-    writeFileSync(path, text.replace(`](${target})`, ` planted](${target})`));
+    writeFileSync(path, plantLink(text, target, ` planted](${target})`));
     expect(audit(), "edited beyond its Status line", `a link's text in ${name} changed`);
   } finally {
     writeFileSync(path, original);

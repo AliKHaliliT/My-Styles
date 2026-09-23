@@ -1828,14 +1828,40 @@ def prove_disposition() -> int:
     return failures
 
 
+def body_link(text: str) -> str | None:
+    """The first relative link target on a line of a record other than its Status line, or None.
+
+    A superseded record links its superseder from its Status line, the one line every edit is legal
+    on, so a plant there proves nothing about the clause that binds the body.
+    """
+    for line in text.splitlines():
+        if line.startswith("Status:"):
+            continue
+        targets: list[str] = LINK_TARGET.findall(line)
+        for target in targets:
+            if not target.startswith(("http://", "https://", "#", "mailto:")):
+                return target
+    return None
+
+
 def record_with_link(folders: tuple[str, ...]) -> tuple[Path, str] | None:
-    """The first record of the project's own in the folders that carries a relative link, with that link's target."""
+    """The first record of the project's own in the folders with a relative link outside its Status line, and that target."""
     for folder in folders:
         for record in sorted((ROOT / folder).glob("*.md")):
-            for target in LINK_TARGET.findall(record.read_text(encoding="utf-8")):
-                if not target.startswith(("http://", "https://", "#", "mailto:")):
-                    return record, target
+            target = body_link(record.read_text(encoding="utf-8"))
+            if target is not None:
+                return record, target
     return None
+
+
+def plant_link(text: str, target: str, replacement: str) -> str:
+    """The text with the first `](target)` outside its Status line replaced, so the plant lands where the clause binds."""
+    lines = text.split("\n")
+    for index, line in enumerate(lines):
+        if not line.startswith("Status:") and f"]({target})" in line:
+            lines[index] = line.replace(f"]({target})", replacement, 1)
+            break
+    return "\n".join(lines)
 
 
 def prove_link_repair() -> int:
@@ -1850,12 +1876,12 @@ def prove_link_repair() -> int:
     text = original.decode("utf-8")
     other = "../CONVENTIONS.md" if target.split("#", 1)[0] != "../CONVENTIONS.md" else "../ARCHITECTURE.md"
     try:
-        record.write_bytes(text.replace(f"]({target})", f"]({other})", 1).encode("utf-8"))
+        record.write_bytes(plant_link(text, target, f"]({other})").encode("utf-8"))
         if any("edited beyond its Status line" in p for p in run()[0]):
             failures += wrong(f"repairing a link target in {record.name} to one that resolves was reported as an illegal edit")
-        record.write_bytes(text.replace(f"]({target})", "](../GHOST-PLANTED.md)", 1).encode("utf-8"))
+        record.write_bytes(plant_link(text, target, "](../GHOST-PLANTED.md)").encode("utf-8"))
         failures += expect(run()[0], "edited beyond its Status line", f"a link target in {record.name} pointed at a ghost")
-        record.write_bytes(text.replace(f"]({target})", f" planted]({target})", 1).encode("utf-8"))
+        record.write_bytes(plant_link(text, target, f" planted]({target})").encode("utf-8"))
         failures += expect(run()[0], "edited beyond its Status line", f"a link's text in {record.name} changed")
     finally:
         record.write_bytes(original)

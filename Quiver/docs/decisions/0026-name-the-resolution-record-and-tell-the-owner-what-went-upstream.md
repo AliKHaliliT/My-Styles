@@ -1,6 +1,6 @@
 # 0026. Name the resolution record and tell the owner what went upstream
 
-Status: Superseded by 0027
+Status: Superseded by [0027](0027-keep-upstream-entries-in-one-living-document-until-they-resolve.md)
 Date: 2026-09-08
 
 ## Context

@@ -1,6 +1,6 @@
 # 0020. Give the upstream report a place and a defect class
 
-Status: Superseded by 0027
+Status: Superseded by [0027](0027-keep-upstream-entries-in-one-living-document-until-they-resolve.md)
 Date: 2026-09-07
 
 ## Context
