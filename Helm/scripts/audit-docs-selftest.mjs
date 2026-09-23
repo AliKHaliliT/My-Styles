@@ -198,13 +198,14 @@ function proveAppendedPlants() {
   proveAppended(
     "a plant on a living document",
     [
-      ["AGENTS.md", "\nNames `docs/GHOST-PLANTED.md` and links [nowhere](docs/NOWHERE-PLANTED.md) in passing.\n"],
+      ["AGENTS.md", "\nNames `docs/GHOST-PLANTED.md` and `.github/workflows/GHOST-PLANTED.yml` and links [nowhere](docs/NOWHERE-PLANTED.md) in passing.\n"],
       ["docs/ARCHITECTURE.md", "\n```text\nplanted/\n└── ghost_planted_file.ts\n```\n"],
       ["docs/BASELINE.md", "line\n".repeat(160)],
       ["README.md", `\nRequires Node ${claimed}+ here.\n`],
     ],
     [
       "names `docs/GHOST-PLANTED.md`, which does not exist",
+      "names `.github/workflows/GHOST-PLANTED.yml`, which does not exist",
       "links to docs/NOWHERE-PLANTED.md, which does not resolve",
       "the tree names ghost_planted_file.ts, which exists nowhere in this repository",
       `docs/BASELINE.md: `,
@@ -451,6 +452,22 @@ function plantLink(text, target, replacement) {
   return lines.join("\n");
 }
 
+/** A living document naming an ignored path under a folder that exists on this machine raises nothing. */
+function proveIgnoredPath() {
+  const agents = join(ROOT, "AGENTS.md");
+  const settings = join(ROOT, ".claude");
+  const created = !existsSync(settings);
+  if (created) mkdirSync(settings);
+  const original = readFileSync(agents);
+  try {
+    writeFileSync(agents, Buffer.concat([original, Buffer.from("\nNames `.claude/worktrees/` in passing.\n")]));
+    if (audit().some((p) => p.includes("`.claude/worktrees/`"))) wrong("an ignored path under a folder that exists on this machine was reported as one that does not exist");
+  } finally {
+    writeFileSync(agents, original);
+    if (created) rmSync(settings, { recursive: true });
+  }
+}
+
 /** A link target repaired to one that resolves passes; a changed link text or a target that does not resolve fails. */
 function proveLinkRepair() {
   const found = recordWithLink();
@@ -626,7 +643,7 @@ if (baseline.length > 0) {
   for (const p of baseline.slice(0, 5)) console.log(`  ${p}`);
   process.exit(1);
 }
-for (const proof of [proveFilePlants, proveTrackedPlants, proveRecordDashes, proveAppendedPlants, proveInvariantPlants, proveStatePlants, proveUpstreamPlants, provePalettePlant, proveCitationPlant, proveDensePlant, proveVocabularyPlant, proveSpellingPlant, proveImmutability, proveBulletEdit, proveLinkRepair, proveRecordLinkPlant, proveAnchors, proveTemplateCopy, proveDisposition, proveIgnorePlant, proveStaleBranch, proveNoRemoteReport, proveUnrunReport]) {
+for (const proof of [proveFilePlants, proveTrackedPlants, proveRecordDashes, proveAppendedPlants, proveInvariantPlants, proveStatePlants, proveUpstreamPlants, provePalettePlant, proveCitationPlant, proveDensePlant, proveVocabularyPlant, proveSpellingPlant, proveImmutability, proveBulletEdit, proveLinkRepair, proveIgnoredPath, proveRecordLinkPlant, proveAnchors, proveTemplateCopy, proveDisposition, proveIgnorePlant, proveStaleBranch, proveNoRemoteReport, proveUnrunReport]) {
   proof();
 }
 console.log(failures === 0 ? "every rule fires" : `${failures} rule(s) do not work`);

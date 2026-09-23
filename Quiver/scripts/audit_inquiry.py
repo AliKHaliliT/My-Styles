@@ -560,6 +560,26 @@ def check_claim_shape(problems: list[str], rel: str, text: str, lines: list[str]
         problems.append(f"{rel}: a Refuted claim names no reopening condition")
 
 
+def repo_relative(token: str) -> str:
+    """A backticked token as a path from the root, a leading ./ or / dropped and nothing else touched.
+
+    Stripping the characters . and / one by one also ate the dot of a dot-rooted path, so nothing
+    under .github/ or any other dot folder was ever judged.
+    """
+    return token[2:] if token.startswith("./") else token.lstrip("/")
+
+
+def ignored(token: str, root: Path) -> bool:
+    """Whether git ignores the path a token names, asked with its trailing slash kept so a directory pattern answers.
+
+    An ignored path is by declaration not part of the tree, so a living document naming one claims
+    nothing the tree can be held to, whatever happens to exist on the machine the audit runs on.
+    """
+    # The token comes from a tracked document and git is the tool the family runs on.
+    done = subprocess.run(["git", "check-ignore", "-q", "--", repo_relative(token)], cwd=root, capture_output=True, check=False)
+    return done.returncode == 0
+
+
 def claims_to_be_path(token: str, root: Path) -> bool:
     """Whether a backticked token is claiming to be a repository path.
 
@@ -572,7 +592,7 @@ def claims_to_be_path(token: str, root: Path) -> bool:
         return False
     if "://" in token or token.startswith(("http", "-", "@")):
         return False
-    first = token.lstrip("./").split("/")[0]
+    first = repo_relative(token).split("/")[0]
     return (root / first).exists()
 
 
@@ -641,7 +661,7 @@ def check_references(problems: list[str], root: Path) -> None:
         flag_dead_links(problems, rel, path)
         for line_no, line in enumerate(path.read_text(encoding="utf-8").split("\n"), 1):
             for token in PATH_TOKEN.findall(line):
-                if claims_to_be_path(token, root) and not (root / token).exists():
+                if claims_to_be_path(token, root) and not (root / repo_relative(token).rstrip("/")).exists() and not ignored(token, root):
                     problems.append(f"{rel}:{line_no}: names `{token}`, which does not exist")
 
 
@@ -1115,7 +1135,7 @@ def check_recorded(problems: list[str], rel: str, recorded: str, root: Path) -> 
             f"{rel}: recorded evidence names nothing preserved; name the artefact by path or say nothing preserved"
         )
     for token in named:
-        if not (root / token.lstrip("./")).exists():
+        if not (root / repo_relative(token)).exists():
             problems.append(f"{rel}: recorded evidence names `{token}`, which does not exist")
 
 
@@ -1902,6 +1922,26 @@ def prove_bullet_edit() -> int:
     return 0
 
 
+def prove_ignored_path() -> int:
+    """A living document naming an ignored path under a folder that exists on this machine raises nothing."""
+    agents = ROOT / "AGENTS.md"
+    settings = ROOT / ".claude"
+    created = not settings.exists()
+    if created:
+        settings.mkdir()
+    original = agents.read_bytes()
+    try:
+        agents.write_bytes(original + b"\nNames `.claude/worktrees/` in passing.\n")
+        if any("`.claude/worktrees/`" in p for p in run(ROOT)[0]):
+            print("WRONG: an ignored path under a folder that exists on this machine was reported as one that does not exist")
+            return 1
+        return 0
+    finally:
+        agents.write_bytes(original)
+        if created:
+            settings.rmdir()
+
+
 def prove_manifest_edit() -> int:
     """An edit to an arrow manifest's own words passes, because a manifest is a living document and never a record."""
     manifests = sorted((ROOT / "docs/arrows").glob("*.md")) if (ROOT / "docs/arrows").exists() else []
@@ -2303,6 +2343,7 @@ def selftest() -> int:
         prove_bullet_edit,
         prove_manifest_edit,
         prove_link_repair,
+        prove_ignored_path,
         prove_record_link_plant,
         prove_queue_age,
         prove_template_copy,

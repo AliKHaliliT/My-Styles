@@ -185,6 +185,26 @@ def drawn_entries(text: str) -> set[str]:
     return names
 
 
+def repo_relative(token: str) -> str:
+    """A backticked token as a path from the root, a leading ./ or / dropped and nothing else touched.
+
+    Stripping the characters . and / one by one also ate the dot of a dot-rooted path, so nothing
+    under .github/ or any other dot folder was ever judged.
+    """
+    return token[2:] if token.startswith("./") else token.lstrip("/")
+
+
+def ignored(token: str) -> bool:
+    """Whether git ignores the path a token names, asked with its trailing slash kept so a directory pattern answers.
+
+    An ignored path is by declaration not part of the tree, so a living document naming one claims
+    nothing the tree can be held to, whatever happens to exist on the machine the audit runs on.
+    """
+    # The token comes from a tracked document and git is the tool the family runs on.
+    done = subprocess.run(["git", "check-ignore", "-q", "--", repo_relative(token)], cwd=ROOT, capture_output=True, check=False)  # noqa: S603, S607
+    return done.returncode == 0
+
+
 def looks_like_path(token: str) -> bool:
     """Whether a backticked token is claiming to be a repository path."""
     if "/" not in token or " " in token:
@@ -195,7 +215,7 @@ def looks_like_path(token: str) -> bool:
         return False
     # Only claims rooted in something that exists at the repository root are checked;
     # a first segment the root does not know is prose, not a path (media types, examples).
-    first = token.lstrip("./").split("/")[0]
+    first = repo_relative(token).split("/")[0]
     return (ROOT / first).exists()
 
 
@@ -514,7 +534,7 @@ def check_backticked_claims(problems: list[str], rel: str, text: str, declared: 
     """Every backticked path exists and every backticked module under a root is on disk."""
     for match in BACKTICK.finditer(text):
         token = match.group(1).strip()
-        if looks_like_path(token) and not (ROOT / token.lstrip("./").rstrip("/")).exists():
+        if looks_like_path(token) and not (ROOT / repo_relative(token).rstrip("/")).exists() and not ignored(token):
             line = text.count("\n", 0, match.start()) + 1
             problems.append(f"{rel}:{line}: names `{token}`, which does not exist")
         elif DOTTED_MODULE.fullmatch(token) and token not in declared and missing_module(token):
@@ -1314,6 +1334,7 @@ FILE_PLANTS = [
 # Plants appended to a living document, whose bytes are restored afterwards.
 APPEND_PLANTS = [
     ("AGENTS.md", "\nNames `docs/GHOST-PLANTED.md` in passing.\n", "names `docs/GHOST-PLANTED.md`, which does not exist"),
+    ("AGENTS.md", "\nNames `.github/workflows/GHOST-PLANTED.yml` in passing.\n", "names `.github/workflows/GHOST-PLANTED.yml`, which does not exist"),
     ("AGENTS.md", "\nLinks [nowhere](docs/NOWHERE-PLANTED.md) in passing.\n", "links to docs/NOWHERE-PLANTED.md, which does not resolve"),
     (
         "docs/ARCHITECTURE.md",
@@ -1888,6 +1909,28 @@ def prove_link_repair() -> int:
     return failures
 
 
+def prove_ignored_path() -> int:
+    """A living document naming an ignored path under a folder that exists on this machine raises nothing."""
+    agents = ROOT / "AGENTS.md"
+    settings = ROOT / ".claude"
+    if not agents.exists():
+        print("ignored path plant skipped: no AGENTS.md in this tree")
+        return 0
+    created = not settings.exists()
+    if created:
+        settings.mkdir()
+    original = agents.read_bytes()
+    try:
+        agents.write_bytes(original + b"\nNames `.claude/worktrees/` in passing.\n")
+        if any("`.claude/worktrees/`" in p for p in run()[0]):
+            return wrong("an ignored path under a folder that exists on this machine was reported as one that does not exist")
+        return 0
+    finally:
+        agents.write_bytes(original)
+        if created:
+            settings.rmdir()
+
+
 def prove_record_link_plant() -> int:
     """A dead link in a record of the project's own is reported, and the same link in an inherited record is not."""
     decisions = ROOT / "docs/decisions"
@@ -2051,6 +2094,7 @@ def selftest() -> int:
         prove_immutability,
         prove_bullet_edit,
         prove_link_repair,
+        prove_ignored_path,
         prove_record_link_plant,
         prove_template_copy,
         prove_disposition,

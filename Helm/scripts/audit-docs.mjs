@@ -176,6 +176,15 @@ function looksLikePath(token) {
   return existsSync(resolve(ROOT, first));
 }
 
+/**
+ * Whether git ignores the path a token names, asked with its trailing slash kept so a directory pattern
+ * answers. An ignored path is by declaration not part of the tree, so a living document naming one claims
+ * nothing the tree can be held to, whatever happens to exist on the machine the audit runs on.
+ */
+function ignored(token) {
+  return spawnSync("git", ["check-ignore", "-q", "--", token.replace(/^\.?\//, "")], { cwd: ROOT }).status === 0;
+}
+
 function lineOf(text, index) {
   return text.slice(0, index).split("\n").length;
 }
@@ -275,7 +284,7 @@ for (const rel of LIVING) {
   for (const match of text.matchAll(BACKTICK)) {
     const token = match[1].trim();
     const target = resolve(ROOT, token.replace(/^\.?\//, "").replace(/\/$/, ""));
-    if (looksLikePath(token) && !existsSync(target)) {
+    if (looksLikePath(token) && !existsSync(target) && !ignored(token)) {
       problems.push(`${rel}:${lineOf(text, match.index)}: names \`${token}\`, which does not exist`);
     }
   }
