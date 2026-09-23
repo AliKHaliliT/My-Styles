@@ -99,6 +99,7 @@ check this folder; the question may already be settled.
 | [0036](decisions/0036-dispose-of-the-upstream-entry-of-2026-09-18-on-the-em-dash-count.md) | The entry from three seats at 6dab73e5a818, kept; the em dash count over records binds from the arrival of its scope sentence, so a record older than the rule is never judged and a red tree's selftest runs again |
 | [0037](decisions/0037-dispose-of-the-upstream-entry-of-2026-09-19-on-the-manifest-read-as-a-record.md) | The entry from a host-style project at 4ff17f806f49, kept; the immutability check no longer reads an arrow manifest as a record, and testing it exposed the list-marker hole repaired in the seats' own records |
 | [0038](decisions/0038-refuse-a-maintained-wiki-over-the-treasury-and-index-the-names-its-studies-share.md) | A published pattern for an agent-maintained wiki refused, since the studies are records and a rewritten page is held by review alone; the names the studies share, 178 at the ruling with 98 naming one thing, indexed in SHARED-NAMES.md, which the root audit holds to the findings |
+| [0039](decisions/0039-dispose-of-the-upstream-entries-of-2026-09-09-and-2026-09-22-from-the-client-style-s-projects.md) | Six entries from three client-style projects at e069bab and a0db0a4; the two security waivers refused as template changes since the waiver is the form, and four kept: the advisory dismissal's home, the link-repair proof, the console comment, and the ignored path read as prose, each landed in its own records |
 
 ## Rules of the folder
 

@@ -76,7 +76,7 @@ export default tseslint.config(
       // at which point the same two move to the @stylistic plugin.
       quotes: ["error", "double", { avoidEscape: true }],
       "jsx-quotes": ["error", "prefer-double"],
-      // Nothing prints from product code or its suites: a diagnostic surfaces as a typed error
+      // Nothing prints from product code or its suites. A diagnostic surfaces as a typed error
       // at the boundary, and the scripts, which are .mjs and lint under their own block, keep
       // console because their output is their purpose.
       "no-console": "error",
