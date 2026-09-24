@@ -45,6 +45,7 @@ when the trigger disappears.
 | File | Trigger |
 | --- | --- |
 | `LICENSE` | The repository is public. Owner-only; agents never touch it. |
+| `.codespellignore` | The spelling advisory names a real term of this project's domain. One word per line, the project's own list from adoption on and never recopied at re-alignment; the docs audit passes it to codespell when it exists. |
 | `.github/workflows/` | The project runs its checks on a hosted runner. `ci.yml` runs the commands AGENTS.md documents. GitHub reads workflows only from a repository root, so a copy nested inside another repository carries the file inertly. |
 | `util_resources/` | The repository carries tracked assets, each kind in a purpose-named subfolder. |
 | Arrow manifests and toolchains | Each arrow brings its own conditional files per its own style's baseline; Quiver adds none inside an arrow. |

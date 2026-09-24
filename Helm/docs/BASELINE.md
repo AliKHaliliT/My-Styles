@@ -39,6 +39,7 @@ Triggers are bidirectional. The file appears when its trigger appears and is rem
 | --- | --- |
 | `LICENSE` | The repository is public. The license text (American spelling: LICENSE), owner-only and effectively immutable; agents never touch it. A private repository or codebase omits it, and should, because with no license granted, default all-rights-reserved copyright applies, which is exactly the posture private code wants. |
 | `.env.example` | Anything reads environment configuration. Tracked and secret-free, it mirrors every variable the project consumes; real `.env` files stay ignored. |
+| `.codespellignore` | The spelling advisory names a real term of this project's domain. One word per line, the project's own list from adoption on and never recopied at re-alignment; the docs audit passes it to codespell when it exists. |
 | `.dockerignore` | A `Dockerfile` exists. |
 | `CHANGELOG.md` | The project is a versioned package that consumers upgrade through (see CONVENTIONS.md). |
 | `.github/workflows/` | The project runs its checks on a hosted runner. `ci.yml` runs the commands AGENTS.md documents, on push and on pull request, with `npm ci` standing in for `npm install` so the runner obeys the lockfile exactly. GitHub reads workflows only from a repository root, so a copy of this project nested inside another repository carries the file inertly until it becomes a root of its own. |

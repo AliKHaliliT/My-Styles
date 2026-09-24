@@ -38,6 +38,7 @@ Triggers are bidirectional. The file appears when its trigger appears and is rem
 | --- | --- |
 | `LICENSE` | The repository is public. The license text (American spelling: LICENSE), owner-only and effectively immutable; agents never touch it. A private repository or codebase omits it, and should, because with no license granted, default all-rights-reserved copyright applies, which is exactly the posture private code wants. |
 | `.env.example` | Anything reads a `.env`. Tracked and secret-free, it mirrors every variable the project consumes; the real `.env` stays ignored. |
+| `.codespellignore` | The spelling advisory names a real term of this project's domain. One word per line, the project's own list from adoption on and never recopied at re-alignment; the docs audit passes it to codespell when it exists. |
 | `.dockerignore` | A `Dockerfile` exists. |
 | `requirements.txt` / `pyproject.toml` | The project's dependency manifest, per project type. A deployed application declares its runtime dependencies in `requirements.txt`; an installable package declares everything in `pyproject.toml`, including its development dependency group. A project that runs tooling also needs a `pyproject.toml` to configure it, since ruff and mypy read their settings from nowhere else, and that file carries `[tool.*]` sections with no `[project]` table when the project is not a package. |
 | `CHANGELOG.md` | The project is a versioned package that consumers upgrade through (see CONVENTIONS.md). |

@@ -128,8 +128,10 @@ const VOCABULARY = /paradigm shift|game.changer|ever-evolving|cutting.edge|\bdel
 // What the two advisories skip: the workflows, the rulebook that lists the tells, and this
 // script, which carries the list; a record is skipped by its depth under docs/.
 const VOCABULARY_SKIP = [".github/", "docs/CONVENTIONS.md", "scripts/audit-docs.mjs", "scripts/audit-docs-selftest.mjs"];
-const CODESPELL_SKIP = ".git,node_modules,.hypothesis,__pycache__,dist,package-lock.json,*.svg,*.png,*.ico,*.woff,*.woff2,*.map,decisions,claims,reviews,inherited,mockServiceWorker.js";
-const CODESPELL_IGNORE = "accreting,afterall";
+// The audits are skipped as quoting ground, because they carry the banned-word list the vocabulary advisory reads.
+const CODESPELL_SKIP = ".git,node_modules,.hypothesis,__pycache__,dist,package-lock.json,*.svg,*.png,*.ico,*.woff,*.woff2,*.map,decisions,claims,reviews,inherited,mockServiceWorker.js,audit_docs.py,audit-docs.mjs,audit_inquiry.py";
+// The project's own terms, one word per line, beside the check and never recopied at re-alignment.
+const IGNORE_FILE = ".codespellignore";
 // A prose paragraph that names this many references or more is an enumeration wearing prose, a
 // list or a table with its rows run together; measured over the family and over a project built
 // from it, everything at this count was a schema stated as prose or a set of bindings, and
@@ -793,9 +795,10 @@ function codespellPresent() {
 // so it runs once per audit command, and the selftest proves it by the audit's own output.
 function adviseSpelling() {
   if (!codespellPresent()) return;
-  const done = spawnSync("codespell", ["--skip", CODESPELL_SKIP, "--ignore-words-list", CODESPELL_IGNORE, "."], { cwd: ROOT, encoding: "utf-8" });
+  const ownTerms = existsSync(join(ROOT, IGNORE_FILE)) ? ["--ignore-words", IGNORE_FILE] : [];
+  const done = spawnSync("codespell", ["--skip", CODESPELL_SKIP, ...ownTerms, "."], { cwd: ROOT, encoding: "utf-8" });
   for (const line of `${done.stdout}`.split("\n")) {
-    if (line.trim()) advice.push(`${line.trim()}; correct it, or name a domain term in the ignore list`);
+    if (line.trim()) advice.push(`${line.trim()}; correct it, or name a real term of the domain in ${IGNORE_FILE}, one word per line`);
   }
 }
 adviseVocabulary();

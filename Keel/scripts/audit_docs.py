@@ -147,8 +147,9 @@ VOCABULARY_SKIP = (".github/", "docs/CONVENTIONS.md", "scripts/audit_docs.py")
 INVARIANTS_HEADER = "| Claim | Held by | Rung |"
 RUNGS = ("impossible", "generated cases", "listed cases", "advised", "review")
 HOLDER = re.compile(r'^`([^`]+)`(?: "([^"]+)")?$')
-CODESPELL_SKIP = ".git,node_modules,.hypothesis,__pycache__,dist,package-lock.json,*.svg,*.png,*.ico,*.woff,*.woff2,*.map,decisions,claims,reviews,inherited,mockServiceWorker.js"
-CODESPELL_IGNORE = "accreting,afterall"
+# The audits are skipped as quoting ground, because they carry the banned-word list the vocabulary advisory reads.
+CODESPELL_SKIP = ".git,node_modules,.hypothesis,__pycache__,dist,package-lock.json,*.svg,*.png,*.ico,*.woff,*.woff2,*.map,decisions,claims,reviews,inherited,mockServiceWorker.js,audit_docs.py,audit-docs.mjs,audit_inquiry.py"
+IGNORE_FILE = ".codespellignore"
 # A prose paragraph that names this many references or more is an enumeration wearing prose, a
 # list or a table with its rows run together; measured over the family and over a project built
 # from it, everything at this count was a schema stated as prose or a set of bindings, and
@@ -523,9 +524,15 @@ def advise_spelling(advice: list[str]) -> None:
     tool = shutil.which("codespell")
     if tool is None:
         return
-    # The tool is a development dependency of the seat and the arguments are this script's own constants.
-    done = subprocess.run([tool, "--skip", CODESPELL_SKIP, "--ignore-words-list", CODESPELL_IGNORE, "."], cwd=ROOT, capture_output=True, text=True, check=False)  # noqa: S603
-    advice.extend(f"{line.strip()}; correct it, or name a domain term in the ignore list" for line in done.stdout.splitlines() if line.strip())
+    # The tool is a development dependency of the seat, and the arguments are this script's own constants
+    # and the project's own list of terms, which lives beside the check and is never recopied.
+    own_terms = ["--ignore-words", IGNORE_FILE] if (ROOT / IGNORE_FILE).is_file() else []
+    done = subprocess.run([tool, "--skip", CODESPELL_SKIP, *own_terms, "."], cwd=ROOT, capture_output=True, text=True, check=False)  # noqa: S603
+    advice.extend(
+        f"{line.strip()}; correct it, or name a real term of the domain in {IGNORE_FILE}, one word per line"
+        for line in done.stdout.splitlines()
+        if line.strip()
+    )
 
 
 def local_main() -> bool:
@@ -2067,6 +2074,31 @@ def prove_spelling_plant() -> int:
         readme.write_bytes(original)
 
 
+def prove_ignored_term() -> int:
+    """A misspelling named in the project's own ignore file is not advised, and both files come back."""
+    readme = ROOT / "README.md"
+    ignore = ROOT / IGNORE_FILE
+    if shutil.which("codespell") is None or not readme.exists():
+        print("ignored term plant skipped: codespell is not on PATH or no README.md in this tree")
+        return 0
+    original = readme.read_bytes()
+    had = ignore.read_bytes() if ignore.exists() else None
+    readme.write_bytes(original + b"\nThe reciever waits here.\n")  # codespell:ignore reciever
+    ignore.write_bytes((had or b"") + b"reciever\n")  # codespell:ignore reciever
+    try:
+        advice: list[str] = []
+        advise_spelling(advice)
+        if any("reciever ==> receiver" in a for a in advice):  # codespell:ignore reciever
+            return wrong(f"a misspelling named in {IGNORE_FILE} was still advised")
+        return 0
+    finally:
+        readme.write_bytes(original)
+        if had is None:
+            ignore.unlink()
+        else:
+            ignore.write_bytes(had)
+
+
 def prove_stale_branch() -> int:
     """A local branch already merged into main is reported, and the branch is removed again."""
     if not local_main():
@@ -2169,6 +2201,7 @@ def selftest() -> int:
         prove_vocabulary_plant,
         prove_splice_advice,
         prove_spelling_plant,
+        prove_ignored_term,
         prove_immutability,
         prove_bullet_edit,
         prove_link_repair,
