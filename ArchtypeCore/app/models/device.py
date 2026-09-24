@@ -1,9 +1,13 @@
-from sqlalchemy import (JSON, CheckConstraint, Column, ForeignKey, Integer,
-                        String, Text)
-from sqlalchemy.orm import relationship
+from typing import TYPE_CHECKING, Any
+
+from sqlalchemy import JSON, CheckConstraint, ForeignKey, Integer, String, Text
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from db.base import Base
 from db.mixins import TimestampMixin
+
+if TYPE_CHECKING:
+    from app.models.user import User
 
 
 class Device(Base, TimestampMixin):
@@ -20,20 +24,20 @@ class Device(Base, TimestampMixin):
 
     __tablename__ = "devices"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    device_name = Column(Text, nullable=False)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    device_name: Mapped[str] = mapped_column(Text, nullable=False)
     
     # Protocol Agnostic Fields
-    client_identifier = Column(String, unique=True, nullable=False, index=True)
-    protocol_data = Column(JSON, nullable=False, default=dict)
-    ip_address = Column(String, unique=True, nullable=True)
+    client_identifier: Mapped[str] = mapped_column(String, unique=True, nullable=False, index=True)
+    protocol_data: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False, default=dict)
+    ip_address: Mapped[str | None] = mapped_column(String, unique=True, nullable=True)
     
-    status = Column(
+    status: Mapped[str] = mapped_column(
         String,
         CheckConstraint("status IN ('enabled', 'disabled')"),
         default="enabled",
         nullable=False,
     )
 
-    user = relationship("User", back_populates="devices")
+    user: Mapped[User] = relationship("User", back_populates="devices")

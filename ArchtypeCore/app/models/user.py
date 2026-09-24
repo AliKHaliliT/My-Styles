@@ -1,9 +1,13 @@
-from sqlalchemy import (BigInteger, CheckConstraint, Column, Integer, String,
-                        Text)
-from sqlalchemy.orm import relationship
+from typing import TYPE_CHECKING
+
+from sqlalchemy import BigInteger, CheckConstraint, Integer, String, Text
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from db.base import Base
 from db.mixins import TimestampMixin
+
+if TYPE_CHECKING:
+    from app.models.device import Device
 
 
 class User(Base, TimestampMixin):
@@ -20,18 +24,18 @@ class User(Base, TimestampMixin):
 
     __tablename__ = "users"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    username = Column(Text, unique=True, nullable=False)
-    status = Column(
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    username: Mapped[str] = mapped_column(Text, unique=True, nullable=False)
+    status: Mapped[str] = mapped_column(
         String,
         CheckConstraint("status IN ('enabled', 'disabled')"),
         default="enabled",
         nullable=False,
     )
-    quota_bytes = Column(BigInteger, default=0, nullable=False)
-    used_bytes = Column(BigInteger, default=0, nullable=False)
+    quota_bytes: Mapped[int] = mapped_column(BigInteger, default=0, nullable=False)
+    used_bytes: Mapped[int] = mapped_column(BigInteger, default=0, nullable=False)
 
-    devices = relationship(
+    devices: Mapped[list[Device]] = relationship(
         "Device",
         back_populates="user",
         cascade="all, delete-orphan",
