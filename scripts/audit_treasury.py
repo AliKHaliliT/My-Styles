@@ -65,17 +65,40 @@ def unlanded_records() -> list[str]:
     return sorted(p for p in paths if RECORD.match(p) and (ROOT / p).is_file())
 
 
-def splice_candidates(text: str) -> list[tuple[int, str]]:
-    """Each prose line where a colon closes a clause of three words or more and a lowercase letter follows, with that clause."""
-    found: list[tuple[int, str]] = []
+def prose_blocks(text: str) -> list[list[tuple[int, str]]]:
+    """The prose of a record as blocks of numbered lines, a block ending at a blank line, a heading, a table row, a fence or a list marker."""
+    blocks: list[list[tuple[int, str]]] = []
     fence = False
     for number, line in enumerate(text.splitlines(), 1):
         if line.startswith("```"):
             fence = not fence
-        elif not fence and not line.startswith(("#", "|", "Status:", "Date:")):
-            clauses = [m.group(1).strip() for m in SPLICE.finditer(CODE.sub(" ", line)) if len(m.group(1).split()) >= 3]
-            if clauses:
-                found.append((number, clauses[0][-40:]))
+        elif fence or not line.strip() or line.startswith(("#", "|", "Status:", "Date:")):
+            blocks.append([])
+        elif line.startswith(("- ", "* ")) or not blocks:
+            blocks.append([(number, line)])
+        else:
+            blocks[-1].append((number, line))
+    return [block for block in blocks if block]
+
+
+def splice_candidates(text: str) -> list[tuple[int, str]]:
+    """Each colon in a record's prose that closes a clause of three words or more and opens a lowercase one, with the colon's line and its clause.
+
+    A block's lines are joined before matching, because a wrapped line can carry the colon while the
+    line above carries the clause, and a rule that read one line at a time passed exactly that shape.
+    """
+    found: list[tuple[int, str]] = []
+    for block in prose_blocks(text):
+        starts: list[int] = []
+        joined = ""
+        for _, line in block:
+            starts.append(len(joined))
+            joined += CODE.sub(" ", line) + " "
+        for match in SPLICE.finditer(joined):
+            if len(match.group(1).split()) >= 3:
+                colon = match.end() - 2
+                number = block[max(i for i, start in enumerate(starts) if start <= colon)][0]
+                found.append((number, match.group(1).strip()[-40:]))
     return found
 
 
@@ -228,14 +251,16 @@ def prove_splice_advice() -> int:
         "# 9900. Planted splice\n\nStatus: Accepted\nDate: 2026-01-01\n\n## Context\n\n"
         "The reader found the second defect, which is why: the dot was gone.\n"
         "- **A label.** Rejected: it duplicates what the tree records.\n"
-        "The audit gains three checks:\n",
+        "The audit gains three checks:\n\n"
+        "Reproduced in a fresh environment with the seat's development\n"
+        "requirements: the revealed type was nothing.\n",
         encoding="utf-8",
     )
     try:
         found = [a for a in run(TREASURY)[1] if record.name in a and "lowercase clause" in a]
-        if len(found) == 1 and f"{record.name}:8:" in found[0]:
+        if len(found) == 2 and f"{record.name}:8:" in found[0] and f"{record.name}:13:" in found[1]:
             return 0
-        print(f"WRONG: a planted splice was advised {len(found)} time(s) instead of once at line 8, {found}")
+        print(f"WRONG: the planted splices were advised {len(found)} time(s) instead of once each at lines 8 and 13, {found}")
         return 1
     finally:
         record.unlink()

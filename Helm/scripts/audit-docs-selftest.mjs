@@ -363,15 +363,15 @@ function proveVocabularyPlant() {
   }
 }
 
-/** A spliced clause in a record main does not hold is advised once, the label and the list intro beside it are not, and the record leaves. */
+/** Two spliced clauses in a record main does not hold are advised, one across a wrap, the label and the list intro are not, and the record leaves. */
 function proveSpliceAdvice() {
   const number = freeNumber();
   const name = `${number}-planted-splice.md`;
   const path = join(ROOT, "docs", "decisions", name);
-  writeFileSync(path, `# ${number}. Planted splice\n\nStatus: Accepted\nDate: 2026-01-01\n\n## Context\n\nThe reader found the second defect, which is why: the dot was gone.\n- **A label.** Rejected: it duplicates what the tree records.\nThe audit gains three checks:\n`);
+  writeFileSync(path, `# ${number}. Planted splice\n\nStatus: Accepted\nDate: 2026-01-01\n\n## Context\n\nThe reader found the second defect, which is why: the dot was gone.\n- **A label.** Rejected: it duplicates what the tree records.\nThe audit gains three checks:\n\nReproduced in a fresh environment with the seat's development\nrequirements: the revealed type was nothing.\n`);
   try {
     const found = adviceLines().filter((line) => line.includes(name) && line.includes("lowercase clause"));
-    if (found.length !== 1 || !found[0].includes(`${name}:8:`)) wrong(`a planted splice was advised ${found.length} time(s) instead of once at line 8`);
+    if (found.length !== 2 || !found[0].includes(`${name}:8:`) || !found[1].includes(`${name}:13:`)) wrong(`the planted splices were advised ${found.length} time(s) instead of once each at lines 8 and 13`);
   } finally {
     unlinkSync(path);
   }
