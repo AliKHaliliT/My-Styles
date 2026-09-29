@@ -44,7 +44,7 @@ reaches into an arrow, and an arrow's suite never checks a claim.
 
 ## Passes over the literature
 
-Reading enters the same chain as running. A pass over one slice of the question is bounded before it begins and leaves one dated record in the `reviews/` folder under `docs/`, naming what it searched, the stages it ran or collapsed, the keys it found, and the ledger entries it moved; the bibliography, the claims, and the decomposition hold what it found, so no synthesis document sits beside them to rot. The next pass over the slice extends the last from the date it stopped.
+Reading enters the same chain as running. A pass over one slice of the question is bounded before it begins and leaves one dated record in the `reviews/` folder under `docs/`, naming what it searched, the stages it ran or collapsed, the keys it found with the depth each was read at, and the ledger entries it moved; the bibliography, the claims, and the decomposition hold what it found, so no synthesis document sits beside them to rot. The next pass over the slice extends the last from the date it stopped.
 
 ## Exemplars
 
@@ -55,4 +55,4 @@ The map says where things live; these files say how they read. An artifact of a 
 - A decision record: `docs/decisions/0009-advise-only-on-movement-that-can-move-a-number.md`.
 - An arrow manifest: `docs/arrows/coinwise.md`.
 - The question with its decomposition: `docs/QUESTION.md`.
-- A review pass record: `docs/reviews/2026-09-05-tie-breaking-in-monetary-rounding.md`.
+- A review pass record: `docs/reviews/2026-09-29-tie-rules-in-runtime-defaults-and-a-filing-rule.md`.

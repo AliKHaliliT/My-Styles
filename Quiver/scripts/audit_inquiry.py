@@ -56,6 +56,13 @@ REVIEW_SECTIONS = ("## Slice", "## Boundary", "## Method", "## Stages", "## Foun
 REVIEW_STAGES = ("Scouting", "Enumeration", "Checks", "Completeness review", "Fold", "Resolution")
 STAGE_LINE = re.compile(r"^- (Scouting|Enumeration|Checks|Completeness review|Fold|Resolution): (ran|collapsed)\b(.*)$", re.MULTILINE)
 COMPLETENESS = re.compile(r"^Completeness: (exhausted|judgment)\s*$", re.MULTILINE)
+# The depth a pass read a work at, one word beside its key on its own line of Found: full where the
+# work itself was opened and read for the slice, abstract where only an abstract, a summary or a
+# snippet was, secondary where the work was known through another work and never opened.
+DEPTH_LINE = re.compile(r"^- \[([a-z][a-z0-9]*[0-9]{4}[a-z]?|[a-z][a-z0-9]*-[0-9]{4})\] (full|abstract|secondary)\s*$", re.MULTILINE)
+# The sentence that dates the depth rule in history, so the shape binds a pass added from the commit
+# that carries it on and never the pass that landed before it.
+DEPTH_SCOPE = "review passes held to a depth word beside every key in Found from the rule's arrival on"
 STATE_DATE = re.compile(r"\((\d{4}-\d{2}-\d{2})\)")
 # The upstream file a project built from this template carries: one Open section, entries dated by
 # heading with a kind, a pin, and four labeled parts, expiring on the same horizon as STATE.
@@ -306,11 +313,16 @@ def is_record(rel: str) -> bool:
     return rel.startswith("docs/") and rel.count("/") >= 2 and not rel.startswith("docs/arrows/")
 
 
+def bound_from_arrival(born: str | None, arrival: str | None) -> bool:
+    """Whether a rule that binds from its arrival judges a record: one not yet in history always, one in history only when born in the arrival commit or after it."""
+    return born is None or (arrival is not None and not is_before(born, arrival))
+
+
 def judged_for_dashes(rel: str, born: str | None, arrival: str | None) -> bool:
     """Whether a file's count is judged, which every editable file's is and a record's only when born in the commit that brought the scope or after it."""
     if not is_record(rel):
         return True
-    return born is None or (arrival is not None and not is_before(born, arrival))
+    return bound_from_arrival(born, arrival)
 
 
 def check_em_dashes(problems: list[str], root: Path) -> None:
@@ -1039,15 +1051,18 @@ def section_body(text: str, heading: str) -> str:
 
 
 def check_reviews(problems: list[str], root: Path) -> None:
-    """Every review pass carries its shape, names its boundary's completeness, runs or collapses each stage in writing, and names the pass it extends.
+    """Every review pass carries its shape, names its boundary's completeness, runs or collapses each stage in writing, names the pass it extends, and names a depth beside every key it found.
 
     Whether the boundary was well chosen or the reading was good stays with review; what is held
     here is that a pass claiming exhaustion ran the completeness review, that the checks never
-    collapse, and that a collapsed stage names its reason.
+    collapse, that a collapsed stage names its reason, and, for a pass added from the depth rule's
+    arrival on, that every key in Found carries one of the three depth words.
     """
     folder = root / "docs/reviews"
     if not folder.exists():
         return
+    arrival = first_commit(DEPTH_SCOPE, "scripts/audit_inquiry.py")
+    added = added_commits("docs/reviews")
     for path in sorted(folder.glob("*.md")):
         rel = f"docs/reviews/{path.name}"
         text = path.read_text(encoding="utf-8")
@@ -1061,6 +1076,16 @@ def check_reviews(problems: list[str], root: Path) -> None:
             problems.append(f"{rel}: the Boundary ends with a line Completeness: exhausted or Completeness: judgment")
         check_review_stages(problems, rel, section_body(text, "## Stages"), completeness)
         check_review_slice(problems, rel, path, section_body(text, "## Slice"))
+        if bound_from_arrival(added.get(rel), arrival):
+            check_review_depths(problems, rel, section_body(text, "## Found"))
+
+
+def check_review_depths(problems: list[str], rel: str, found_text: str) -> None:
+    """Every key the Found section names stands on its own line followed by the depth it was read at."""
+    marked = {key for key, _ in DEPTH_LINE.findall(found_text)}
+    for key in dict.fromkeys(CITE_KEY.findall(prose_only(found_text))):
+        if key not in marked:
+            problems.append(f"{rel}: Found names [{key}] without its depth; each key stands on its own line as - [{key}] full, abstract or secondary")
 
 
 def check_review_stages(problems: list[str], rel: str, stages_text: str, completeness: re.Match[str] | None) -> None:
@@ -1114,6 +1139,52 @@ def check_citations(problems: list[str], root: Path) -> None:
         for cited in CITE_KEY.findall(prose_only(path.read_text(encoding="utf-8"))):
             if cited not in keys:
                 problems.append(f"{path.relative_to(root)}: cited key [{cited}] not in the bibliography")
+
+
+def record_date(text: str) -> date:
+    """The Date line of a record, or the earliest date where the line is missing or malformed, which the shape check reports on its own."""
+    for line in text.split("\n"):
+        if line.startswith("Date: "):
+            try:
+                return date.fromisoformat(line[6:].strip())
+            except ValueError:
+                break
+    return date.min
+
+
+def latest_depths(root: Path) -> dict[str, tuple[str, str]]:
+    """Each key's depth in the latest pass that names it, with that pass's path, the latest by Date line and then by filename."""
+    latest: dict[str, tuple[date, str, str]] = {}
+    for path in sorted((root / "docs/reviews").glob("*.md")):
+        text = path.read_text(encoding="utf-8")
+        when = record_date(text)
+        for key, depth in DEPTH_LINE.findall(section_body(text, "## Found")):
+            if key not in latest or latest[key][0] <= when:
+                latest[key] = (when, depth, f"docs/reviews/{path.name}")
+    return {key: (depth, where) for key, (_, depth, where) in latest.items()}
+
+
+def advise_shallow_reads(advice: list[str], root: Path) -> None:
+    """A Supported claim whose Evidence cites a work no pass has read in full is advised, until a later pass reads it whole or the claim's Threats cite the key.
+
+    A key no pass names has no depth and is passed over, because the missing pass is the
+    pass-discipline item's finding and not this rule's.
+    """
+    if not (root / "docs/reviews").exists() or not (root / "docs/claims").exists():
+        return
+    depths = latest_depths(root)
+    for path in sorted((root / "docs/claims").glob("*.md")):
+        text = path.read_text(encoding="utf-8")
+        if "Status: Supported" not in text.split("\n"):
+            continue
+        threats = set(CITE_KEY.findall(prose_only(section_body(text, "## Threats"))))
+        for key in dict.fromkeys(CITE_KEY.findall(prose_only(section_body(text, "## Evidence")))):
+            depth, where = depths.get(key, ("full", ""))
+            if depth != "full" and key not in threats:
+                advice.append(
+                    f"docs/claims/{path.name}: Evidence cites [{key}], read at {depth} depth in {where};"
+                    " read it in full and extend the pass, or name the depth among the claim's threats"
+                )
 
 
 def check_arrows(problems: list[str], root: Path) -> None:
@@ -1255,6 +1326,7 @@ CHECK_NEEDS = (
     ("check_dispositions", "docs/inherited"),
     ("check_template_copies", "docs/inherited"),
     ("check_reviews", "docs/reviews"),
+    ("advise_shallow_reads", "docs/reviews"),
     ("check_arrows", "docs/arrows"),
     ("check_pins", "docs/claims"),
     ("check_record_links", "docs"),
@@ -1307,6 +1379,7 @@ def run(root: Path) -> tuple[list[str], list[str]]:
     check_figures(problems, root)
     check_reviews(problems, root)
     check_citations(problems, root)
+    advise_shallow_reads(advice, root)
     check_arrows(problems, root)
     check_pins(problems, advice, root)
     return problems, advice
@@ -1392,7 +1465,7 @@ REVIEW_TEMPLATE = (
     "- Completeness review: collapsed, no completeness is claimed.\n"
     "- Fold: collapsed, the ledger did not move.\n"
     "- Resolution: collapsed, no two sources conflict.\n\n"
-    "## Found\n\n[planted9999].\n\n## Changed\n\nNothing in the ledger.\n\n## Left out\n\nEvery database.\n"
+    "## Found\n\n- [planted9999] full\n\n## Changed\n\nNothing in the ledger.\n\n## Left out\n\nEvery database.\n"
 )
 REVIEW_PLANTS = [
     ("docs/reviews/2026-01-01-planted-no-boundary.md", REVIEW_TEMPLATE.replace("## Boundary", "## Bounds"), "section '## Boundary' missing"),
@@ -1402,7 +1475,14 @@ REVIEW_PLANTS = [
     ("docs/reviews/2026-01-01-planted-no-fold.md", REVIEW_TEMPLATE.replace("- Fold: collapsed, the ledger did not move.\n", ""), "stage Fold has no line"),
     ("docs/reviews/2026-01-01-planted-bare-collapse.md", REVIEW_TEMPLATE.replace("- Resolution: collapsed, no two sources conflict.", "- Resolution: collapsed."), "collapsed without a reason"),
     ("docs/reviews/2026-01-01-planted-dead-prior.md", REVIEW_TEMPLATE.replace("First pass over the planted slice.", "Extends [an earlier pass](2025-01-01-nothing-here.md)."), "which does not exist"),
+    ("docs/reviews/2026-01-01-planted-no-depth.md", REVIEW_TEMPLATE.replace("- [planted9999] full", "[planted9999], read in full."), "without its depth"),
 ]
+
+# The claim the depth advisory's plants share; its threats vary per plant.
+SHALLOW_CLAIM = (
+    "# {num}. Planted shallow claim\n\nStatus: Supported\nDate: 2026-01-01\n\n"
+    "## Claim\n\nx.\n\n## Evidence\n\nThe work says so in its abstract [planted9999].\n\n## Threats\n\n{threats}\n"
+)
 
 # Plants the tracked-tree checks can see; each is intent-to-added for one run.
 TRACKED_PLANTS = [
@@ -1552,6 +1632,48 @@ def prove_review_plants() -> int:
         if not reviews_existed and not any(reviews.iterdir()):
             reviews.rmdir()
     return failures
+
+
+def prove_shallow_read_advice() -> int:
+    """A Supported claim resting on a key read at abstract depth is advised once, silent when its threats name the key, and silent once a later pass reads the work whole."""
+    bibliography = ROOT / "docs/BIBLIOGRAPHY.md"
+    original = bibliography.read_bytes() if bibliography.exists() else None
+    bibliography.write_bytes((original or b"# Bibliography\n").rstrip(b"\n") + b"\n" + PLANTED_ENTRY)
+    reviews = ROOT / "docs/reviews"
+    reviews_existed = reviews.exists()
+    reviews.mkdir(exist_ok=True)
+    shallow = reviews / "2026-01-01-planted-shallow-pass.md"
+    deep = reviews / "2026-01-02-planted-deep-pass.md"
+    claim = ROOT / "docs/claims" / f"{free_number(ROOT / 'docs/claims', 900)}-planted-shallow-claim.md"
+    failures = 0
+    try:
+        shallow.write_text(REVIEW_TEMPLATE.replace("- [planted9999] full", "- [planted9999] abstract"), encoding="utf-8")
+        claim.write_text(SHALLOW_CLAIM.format(num=claim.name[:4], threats="- None named."), encoding="utf-8")
+        failures += expect_shallow_advice(claim.name, True, "a claim resting on an abstract read was not advised")
+        claim.write_text(SHALLOW_CLAIM.format(num=claim.name[:4], threats="- Depth. Read at abstract depth [planted9999]."), encoding="utf-8")
+        failures += expect_shallow_advice(claim.name, False, "a claim whose threats name the key was still advised")
+        claim.write_text(SHALLOW_CLAIM.format(num=claim.name[:4], threats="- None named."), encoding="utf-8")
+        deep.write_text(REVIEW_TEMPLATE.replace("Date: 2026-01-01", "Date: 2026-01-02"), encoding="utf-8")
+        failures += expect_shallow_advice(claim.name, False, "a claim whose work a later pass read whole was still advised")
+    finally:
+        for path in (shallow, deep, claim):
+            path.unlink(missing_ok=True)
+        if original is None:
+            bibliography.unlink()
+        else:
+            bibliography.write_bytes(original)
+        if not reviews_existed and not any(reviews.iterdir()):
+            reviews.rmdir()
+    return failures
+
+
+def expect_shallow_advice(claim_name: str, wanted: bool, wrong: str) -> int:
+    """Whether the depth advisory names the claim as wanted, one failure otherwise."""
+    found = [a for a in run(ROOT)[1] if claim_name in a and "abstract depth" in a]
+    if bool(found) == wanted:
+        return 0
+    print(f"WRONG: {wrong}, {found}")
+    return 1
 
 
 def prove_movement() -> int:
@@ -2353,6 +2475,17 @@ def prove_no_remote_report() -> int:
     return 1
 
 
+# Every rule that binds from its arrival, with the scope sentence that dates it, beside the immutability
+# scope, which the proof reports as skipped rather than passed while it has not reached history.
+ANCHORED_SCOPES = (
+    (RECORD_NAME_SCOPE, "filename cap"),
+    (STATE_AGE_SCOPE, "queue age"),
+    (DISPOSITION_SCOPE, "disposition"),
+    (EM_DASH_SCOPE, "em dash budget"),
+    (DEPTH_SCOPE, "depth"),
+)
+
+
 def prove_anchors() -> int:
     """Each history-reading rule's scope sentence is dated by the commit that introduced it.
 
@@ -2361,22 +2494,11 @@ def prove_anchors() -> int:
     sentence yet has nothing to prove and says so.
     """
     failures = 0
-    name_arrival = git("log", "--reverse", "--format=%H", "-S", RECORD_NAME_SCOPE, "--", "scripts/audit_inquiry.py").split()
-    if name_arrival and RECORD_NAME_SCOPE in git("show", f"{name_arrival[0]}^:scripts/audit_inquiry.py"):
-        failures += 1
-        print("WRONG: the filename cap anchor is older than the commit that introduced the current scope")
-    age_arrival = git("log", "--reverse", "--format=%H", "-S", STATE_AGE_SCOPE, "--", "scripts/audit_inquiry.py").split()
-    if age_arrival and STATE_AGE_SCOPE in git("show", f"{age_arrival[0]}^:scripts/audit_inquiry.py"):
-        failures += 1
-        print("WRONG: the queue age anchor is older than the commit that introduced the current scope")
-    disposition_arrival = git("log", "--reverse", "--format=%H", "-S", DISPOSITION_SCOPE, "--", "scripts/audit_inquiry.py").split()
-    if disposition_arrival and DISPOSITION_SCOPE in git("show", f"{disposition_arrival[0]}^:scripts/audit_inquiry.py"):
-        failures += 1
-        print("WRONG: the disposition anchor is older than the commit that introduced the current scope")
-    dash_arrival = git("log", "--reverse", "--format=%H", "-S", EM_DASH_SCOPE, "--", "scripts/audit_inquiry.py").split()
-    if dash_arrival and EM_DASH_SCOPE in git("show", f"{dash_arrival[0]}^:scripts/audit_inquiry.py"):
-        failures += 1
-        print("WRONG: the em dash budget anchor is older than the commit that introduced the current scope")
+    for scope, name in ANCHORED_SCOPES:
+        found = git("log", "--reverse", "--format=%H", "-S", scope, "--", "scripts/audit_inquiry.py").split()
+        if found and scope in git("show", f"{found[0]}^:scripts/audit_inquiry.py"):
+            failures += 1
+            print(f"WRONG: the {name} anchor is older than the commit that introduced the current scope")
     arrival = git("log", "--reverse", "--format=%H", "-S", IMMUTABILITY_SCOPE, "--", "scripts/audit_inquiry.py").split()
     if not arrival:
         print("anchor plant skipped: the immutability scope sentence has not reached history yet")
@@ -2461,6 +2583,7 @@ def selftest() -> int:
         prove_legal_plants,
         prove_unlisted_claim,
         prove_review_plants,
+        prove_shallow_read_advice,
         prove_movement,
         prove_quiet_move,
         prove_tracked_plants,

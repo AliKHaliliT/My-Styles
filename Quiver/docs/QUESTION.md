@@ -25,10 +25,17 @@ kind a maintainer decides by recollection unless someone runs it.
   and what the evidence supports is held in
   [claim 0005, Half even cancels the drift that half up accumulates](claims/0005-half-even-cancels-the-drift-that-half-up-accumulates.md).
   The experiment lives in the [coinwise](../arrows/coinwise/) arrow.
+- Constrained by what a runtime already does. Two runtimes default to
+  opposite tie rules, held in
+  [claim 0010, Two runtimes default to opposite tie rules](claims/0010-two-runtimes-default-to-opposite-tie-rules.md),
+  so the arrow pins its rule rather than inheriting one.
 - Not yet conjectured: how the answer changes when amounts carry more than
-  three decimals, and how tie density behaves on real price distributions
-  rather than a grid. Both are open for a conjecture whenever the inquiry
-  returns to them.
+  three decimals, how tie density behaves on real price distributions
+  rather than a grid, and whether a ledger that must show each line rounded
+  can still report its total rounded once from the exact sum, as a filing
+  rule requires [irs2025], which would make the tie rule a choice about
+  presentation rather than accumulation. All three are open for a
+  conjecture whenever the inquiry returns to them.
 
 ## Recorded shortenings
 
