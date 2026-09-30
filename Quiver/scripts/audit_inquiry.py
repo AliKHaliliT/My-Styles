@@ -60,6 +60,9 @@ COMPLETENESS = re.compile(r"^Completeness: (exhausted|judgment)\s*$", re.MULTILI
 # work itself was opened and read for the slice, abstract where only an abstract, a summary or a
 # snippet was, secondary where the work was known through another work and never opened.
 DEPTH_LINE = re.compile(r"^- \[([a-z][a-z0-9]*[0-9]{4}[a-z]?|[a-z][a-z0-9]*-[0-9]{4})\] (full|abstract|secondary)\s*$", re.MULTILINE)
+# The same mark in a table row, the key and its depth in the first two cells, where a pass classified
+# what it found and the further columns carry the facets.
+DEPTH_ROW = re.compile(r"^\| \[([a-z][a-z0-9]*[0-9]{4}[a-z]?|[a-z][a-z0-9]*-[0-9]{4})\] \| (full|abstract|secondary) \|", re.MULTILINE)
 # The sentence that dates the depth rule in history, so the shape binds a pass added from the commit
 # that carries it on and never the pass that landed before it.
 DEPTH_SCOPE = "review passes held to a depth word beside every key in Found from the rule's arrival on"
@@ -1080,12 +1083,17 @@ def check_reviews(problems: list[str], root: Path) -> None:
             check_review_depths(problems, rel, section_body(text, "## Found"))
 
 
+def depth_marks(found_text: str) -> list[tuple[str, str]]:
+    """Every key and depth the Found section marks, on a list line or in the first two cells of a table row."""
+    return [*DEPTH_LINE.findall(found_text), *DEPTH_ROW.findall(found_text)]
+
+
 def check_review_depths(problems: list[str], rel: str, found_text: str) -> None:
-    """Every key the Found section names stands on its own line followed by the depth it was read at."""
-    marked = {key for key, _ in DEPTH_LINE.findall(found_text)}
+    """Every key the Found section names stands on a list line or a table row followed by the depth it was read at."""
+    marked = {key for key, _ in depth_marks(found_text)}
     for key in dict.fromkeys(CITE_KEY.findall(prose_only(found_text))):
         if key not in marked:
-            problems.append(f"{rel}: Found names [{key}] without its depth; each key stands on its own line as - [{key}] full, abstract or secondary")
+            problems.append(f"{rel}: Found names [{key}] without its depth; each key stands on its own line as - [{key}] full, abstract or secondary, or in a table row as | [{key}] | full | with the facets after")
 
 
 def check_review_stages(problems: list[str], rel: str, stages_text: str, completeness: re.Match[str] | None) -> None:
@@ -1158,7 +1166,7 @@ def latest_depths(root: Path) -> dict[str, tuple[str, str]]:
     for path in sorted((root / "docs/reviews").glob("*.md")):
         text = path.read_text(encoding="utf-8")
         when = record_date(text)
-        for key, depth in DEPTH_LINE.findall(section_body(text, "## Found")):
+        for key, depth in depth_marks(section_body(text, "## Found")):
             if key not in latest or latest[key][0] <= when:
                 latest[key] = (when, depth, f"docs/reviews/{path.name}")
     return {key: (depth, where) for key, (_, depth, where) in latest.items()}
@@ -1476,6 +1484,7 @@ REVIEW_PLANTS = [
     ("docs/reviews/2026-01-01-planted-bare-collapse.md", REVIEW_TEMPLATE.replace("- Resolution: collapsed, no two sources conflict.", "- Resolution: collapsed."), "collapsed without a reason"),
     ("docs/reviews/2026-01-01-planted-dead-prior.md", REVIEW_TEMPLATE.replace("First pass over the planted slice.", "Extends [an earlier pass](2025-01-01-nothing-here.md)."), "which does not exist"),
     ("docs/reviews/2026-01-01-planted-no-depth.md", REVIEW_TEMPLATE.replace("- [planted9999] full", "[planted9999], read in full."), "without its depth"),
+    ("docs/reviews/2026-01-01-planted-table-no-depth.md", REVIEW_TEMPLATE.replace("- [planted9999] full", "| Key | Facet |\n| --- | --- |\n| [planted9999] | x |"), "without its depth"),
 ]
 
 # The claim the depth advisory's plants share; its threats vary per plant.
@@ -1614,16 +1623,19 @@ def prove_review_plants() -> int:
                     print(f"WRONG: review plant {rel} did not raise {expect!r}")
             finally:
                 target.unlink()
-        # The well-formed pass itself must pass, or the shape would forbid the only legal record.
-        target = ROOT / "docs/reviews/2026-01-01-planted-legal-pass.md"
-        target.write_text(REVIEW_TEMPLATE, encoding="utf-8")
-        try:
-            legal_review, _ = run(ROOT)
-            if any("2026-01-01-planted-legal-pass" in p for p in legal_review):
-                failures += 1
-                print(f"WRONG: a well-formed review pass raised {[p for p in legal_review if 'planted-legal-pass' in p][:2]}")
-        finally:
-            target.unlink()
+        # The well-formed passes must pass, the list form and the table form alike, or the shape would
+        # forbid the only legal records.
+        table = REVIEW_TEMPLATE.replace("- [planted9999] full", "| Key | Depth | Facet |\n| --- | --- | --- |\n| [planted9999] | full | x |")
+        for name, content in (("planted-legal-pass", REVIEW_TEMPLATE), ("planted-legal-table", table)):
+            target = ROOT / f"docs/reviews/2026-01-01-{name}.md"
+            target.write_text(content, encoding="utf-8")
+            try:
+                legal_review, _ = run(ROOT)
+                if any(name in p for p in legal_review):
+                    failures += 1
+                    print(f"WRONG: a well-formed review pass raised {[p for p in legal_review if name in p][:2]}")
+            finally:
+                target.unlink()
     finally:
         if original_bibliography is None:
             bibliography.unlink()
