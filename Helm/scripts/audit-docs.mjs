@@ -812,14 +812,21 @@ function codespellPresent() {
   return spawnSync("codespell", ["--version"], { encoding: "utf-8" }).status === 0;
 }
 
-// Misspellings in living prose and code, advised where codespell is installed; the pass spawns a process,
-// so it runs once per audit command, and the selftest proves it by the audit's own output.
+// The path a codespell line names, spelled as git lists it, the leading dot dropped and the separators forward.
+function spelledPath(line) {
+  return line.split(":", 1)[0].trim().replace(/\\/g, "/").replace(/^\.\//, "");
+}
+
+// Misspellings in the files git tracks, advised where codespell is installed; a finding on a path git does not
+// track is dropped, because the law binds a tracked byte. The pass spawns a process, so it runs once per audit
+// command, and the selftest proves it by the audit's own output.
 function adviseSpelling() {
   if (!codespellPresent()) return;
   const ownTerms = existsSync(join(ROOT, IGNORE_FILE)) ? ["--ignore-words", IGNORE_FILE] : [];
   const done = spawnSync("codespell", ["--skip", CODESPELL_SKIP, ...ownTerms, "."], { cwd: ROOT, encoding: "utf-8" });
+  const tracked = new Set(trackedFiles());
   for (const line of `${done.stdout}`.split("\n")) {
-    if (line.trim()) advice.push(`${line.trim()}; correct it, or name a real term of the domain in ${IGNORE_FILE}, one word per line`);
+    if (line.trim() && tracked.has(spelledPath(line))) advice.push(`${line.trim()}; correct it, or name a real term of the domain in ${IGNORE_FILE}, one word per line`);
   }
 }
 adviseVocabulary();

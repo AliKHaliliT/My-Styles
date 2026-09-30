@@ -460,7 +460,7 @@ def advise_vocabulary(advice: list[str], root: Path) -> None:
 
 
 def advise_spelling(advice: list[str], root: Path) -> None:
-    """Misspellings in living prose and code, advised where codespell is installed and named as not run elsewhere.
+    """Misspellings in the files git tracks, advised where codespell is installed and named as not run elsewhere; a finding on a path git does not track is dropped, because the law binds a tracked byte.
 
     The pass spawns a process, so it runs once per audit command rather than with the checks the
     proofs repeat forty times, and its proof calls it directly.
@@ -472,11 +472,17 @@ def advise_spelling(advice: list[str], root: Path) -> None:
     # and the project's own list of terms, which lives beside the check and is never recopied.
     own_terms = ["--ignore-words", IGNORE_FILE] if (root / IGNORE_FILE).is_file() else []
     done = subprocess.run([tool, "--skip", CODESPELL_SKIP, *own_terms, "."], cwd=root, capture_output=True, text=True, check=False)
+    tracked = set(tracked_files())
     advice.extend(
         f"{line.strip()}; correct it, or name a real term of the domain in {IGNORE_FILE}, one word per line"
         for line in done.stdout.splitlines()
-        if line.strip()
+        if line.strip() and spelled_path(line) in tracked
     )
+
+
+def spelled_path(line: str) -> str:
+    """The path a codespell line names, spelled as git lists it, the leading dot dropped and the separators forward."""
+    return line.split(":", 1)[0].strip().replace("\\", "/").removeprefix("./")
 
 
 def local_main() -> bool:
@@ -2668,6 +2674,24 @@ def prove_spelling_plant() -> int:
         readme.write_bytes(original)
 
 
+def prove_untracked_spelling() -> int:
+    """A misspelling in a file git does not track raises no spelling advice, and the file leaves."""
+    if shutil.which("codespell") is None:
+        print("untracked spelling plant skipped: codespell is not on PATH")
+        return 0
+    planted = ROOT / "PLANTED-UNTRACKED.txt"
+    planted.write_bytes(b"The reciever waits here.\n")  # codespell:ignore reciever
+    try:
+        advice: list[str] = []
+        advise_spelling(advice, ROOT)
+        if any("PLANTED-UNTRACKED" in a for a in advice):
+            print("WRONG: a misspelling in a file git does not track was advised")
+            return 1
+        return 0
+    finally:
+        planted.unlink()
+
+
 def prove_ignored_term() -> int:
     """A misspelling named in the project's own ignore file is not advised, and both files come back."""
     readme = ROOT / "README.md"
@@ -2846,6 +2870,7 @@ def selftest() -> int:
         prove_vocabulary_plant,
         prove_splice_advice,
         prove_spelling_plant,
+        prove_untracked_spelling,
         prove_ignored_term,
         prove_duplicate_numbers,
         prove_immutability,
