@@ -55,4 +55,4 @@ The map says where things live; these files say how they read. An artifact of a 
 - A decision record: `docs/decisions/0009-advise-only-on-movement-that-can-move-a-number.md`.
 - An arrow manifest: `docs/arrows/coinwise.md`.
 - The question with its decomposition: `docs/QUESTION.md`.
-- A review pass record: `docs/reviews/2026-09-29-tie-rules-in-runtime-defaults-and-a-filing-rule.md`.
+- A review pass record: `docs/reviews/2026-09-30-endings-of-retail-prices-in-one-index.md`.

@@ -70,6 +70,12 @@ DEPTH_SCOPE = "review passes held to a depth word beside every key in Found from
 # never rising, its last two numbers agreeing with the keys Found names and marks full.
 FLOW = re.compile(r"^Flow: retrieved (\d+), screened (\d+), entered (\d+), read in full (\d+)\s*$", re.MULTILINE)
 FLOW_SCOPE = "review passes held to a funnel line in Boundary from the rule's arrival on"
+# Who ran a stage that ran, the owner or the agent, roles and never names, so a reader knows which
+# stages a person judged and which a person has only read about.
+PROVENANCE = ("by the owner", "by the agent")
+PROVENANCE_SCOPE = "review passes held to who ran each stage from the rule's arrival on"
+# The rules that bind a pass from their own arrival, each dated by its scope sentence.
+ARRIVAL_SCOPES = {"depth": DEPTH_SCOPE, "flow": FLOW_SCOPE, "provenance": PROVENANCE_SCOPE}
 STATE_DATE = re.compile(r"\((\d{4}-\d{2}-\d{2})\)")
 # The upstream file a project built from this template carries: one Open section, entries dated by
 # heading with a kind, a pin, and four labeled parts, expiring on the same horizon as STATE.
@@ -1064,18 +1070,17 @@ def section_body(text: str, heading: str) -> str:
 
 
 def check_reviews(problems: list[str], root: Path) -> None:
-    """Every review pass carries its shape, names its boundary's completeness, runs or collapses each stage in writing, names the pass it extends, and names a depth beside every key it found.
+    """Every review pass carries its shape, names its boundary's completeness, runs or collapses each stage in writing, names the pass it extends, and, from each rule's arrival on, names a depth beside every key, counts its funnel and says who ran each stage.
 
     Whether the boundary was well chosen or the reading was good stays with review; what is held
     here is that a pass claiming exhaustion ran the completeness review, that the checks never
-    collapse, that a collapsed stage names its reason, and, for a pass added from the depth rule's
-    arrival on, that every key in Found carries one of the three depth words.
+    collapse, that a collapsed stage names its reason, and, for a pass added from each later rule's
+    arrival on, the shapes that rule added.
     """
     folder = root / "docs/reviews"
     if not folder.exists():
         return
-    arrival = first_commit(DEPTH_SCOPE, "scripts/audit_inquiry.py")
-    flow_arrival = first_commit(FLOW_SCOPE, "scripts/audit_inquiry.py")
+    arrivals = {name: first_commit(scope, "scripts/audit_inquiry.py") for name, scope in ARRIVAL_SCOPES.items()}
     added = added_commits("docs/reviews")
     for path in sorted(folder.glob("*.md")):
         rel = f"docs/reviews/{path.name}"
@@ -1090,10 +1095,25 @@ def check_reviews(problems: list[str], root: Path) -> None:
             problems.append(f"{rel}: the Boundary ends with a line Completeness: exhausted or Completeness: judgment")
         check_review_stages(problems, rel, section_body(text, "## Stages"), completeness)
         check_review_slice(problems, rel, path, section_body(text, "## Slice"))
-        if bound_from_arrival(added.get(rel), arrival):
-            check_review_depths(problems, rel, section_body(text, "## Found"))
-        if bound_from_arrival(added.get(rel), flow_arrival):
-            check_review_flow(problems, rel, section_body(text, "## Boundary"), section_body(text, "## Found"))
+        bound = {name: bound_from_arrival(added.get(rel), arrival) for name, arrival in arrivals.items()}
+        check_review_from_arrival(problems, rel, text, bound)
+
+
+def check_review_from_arrival(problems: list[str], rel: str, text: str, bound: dict[str, bool]) -> None:
+    """The shapes that bind a pass from their own arrival: the depth beside each key, the funnel line, and who ran each stage."""
+    if bound["depth"]:
+        check_review_depths(problems, rel, section_body(text, "## Found"))
+    if bound["flow"]:
+        check_review_flow(problems, rel, section_body(text, "## Boundary"), section_body(text, "## Found"))
+    if bound["provenance"]:
+        check_review_provenance(problems, rel, section_body(text, "## Stages"))
+
+
+def check_review_provenance(problems: list[str], rel: str, stages_text: str) -> None:
+    """Every stage that ran says who ran it, the owner or the agent."""
+    for name, mode, tail in STAGE_LINE.findall(stages_text):
+        if mode == "ran" and not tail.strip().startswith(PROVENANCE):
+            problems.append(f"{rel}: stage {name} ran without saying who ran it; a stage line reads ran by the owner or ran by the agent")
 
 
 def check_review_flow(problems: list[str], rel: str, boundary_text: str, found_text: str) -> None:
@@ -1598,8 +1618,8 @@ REVIEW_TEMPLATE = (
     "Flow: retrieved 1, screened 1, entered 1, read in full 1\nCompleteness: judgment\n\n"
     "## Method\n\nA scoping read of a known corpus.\n\n## Stages\n\n"
     "- Scouting: collapsed, the slice was already scouted by the question.\n"
-    "- Enumeration: ran, over the cited works.\n"
-    "- Checks: ran, every key resolves.\n"
+    "- Enumeration: ran by the agent, over the cited works.\n"
+    "- Checks: ran by the agent, every key resolves.\n"
     "- Completeness review: collapsed, no completeness is claimed.\n"
     "- Fold: collapsed, the ledger did not move.\n"
     "- Resolution: collapsed, no two sources conflict.\n\n"
@@ -1608,7 +1628,8 @@ REVIEW_TEMPLATE = (
 REVIEW_PLANTS = [
     ("docs/reviews/2026-01-01-planted-no-boundary.md", REVIEW_TEMPLATE.replace("## Boundary", "## Bounds"), "section '## Boundary' missing"),
     ("docs/reviews/2026-01-01-planted-exhausted.md", REVIEW_TEMPLATE.replace("Completeness: judgment", "Completeness: exhausted"), "ran the completeness review"),
-    ("docs/reviews/2026-01-01-planted-checks-collapsed.md", REVIEW_TEMPLATE.replace("- Checks: ran, every key resolves.", "- Checks: collapsed, no time this pass."), "the checks never collapse"),
+    ("docs/reviews/2026-01-01-planted-checks-collapsed.md", REVIEW_TEMPLATE.replace("- Checks: ran by the agent, every key resolves.", "- Checks: collapsed, no time this pass."), "the checks never collapse"),
+    ("docs/reviews/2026-01-01-planted-nobody-ran.md", REVIEW_TEMPLATE.replace("- Enumeration: ran by the agent, over the cited works.", "- Enumeration: ran, over the cited works."), "without saying who ran it"),
     ("docs/reviews/2026-01-01-planted-no-prior.md", REVIEW_TEMPLATE.replace("First pass over the planted slice.", "Extends an earlier pass."), "names the prior pass it extends or says First pass"),
     ("docs/reviews/2026-01-01-planted-no-fold.md", REVIEW_TEMPLATE.replace("- Fold: collapsed, the ledger did not move.\n", ""), "stage Fold has no line"),
     ("docs/reviews/2026-01-01-planted-bare-collapse.md", REVIEW_TEMPLATE.replace("- Resolution: collapsed, no two sources conflict.", "- Resolution: collapsed."), "collapsed without a reason"),
@@ -2709,6 +2730,7 @@ ANCHORED_SCOPES = (
     (EM_DASH_SCOPE, "em dash budget"),
     (DEPTH_SCOPE, "depth"),
     (FLOW_SCOPE, "funnel"),
+    (PROVENANCE_SCOPE, "provenance"),
 )
 
 
