@@ -8,3 +8,4 @@ What must stay true about this product, one row per claim, each bound to the hol
 | A payload that breaks the wire contract is refused before it reaches a component. | `tests/src/shared/api/client.test.ts` "refuses a payload that breaks the wire contract" | listed cases |
 | A 401 on any query or mutation signs the session out. | `tests/src/app/providers.test.ts` "signs out when a query errors with 401" | listed cases |
 | The mock backend is wired only when the build is not for production. | review | review |
+| No request from a suite leaves the loopback, through fetch or through a Node HTTP function imported by name. | `tests/src/mocks/node.test.ts` "imported by name" | listed cases |

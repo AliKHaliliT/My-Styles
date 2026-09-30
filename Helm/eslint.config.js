@@ -103,6 +103,14 @@ export default tseslint.config(
     },
   },
   {
+    // The suite that proves the loopback refusal takes the raw fetch entrance the rule above closes
+    // to product code, because that refusal is what stands behind the rule; no other suite may.
+    files: ["tests/src/mocks/node.test.ts"],
+    rules: {
+      "no-restricted-globals": "off",
+    },
+  },
+  {
     // Every export carries a doc comment; the one-sentence minimum is the convention in
     // the rulebook's code-level section. Suites are exempt by the same rule that keeps them
     // outside the every-export requirement, and they live outside src anyway. Where a comment
