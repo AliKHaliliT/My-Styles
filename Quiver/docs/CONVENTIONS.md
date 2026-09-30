@@ -66,6 +66,7 @@ Assistant-specific instruction files do not exist here; every assistant reads `A
 - The audit caps `Now` at five entries.
 - An entry in `Next`, `Deferred`, or `Blocked` whose text has stood unchanged, its date aside, for two horizons is a decision record trying to be born, so it is promoted to `Now`, written as a record and removed, or dropped; the audit reads the entry's age from history and fails it past that point, because the file's dates are last-verified stamps and cannot show it.
 - Execution tracking lives here and never in a record.
+- A pass over the literature queues in `Blocked` what it left to a person, one dated entry per source it could not open, search it prepared but could not run, or verification it needs, each naming what it waits on and why, and the entry is deleted when a later pass resolves it. The horizon and the two-horizon rule above hold the queue, so a fetch nobody makes goes red rather than quiet.
 
 In a project built from this template, `UPSTREAM.md` at the top of `docs/` is a living document of the same kind. It opens with the template and the commit the project is aligned to, and holds the entries the project has for its style under one section, `## Open`, with `Nothing open.` when there are none. Each entry is dated, kinded, pinned, and shaped as the agent guide says, is deleted when re-alignment resolves it, and expires after 90 days until re-verified. The file is free-growing, since the horizon bounds it better than a line budget would.
 
@@ -100,7 +101,7 @@ A review record is the account of one pass over the literature: what slice of th
 - **Stages.** One line per stage, `- <Stage>: ran, ...` or `- <Stage>: collapsed, <reason>`, for Scouting, Enumeration, Checks, Completeness review, Fold, and Resolution. Checks never collapse, and a pass whose boundary is exhausted ran the completeness review.
 - **Found.** The bibliography keys the pass consulted or added, each on its own line as `- [key] depth`, every key resolving and the depth one of three words. Full means the work itself was opened and read for the slice, whole where it is a paper and in its governing sections where it is a standard, a specification or a manual. Abstract means an abstract, a summary, a snippet or a page a search engine served was read and the work was not opened. Secondary means the work was known through another work and never opened. The audit holds the line's shape over every pass added from the rule's arrival on; whether the word is true stays with review.
 - **Changed.** The conjectures opened or closed and the claims produced, by number, or the statement that the ledger did not move.
-- **Left out.** What the boundary excluded and why, so the next pass knows where to extend.
+- **Left out.** What the boundary excluded and why, so the next pass knows where to extend, and by name each source the pass could not open, each search it prepared but could not run, and each verification it needs a person for, because those are the pass's work handed to someone with access, and a list that lives only in the writer's memory ends with the session.
 
 A review record is immutable like every record and carries no `Status:` line, because a pass is not superseded; a later pass extends it. A `Cost:` line may close the record with what the pass spent, so the next collapse is decided from data.
 
