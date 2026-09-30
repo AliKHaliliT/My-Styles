@@ -77,6 +77,11 @@ select = ["E", "F", "B", "UP", "Q", "PGH", "PERF", "C4", "S", "RET504", "D101", 
 # run as advice instead, through `ruff check --select S105,S106 .`; decision 0025 carries
 # the principle and AGENTS.md states what a warning obliges.
 ignore = ["E501", "S105", "S106"]
+# The subprocess and URL-opening heuristics, S603, S607 and S310 among them, fire at a call site
+# and not on a string, so they stay in the gate. A literal argument list needs nothing; a call that
+# builds its arguments or opens a guarded URL earns a suppression naming the code with its reason
+# beside it at the reviewed site, which is the review written where the call is, as the docs
+# audit's own calls show.
 # The nesting-depth rule still sits in ruff's preview set. Naming it above enables it alone;
 # explicit-preview-rules keeps every other preview rule out of the selection.
 preview = true
