@@ -86,6 +86,12 @@ CITE_KEY = re.compile(r"\[([a-z][a-z0-9]*[0-9]{4}[a-z]?|[a-z][a-z0-9]*-[0-9]{4})
 # citations are read; the rulebook's own example of the form is the case that needs this.
 CODE_SPAN = re.compile(r"```.*?```|`[^`\n]*`", re.DOTALL)
 BIB_ENTRY = re.compile(r"^- \*\*([a-z][a-z0-9]*[0-9]{4}[a-z]?|[a-z][a-z0-9]*-[0-9]{4})\*\*:")
+# The standing of a source, the sentence that closes its entry: reviewed, a preprint with the day it was last
+# checked for a published version, or grey literature by the tier of its outlet's control.
+STANDING = re.compile(r"Source: (reviewed|preprint, checked (\d{4}-\d{2}-\d{2})|grey, (?:first|second|third) tier)\.\s*$")
+FLOOR_LINE = re.compile(r"^Evidence floor: (.+?)\s*$", re.MULTILINE)
+# A preprint ranks with the first grey tier: unreviewed, but issued by an outlet that controls what it holds.
+STANDING_RANK = {"reviewed": 4, "preprint": 3, "grey, first tier": 3, "grey, second tier": 2, "grey, third tier": 1}
 PIN = re.compile(r"arrows/([a-z0-9-]+) at ([0-9a-f]{7,40})\b")
 # A manifest's verification: a claim number and the commit at which its figures reproduced.
 VERIFIED = re.compile(r"\b(\d{4}) at ([0-9a-f]{7,40})\b")
@@ -1152,6 +1158,100 @@ def prose_only(text: str) -> str:
     return CODE_SPAN.sub(" ", text)
 
 
+def bibliography_entries(text: str) -> list[tuple[str, str]]:
+    """Each entry's key and its text joined on one line, an entry running from its bullet through its indented continuation lines."""
+    entries: list[tuple[str, str]] = []
+    key, lines = "", [""]
+    for line in text.split("\n"):
+        match = BIB_ENTRY.match(line)
+        if match:
+            if key:
+                entries.append((key, " ".join(lines)))
+            key, lines = match.group(1), [line]
+        elif key and line.startswith("  "):
+            lines.append(line.strip())
+        elif key:
+            entries.append((key, " ".join(lines)))
+            key = ""
+    if key:
+        entries.append((key, " ".join(lines)))
+    return entries
+
+
+def parse_date(raw: str) -> date | None:
+    """The date a string names, or None where it names no real day."""
+    try:
+        return date.fromisoformat(raw)
+    except ValueError:
+        return None
+
+
+def standings(root: Path) -> tuple[dict[str, tuple[str, date | None]], str | None]:
+    """Each key's standing with, for a preprint, the day it was checked, and the floor the file declares, or None."""
+    bib = root / "docs/BIBLIOGRAPHY.md"
+    if not bib.exists():
+        return {}, None
+    text = bib.read_text(encoding="utf-8")
+    found: dict[str, tuple[str, date | None]] = {}
+    for key, entry in bibliography_entries(text):
+        match = STANDING.search(entry)
+        if match:
+            found[key] = ("preprint", parse_date(match.group(2))) if match.group(2) else (match.group(1), None)
+    floor = FLOOR_LINE.search(text)
+    return found, (floor.group(1) if floor else None)
+
+
+def check_bibliography(problems: list[str], root: Path) -> None:
+    """Every entry closes with its source's standing, and the floor line, where one stands, names a legal standing."""
+    bib = root / "docs/BIBLIOGRAPHY.md"
+    if not bib.exists():
+        return
+    text = bib.read_text(encoding="utf-8")
+    for key, entry in bibliography_entries(text):
+        match = STANDING.search(entry)
+        if match is None:
+            problems.append(
+                f"docs/BIBLIOGRAPHY.md: [{key}] closes with no standing; an entry ends with Source: reviewed.,"
+                " Source: preprint, checked YYYY-MM-DD., or Source: grey, first tier. (second, third)"
+            )
+        elif match.group(2) and parse_date(match.group(2)) is None:
+            problems.append(f"docs/BIBLIOGRAPHY.md: [{key}] names a checked day that is not a date")
+    for floor in FLOOR_LINE.findall(text):
+        if floor not in STANDING_RANK:
+            problems.append(f"docs/BIBLIOGRAPHY.md: the evidence floor {floor!r} is not one of {', '.join(STANDING_RANK)}")
+
+
+def advise_unchecked_preprints(advice: list[str], root: Path) -> None:
+    """A preprint not checked for a published version within the horizon is advised until its date moves."""
+    found, _ = standings(root)
+    today = datetime.now(timezone.utc).date()
+    for key, (_, checked) in found.items():
+        if checked is not None and (today - checked).days > HORIZON_DAYS:
+            advice.append(
+                f"docs/BIBLIOGRAPHY.md: [{key}] is a preprint last checked for a published version on {checked},"
+                f" past the {HORIZON_DAYS}-day horizon; look again, then re-date the check or cite the published version"
+            )
+
+
+def advise_standing(advice: list[str], root: Path) -> None:
+    """A Supported claim whose Evidence cites a work standing below the declared floor is advised until its Threats cite the key."""
+    found, floor = standings(root)
+    if floor is None or floor not in STANDING_RANK or not (root / "docs/claims").exists():
+        return
+    for path in sorted((root / "docs/claims").glob("*.md")):
+        text = path.read_text(encoding="utf-8")
+        if "Status: Supported" not in text.split("\n"):
+            continue
+        threats = set(CITE_KEY.findall(prose_only(section_body(text, "## Threats"))))
+        for key in dict.fromkeys(CITE_KEY.findall(prose_only(section_body(text, "## Evidence")))):
+            standing = found.get(key, (floor, None))[0]
+            if STANDING_RANK[standing] < STANDING_RANK[floor] and key not in threats:
+                advice.append(
+                    f"docs/claims/{path.name}: Evidence cites [{key}], standing {standing}, below the floor {floor};"
+                    " pair it with a source at the floor or name the standing among the claim's threats"
+                )
+
+
 def check_citations(problems: list[str], root: Path) -> None:
     """Every cited key resolves in the bibliography; a key inside backticks is a mention and is not read."""
     bib = root / "docs/BIBLIOGRAPHY.md"
@@ -1359,6 +1459,8 @@ CHECK_NEEDS = (
     ("check_template_copies", "docs/inherited"),
     ("check_reviews", "docs/reviews"),
     ("advise_shallow_reads", "docs/reviews"),
+    ("check_bibliography", "docs/BIBLIOGRAPHY.md"),
+    ("advise_standing", "docs/BIBLIOGRAPHY.md"),
     ("check_arrows", "docs/arrows"),
     ("check_pins", "docs/claims"),
     ("check_record_links", "docs"),
@@ -1411,7 +1513,10 @@ def run(root: Path) -> tuple[list[str], list[str]]:
     check_figures(problems, root)
     check_reviews(problems, root)
     check_citations(problems, root)
+    check_bibliography(problems, root)
     advise_shallow_reads(advice, root)
+    advise_standing(advice, root)
+    advise_unchecked_preprints(advice, root)
     check_arrows(problems, root)
     check_pins(problems, advice, root)
     return problems, advice
@@ -1535,7 +1640,7 @@ TRACKED_PLANTS = [
 ]
 
 # The well-formed pass cites this key, planted in the bibliography for the review plants alone.
-PLANTED_ENTRY = b"- **planted9999**: Planted, P. 9999. A work entered by the selftest and removed after it.\n"
+PLANTED_ENTRY = b"- **planted9999**: Planted, P. 9999. A work entered by the selftest and removed after it. Source: reviewed.\n"
 
 # A superseded conjecture keeps Evidence None. and must PASS, or this checker
 # would force evidence into an immutable record to earn a clean run; and a key
@@ -1711,6 +1816,61 @@ def prove_shallow_read_advice() -> int:
 def expect_shallow_advice(claim_name: str, wanted: bool, wrong: str) -> int:
     """Whether the depth advisory names the claim as wanted, one failure otherwise."""
     found = [a for a in run(ROOT)[1] if claim_name in a and "abstract depth" in a]
+    if bool(found) == wanted:
+        return 0
+    print(f"WRONG: {wrong}, {found}")
+    return 1
+
+
+# A bibliography the standing plants rewrite for their run, restored byte for byte afterwards.
+STANDING_BIBLIOGRAPHY = (
+    "# Bibliography\n\nPlanted for the selftest.\n\nEvidence floor: {floor}\n\n"
+    "- **planted9999**: Planted, P. 9999. A work entered by the selftest and removed\n"
+    "  after it. Source: {standing}.\n"
+)
+
+
+def prove_standing_plants() -> int:
+    """An entry without a standing and an illegal floor are reported; a claim below the floor is advised until its threats name the key; a stale preprint check is advised until it moves."""
+    bibliography = ROOT / "docs/BIBLIOGRAPHY.md"
+    original = bibliography.read_bytes() if bibliography.exists() else None
+    claim = ROOT / "docs/claims" / f"{free_number(ROOT / 'docs/claims', 900)}-planted-standing-claim.md"
+    failures = 0
+    try:
+        bibliography.write_text(STANDING_BIBLIOGRAPHY.format(floor="gossip", standing="reviewed").replace(" Source: reviewed.", ""), encoding="utf-8")
+        problems, _ = run(ROOT)
+        failures += expect_finding(problems, "closes with no standing", "an entry without a standing")
+        failures += expect_finding(problems, "is not one of", "an illegal evidence floor")
+        bibliography.write_text(STANDING_BIBLIOGRAPHY.format(floor="reviewed", standing="grey, second tier"), encoding="utf-8")
+        claim.write_text(SHALLOW_CLAIM.format(num=claim.name[:4], threats="- None named."), encoding="utf-8")
+        failures += expect_standing_advice(claim.name, "below the floor", True, "a claim resting on a work below the floor was not advised")
+        claim.write_text(SHALLOW_CLAIM.format(num=claim.name[:4], threats="- Standing. A blog [planted9999]."), encoding="utf-8")
+        failures += expect_standing_advice(claim.name, "below the floor", False, "a claim whose threats name the key was still advised")
+        bibliography.write_text(STANDING_BIBLIOGRAPHY.format(floor="reviewed", standing="preprint, checked 2020-01-01"), encoding="utf-8")
+        failures += expect_standing_advice("planted9999", "past the", True, "a preprint checked years ago was not advised")
+        today = datetime.now(timezone.utc).date().isoformat()
+        bibliography.write_text(STANDING_BIBLIOGRAPHY.format(floor="reviewed", standing=f"preprint, checked {today}"), encoding="utf-8")
+        failures += expect_standing_advice("planted9999", "past the", False, "a preprint checked today was advised")
+    finally:
+        claim.unlink(missing_ok=True)
+        if original is None:
+            bibliography.unlink()
+        else:
+            bibliography.write_bytes(original)
+    return failures
+
+
+def expect_finding(problems: list[str], needle: str, label: str) -> int:
+    """Zero when a finding carries the needle, else one reported failure."""
+    if any(needle in p for p in problems):
+        return 0
+    print(f"WRONG: {label} did not raise {needle!r}")
+    return 1
+
+
+def expect_standing_advice(name: str, needle: str, wanted: bool, wrong: str) -> int:
+    """Whether the standing advisories name the record as wanted, one failure otherwise."""
+    found = [a for a in run(ROOT)[1] if name in a and needle in a]
     if bool(found) == wanted:
         return 0
     print(f"WRONG: {wrong}, {found}")
@@ -2650,6 +2810,7 @@ def selftest() -> int:
         prove_unlisted_claim,
         prove_review_plants,
         prove_shallow_read_advice,
+        prove_standing_plants,
         prove_movement,
         prove_quiet_move,
         prove_tracked_plants,
