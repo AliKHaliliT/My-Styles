@@ -66,6 +66,10 @@ DEPTH_ROW = re.compile(r"^\| \[([a-z][a-z0-9]*[0-9]{4}[a-z]?|[a-z][a-z0-9]*-[0-9
 # The sentence that dates the depth rule in history, so the shape binds a pass added from the commit
 # that carries it on and never the pass that landed before it.
 DEPTH_SCOPE = "review passes held to a depth word beside every key in Found from the rule's arrival on"
+# The funnel a pass counts in its Boundary, from the records a search returned to the works read in full,
+# never rising, its last two numbers agreeing with the keys Found names and marks full.
+FLOW = re.compile(r"^Flow: retrieved (\d+), screened (\d+), entered (\d+), read in full (\d+)\s*$", re.MULTILINE)
+FLOW_SCOPE = "review passes held to a funnel line in Boundary from the rule's arrival on"
 STATE_DATE = re.compile(r"\((\d{4}-\d{2}-\d{2})\)")
 # The upstream file a project built from this template carries: one Open section, entries dated by
 # heading with a kind, a pin, and four labeled parts, expiring on the same horizon as STATE.
@@ -1065,6 +1069,7 @@ def check_reviews(problems: list[str], root: Path) -> None:
     if not folder.exists():
         return
     arrival = first_commit(DEPTH_SCOPE, "scripts/audit_inquiry.py")
+    flow_arrival = first_commit(FLOW_SCOPE, "scripts/audit_inquiry.py")
     added = added_commits("docs/reviews")
     for path in sorted(folder.glob("*.md")):
         rel = f"docs/reviews/{path.name}"
@@ -1081,6 +1086,25 @@ def check_reviews(problems: list[str], root: Path) -> None:
         check_review_slice(problems, rel, path, section_body(text, "## Slice"))
         if bound_from_arrival(added.get(rel), arrival):
             check_review_depths(problems, rel, section_body(text, "## Found"))
+        if bound_from_arrival(added.get(rel), flow_arrival):
+            check_review_flow(problems, rel, section_body(text, "## Boundary"), section_body(text, "## Found"))
+
+
+def check_review_flow(problems: list[str], rel: str, boundary_text: str, found_text: str) -> None:
+    """The Boundary counts the funnel in one line whose numbers never rise, entered being the keys Found names and read in full those it marks full."""
+    flow = FLOW.search(boundary_text)
+    if flow is None:
+        problems.append(f"{rel}: the Boundary carries a line Flow: retrieved N, screened N, entered N, read in full N before its Completeness line")
+        return
+    retrieved, screened, entered, full = (int(n) for n in flow.groups())
+    if not retrieved >= screened >= entered >= full:
+        problems.append(f"{rel}: the funnel never rises, retrieved {retrieved}, screened {screened}, entered {entered}, read in full {full}")
+    named = len(dict.fromkeys(CITE_KEY.findall(prose_only(found_text))))
+    marked_full = sum(1 for _, depth in depth_marks(found_text) if depth == "full")
+    if entered != named:
+        problems.append(f"{rel}: the funnel says entered {entered} but Found names {named} key(s)")
+    if full != marked_full:
+        problems.append(f"{rel}: the funnel says read in full {full} but Found marks {marked_full} key(s) full")
 
 
 def depth_marks(found_text: str) -> list[tuple[str, str]]:
@@ -1465,7 +1489,8 @@ def docs_only_moved_pin() -> tuple[str, str] | None:
 # A well-formed review pass; each review plant breaks exactly one rule of it.
 REVIEW_TEMPLATE = (
     "# Planted pass\n\nDate: 2026-01-01\n\n## Slice\n\nFirst pass over the planted slice.\n\n"
-    "## Boundary\n\nRead the works the question cites and nothing else.\nCompleteness: judgment\n\n"
+    "## Boundary\n\nRead the works the question cites and nothing else.\n"
+    "Flow: retrieved 1, screened 1, entered 1, read in full 1\nCompleteness: judgment\n\n"
     "## Method\n\nA scoping read of a known corpus.\n\n## Stages\n\n"
     "- Scouting: collapsed, the slice was already scouted by the question.\n"
     "- Enumeration: ran, over the cited works.\n"
@@ -1485,6 +1510,10 @@ REVIEW_PLANTS = [
     ("docs/reviews/2026-01-01-planted-dead-prior.md", REVIEW_TEMPLATE.replace("First pass over the planted slice.", "Extends [an earlier pass](2025-01-01-nothing-here.md)."), "which does not exist"),
     ("docs/reviews/2026-01-01-planted-no-depth.md", REVIEW_TEMPLATE.replace("- [planted9999] full", "[planted9999], read in full."), "without its depth"),
     ("docs/reviews/2026-01-01-planted-table-no-depth.md", REVIEW_TEMPLATE.replace("- [planted9999] full", "| Key | Facet |\n| --- | --- |\n| [planted9999] | x |"), "without its depth"),
+    ("docs/reviews/2026-01-01-planted-no-flow.md", REVIEW_TEMPLATE.replace("Flow: retrieved 1, screened 1, entered 1, read in full 1\n", ""), "carries a line Flow"),
+    ("docs/reviews/2026-01-01-planted-rising-flow.md", REVIEW_TEMPLATE.replace("Flow: retrieved 1, screened 1,", "Flow: retrieved 1, screened 2,"), "the funnel never rises"),
+    ("docs/reviews/2026-01-01-planted-entered-flow.md", REVIEW_TEMPLATE.replace("Flow: retrieved 1, screened 1, entered 1, read in full 1", "Flow: retrieved 3, screened 2, entered 2, read in full 1"), "entered 2 but Found names 1"),
+    ("docs/reviews/2026-01-01-planted-full-flow.md", REVIEW_TEMPLATE.replace("read in full 1", "read in full 0"), "read in full 0 but Found marks 1"),
 ]
 
 # The claim the depth advisory's plants share; its threats vary per plant.
@@ -1659,7 +1688,7 @@ def prove_shallow_read_advice() -> int:
     claim = ROOT / "docs/claims" / f"{free_number(ROOT / 'docs/claims', 900)}-planted-shallow-claim.md"
     failures = 0
     try:
-        shallow.write_text(REVIEW_TEMPLATE.replace("- [planted9999] full", "- [planted9999] abstract"), encoding="utf-8")
+        shallow.write_text(REVIEW_TEMPLATE.replace("- [planted9999] full", "- [planted9999] abstract").replace("read in full 1", "read in full 0"), encoding="utf-8")
         claim.write_text(SHALLOW_CLAIM.format(num=claim.name[:4], threats="- None named."), encoding="utf-8")
         failures += expect_shallow_advice(claim.name, True, "a claim resting on an abstract read was not advised")
         claim.write_text(SHALLOW_CLAIM.format(num=claim.name[:4], threats="- Depth. Read at abstract depth [planted9999]."), encoding="utf-8")
@@ -2519,6 +2548,7 @@ ANCHORED_SCOPES = (
     (DISPOSITION_SCOPE, "disposition"),
     (EM_DASH_SCOPE, "em dash budget"),
     (DEPTH_SCOPE, "depth"),
+    (FLOW_SCOPE, "funnel"),
 )
 
 

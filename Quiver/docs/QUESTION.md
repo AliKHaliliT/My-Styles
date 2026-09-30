@@ -29,13 +29,19 @@ kind a maintainer decides by recollection unless someone runs it.
   opposite tie rules, held in
   [claim 0010, Two runtimes default to opposite tie rules](claims/0010-two-runtimes-default-to-opposite-tie-rules.md),
   so the arrow pins its rule rather than inheriting one.
+- Conjectured. Tie density on real amounts follows the rate applied and the
+  digits prices cluster on, held in
+  [claim 0012, Tie density on real amounts follows the rate and the endings](claims/0012-tie-density-on-real-amounts-follows-the-rate-and-the-endings.md),
+  resting on the read evidence of
+  [claim 0011, Retail price endings cluster on a few digits](claims/0011-retail-price-endings-cluster-on-a-few-digits.md);
+  an arrow that sweeps rates over a read distribution of endings would
+  settle it.
 - Not yet conjectured: how the answer changes when amounts carry more than
-  three decimals, how tie density behaves on real price distributions
-  rather than a grid, and whether a ledger that must show each line rounded
+  three decimals, and whether a ledger that must show each line rounded
   can still report its total rounded once from the exact sum, as a filing
   rule requires [irs2025], which would make the tie rule a choice about
-  presentation rather than accumulation. All three are open for a
-  conjecture whenever the inquiry returns to them.
+  presentation rather than accumulation. Both are open for a conjecture
+  whenever the inquiry returns to them.
 
 ## Recorded shortenings
 
