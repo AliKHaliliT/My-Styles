@@ -2289,9 +2289,16 @@ def body_link(text: str) -> str | None:
 
 
 def record_with_link(folders: tuple[str, ...]) -> tuple[Path, str] | None:
-    """The first record of the project's own in the folders with a relative link outside its Status line, and that target."""
+    """The first record of the project's own in the folders that git tracks and that carries a relative link outside its Status line, with that target.
+
+    The immutability check reads records through git, so a record git does not track yet is
+    invisible to it, and a plant on one proves nothing; the choice passes such a record over.
+    """
+    tracked = set(tracked_files())
     for folder in folders:
         for record in sorted((ROOT / folder).glob("*.md")):
+            if f"{folder}/{record.name}" not in tracked:
+                continue
             target = body_link(record.read_text(encoding="utf-8"))
             if target is not None:
                 return record, target
@@ -2308,14 +2315,31 @@ def plant_link(text: str, target: str, replacement: str) -> str:
     return "\n".join(lines)
 
 
+def prove_tracked_choice(folders: tuple[str, ...]) -> int:
+    """An untracked record with a link, sorting before every real one, is never the record the link plants choose."""
+    decoy = ROOT / folders[0] / "0000-planted-untracked-link.md"
+    decoy.write_text(
+        "# 0000. Planted untracked link\n\nStatus: Accepted\nDate: 2026-01-01\n\n## Decision\n\nSee [the map](../ARCHITECTURE.md).\n",
+        encoding="utf-8",
+    )
+    try:
+        chosen = record_with_link(folders)
+        if chosen is not None and chosen[0].name == decoy.name:
+            print("WRONG: the link repair plants chose an untracked record, which the immutability check cannot see")
+            return 1
+    finally:
+        decoy.unlink()
+    return 0
+
+
 def prove_link_repair() -> int:
-    """A link target repaired to one that resolves passes; a changed link text or a target that does not resolve fails."""
+    """A link target repaired to one that resolves passes; a changed link text or a target that does not resolve fails; the plants land on a record git tracks."""
+    failures = prove_tracked_choice(("docs/decisions", "docs/claims"))
     found = record_with_link(("docs/decisions", "docs/claims"))
     if found is None:
-        print("link repair plants skipped: no record of this project's own carries a relative link")
-        return 0
+        print("link repair plants skipped: no tracked record of this project's own carries a relative link")
+        return failures
     record, target = found
-    failures = 0
     original = record.read_bytes()
     text = original.decode("utf-8")
     other = "../CONVENTIONS.md" if target.split("#", 1)[0] != "../CONVENTIONS.md" else "../ARCHITECTURE.md"

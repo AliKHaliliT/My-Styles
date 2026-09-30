@@ -448,10 +448,13 @@ function bodyLink(text) {
 }
 
 /** The first record of the project's own with a relative link outside its Status line, with that link's target, or null. */
+// An untracked record is invisible to the immutability check, which reads records through git,
+// so a plant on one proves nothing and the choice passes such a record over.
 function recordWithLink() {
   const folder = join(ROOT, "docs", "decisions");
+  const tracked = new Set(git("ls-files", "-z", "--", "docs/decisions").split("\0").filter(Boolean).map((rel) => rel.split("/").pop()));
   for (const name of readdirSync(folder).sort()) {
-    if (!name.endsWith(".md")) continue;
+    if (!name.endsWith(".md") || !tracked.has(name)) continue;
     const target = bodyLink(readFileSync(join(folder, name), "utf-8"));
     if (target !== null) return [join(folder, name), name, target];
   }
@@ -483,10 +486,23 @@ function proveIgnoredPath() {
 }
 
 /** A link target repaired to one that resolves passes; a changed link text or a target that does not resolve fails. */
+/** An untracked record with a link, sorting before every real one, is never the record the link plants choose. */
+function proveTrackedChoice() {
+  const rel = "docs/decisions/0000-planted-untracked-link.md";
+  plant(rel, "# 0000. Planted untracked link\n\nStatus: Accepted\nDate: 2026-01-01\n\n## Decision\n\nSee [the map](../ARCHITECTURE.md).\n");
+  try {
+    const chosen = recordWithLink();
+    if (chosen !== null && chosen[1] === "0000-planted-untracked-link.md") wrong("the link repair plants chose an untracked record, which the immutability check cannot see");
+  } finally {
+    unplant(rel);
+  }
+}
+
 function proveLinkRepair() {
+  proveTrackedChoice();
   const found = recordWithLink();
   if (found === null) {
-    console.log("link repair plants skipped: no record of this project's own carries a relative link");
+    console.log("link repair plants skipped: no tracked record of this project's own carries a relative link");
     return;
   }
   const [path, name, target] = found;
