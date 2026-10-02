@@ -94,3 +94,17 @@ Evidence floor: grey, first tier
   abstract depth on 2026-09-30, for its account of odd and even ending
   practices across countries.
   Source: reviewed.
+- **lu2026**: Lu, Shuqi, Chaofan Li, Kun Luo, and twenty-one others. 2026.
+  "AREX: Towards a Recursively Self-Improving Agent for Deep Research."
+  arXiv 2607.21461, version 2 of 2026-07-24, read in its arXiv rendering on
+  2026-10-02. Read for the fields of the research state its agent keeps,
+  the ablation of that state and its outer loop, and the distribution of
+  its confidence score.
+  Source: preprint, checked 2026-10-02.
+- **zeng2025**: Zeng, Weihao, Keqing He, Chuqiao Kuang, Xiaoguang Li, and
+  Junxian He. 2025. "Pushing Test-Time Scaling Limits of Deep Search with
+  Asymmetric Verification." arXiv 2510.06135, version of 2025-10-07, read
+  in its arXiv rendering on 2026-10-02. Read for the cost of verifying a
+  candidate against finding one and the gap between finding an answer
+  among samples and selecting it.
+  Source: preprint, checked 2026-10-02.
