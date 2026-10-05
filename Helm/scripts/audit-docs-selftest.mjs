@@ -363,15 +363,15 @@ function proveVocabularyPlant() {
   }
 }
 
-/** Two spliced clauses in a record main does not hold are advised, one across a wrap, the label and the list intro are not, and the record leaves. */
+/** Three spliced clauses in a record main does not hold are advised, one across a wrap and one in a bullet, while the label, the list intro and a two-word label behind a list marker are not, and the record leaves. */
 function proveSpliceAdvice() {
   const number = freeNumber();
   const name = `${number}-planted-splice.md`;
   const path = join(ROOT, "docs", "decisions", name);
-  writeFileSync(path, `# ${number}. Planted splice\n\nStatus: Accepted\nDate: 2026-01-01\n\n## Context\n\nThe reader found the second defect, which is why: the dot was gone.\n- **A label.** Rejected: it duplicates what the tree records.\nThe audit gains three checks:\n\nReproduced in a fresh environment with the seat's development\nrequirements: the revealed type was nothing.\n`);
+  writeFileSync(path, `# ${number}. Planted splice\n\nStatus: Accepted\nDate: 2026-01-01\n\n## Context\n\nThe reader found the second defect, which is why: the dot was gone.\n- **A label.** Rejected: it duplicates what the tree records.\nThe audit gains three checks:\n\nReproduced in a fresh environment with the seat's development\nrequirements: the revealed type was nothing.\n- Completeness review: collapsed, the marker is not a word.\n- The agent ran the whole review: it found the marker counted.\n`);
   try {
     const found = adviceLines().filter((line) => line.includes(name) && line.includes("lowercase clause"));
-    if (found.length !== 2 || !found[0].includes(`${name}:8:`) || !found[1].includes(`${name}:13:`)) wrong(`the planted splices were advised ${found.length} time(s) instead of once each at lines 8 and 13`);
+    if (found.length !== 3 || !found[0].includes(`${name}:8:`) || !found[1].includes(`${name}:13:`) || !found[2].includes(`${name}:15:`)) wrong(`the planted splices were advised ${found.length} time(s) instead of once each at lines 8, 13 and 15`);
   } finally {
     unlinkSync(path);
   }

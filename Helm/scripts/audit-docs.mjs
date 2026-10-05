@@ -777,6 +777,8 @@ function proseBlocks(text) {
 // Each colon in a record's prose that closes a clause of three words or more and opens a lowercase one, with the
 // colon's line and its clause. A block's lines are joined before matching, because a wrapped line can carry the
 // colon while the line above carries the clause, and a rule that read one line at a time passed exactly that shape.
+// A list marker is not a word, so the marker the block splitter starts a block at is dropped before the clause is
+// counted, and a two-word label behind it stays a label.
 function spliceCandidates(text) {
   const found = [];
   for (const block of proseBlocks(text)) {
@@ -784,7 +786,7 @@ function spliceCandidates(text) {
     let joined = "";
     for (const [, line] of block) {
       starts.push(joined.length);
-      joined += `${line.replace(BACKTICK, " ")} `;
+      joined += `${(/^[-*] /.test(line) ? line.slice(2) : line).replace(BACKTICK, " ")} `;
     }
     for (const match of joined.matchAll(SPLICE)) {
       if (match[1].trim().split(/\s+/).length < 3) continue;

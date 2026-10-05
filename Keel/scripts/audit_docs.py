@@ -493,6 +493,8 @@ def splice_candidates(text: str) -> list[tuple[int, str]]:
 
     A block's lines are joined before matching, because a wrapped line can carry the colon while the
     line above carries the clause, and a rule that read one line at a time passed exactly that shape.
+    A list marker is not a word, so the marker the block splitter starts a block at is dropped before
+    the clause is counted, and a two-word label behind it stays a label.
     """
     found: list[tuple[int, str]] = []
     for block in prose_blocks(text):
@@ -500,7 +502,7 @@ def splice_candidates(text: str) -> list[tuple[int, str]]:
         joined = ""
         for _, line in block:
             starts.append(len(joined))
-            joined += BACKTICK.sub(" ", line) + " "
+            joined += BACKTICK.sub(" ", line[2:] if line.startswith(("- ", "* ")) else line) + " "
         for match in SPLICE.finditer(joined):
             if len(match.group(1).split()) >= 3:
                 colon = match.end() - 2
@@ -2085,7 +2087,7 @@ def prove_vocabulary_plant() -> int:
 
 
 def prove_splice_advice() -> int:
-    """Two spliced clauses in a record main does not hold are advised, one of them across a wrap, the label and the list intro are not, and the record leaves."""
+    """Three spliced clauses in a record main does not hold are advised, one across a wrap and one in a bullet, while the label, the list intro and a two-word label behind a list marker are not, and the record leaves."""
     decisions = ROOT / "docs/decisions"
     if not decisions.is_dir():
         print("splice plant skipped: no docs/decisions in this tree")
@@ -2098,14 +2100,16 @@ def prove_splice_advice() -> int:
         "- **A label.** Rejected: it duplicates what the tree records.\n"
         "The audit gains three checks:\n\n"
         "Reproduced in a fresh environment with the seat's development\n"
-        "requirements: the revealed type was nothing.\n",
+        "requirements: the revealed type was nothing.\n"
+        "- Completeness review: collapsed, the marker is not a word.\n"
+        "- The agent ran the whole review: it found the marker counted.\n",
         encoding="utf-8",
     )
     try:
         found = [a for a in run()[1] if record.name in a and "lowercase clause" in a]
-        if len(found) == 2 and f"{record.name}:8:" in found[0] and f"{record.name}:13:" in found[1]:
+        if len(found) == 3 and f"{record.name}:8:" in found[0] and f"{record.name}:13:" in found[1] and f"{record.name}:15:" in found[2]:
             return 0
-        return wrong(f"the planted splices were advised {len(found)} time(s) instead of once each at lines 8 and 13, {found}")
+        return wrong(f"the planted splices were advised {len(found)} time(s) instead of once each at lines 8, 13 and 15, {found}")
     finally:
         record.unlink()
 
