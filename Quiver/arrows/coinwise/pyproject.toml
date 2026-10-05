@@ -108,6 +108,11 @@ layers = ["coinwise.facade", "coinwise.services", "coinwise.domain"]
 [tool.mypy]
 python_version = "3.14"
 strict = true
+# Every grouping directory is a bare namespace package, so the checker takes the source root as
+# its import base rather than inferring one per folder, and two suites that share a file name in
+# different folders stay two modules instead of one duplicate.
+explicit_package_bases = true
+mypy_path = "src"
 implicit_reexport = true
 
 [tool.pytest.ini_options]
@@ -118,7 +123,10 @@ testpaths = ["tests"]
 # that would leave the loopback, so an adapter that resolves its credentials from the environment
 # fails here before it bills; a test that must reach a host names it with @pytest.mark.allow_hosts,
 # in the open. The loopback stays open because the event loop wakes itself through a socket pair.
-addopts = "--allow-hosts=127.0.0.1,::1"
+# A suite is imported by its path rather than its bare file name, so two units that share a name
+# in different folders both keep the suite name the mirror gives them; under the default mode the
+# file name was global to the tree and the second suite of a name was refused at collection.
+addopts = "--allow-hosts=127.0.0.1,::1 --import-mode=importlib"
 # A deprecation warning is a removal notice at least two releases early, so it gates here
 # rather than scrolling past unread. Any exception is a named ignore for one specific
 # message with a reason beside it, never a blanket.

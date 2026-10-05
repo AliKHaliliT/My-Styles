@@ -111,7 +111,10 @@ testpaths = ["tests"]
 # that would leave the loopback, so an adapter that resolves its credentials from the environment
 # fails here before it bills; a test that must reach a host names it with @pytest.mark.allow_hosts,
 # in the open. The loopback stays open because the event loop wakes itself through a socket pair.
-addopts = "--allow-hosts=127.0.0.1,::1"
+# A suite is imported by its path rather than its bare file name, so two units that share a name
+# in different folders both keep the suite name the mirror gives them; under the default mode the
+# file name was global to the tree and the second suite of a name was refused at collection.
+addopts = "--allow-hosts=127.0.0.1,::1 --import-mode=importlib"
 # The application is run in place rather than installed, so the suite needs the repository
 # root on the import path to reach `app`.
 pythonpath = ["."]
