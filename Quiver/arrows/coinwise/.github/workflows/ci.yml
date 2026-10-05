@@ -39,6 +39,12 @@ jobs:
         run: python scripts/audit_docs.py --selftest
       - name: Docs
         run: python scripts/audit_docs.py
+      - name: Seams
+        run: |
+          if git grep -nE "monkeypatch|unittest\.mock|mock\.patch|MonkeyPatch" -- tests; then
+            echo "Module mocking is banned; substitute only at a declared seam."
+            exit 1
+          fi
       - name: Lint
         run: ruff check . && lint-imports
       - name: Credential heuristics, advisory

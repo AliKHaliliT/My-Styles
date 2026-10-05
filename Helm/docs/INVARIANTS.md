@@ -9,3 +9,4 @@ What must stay true about this product, one row per claim, each bound to the hol
 | A 401 on any query or mutation signs the session out. | `tests/src/app/providers.test.ts` "signs out when a query errors with 401" | listed cases |
 | The mock backend is wired only when the build is not for production. | review | review |
 | No request from a suite leaves the loopback, through fetch or through a Node HTTP function imported by name. | `tests/src/mocks/node.test.ts` "imported by name" | listed cases |
+| No suite replaces a collaborator by patching a module's internals. | `.github/workflows/ci.yml` "Module mocking is banned" | impossible |
