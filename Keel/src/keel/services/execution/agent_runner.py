@@ -233,8 +233,7 @@ class AgentRunner:
 
         Raises
         ------
-        ToolExecutionError
-            If the tool fails while halt_on_tool_error is configured.
+        None.
 
         """
 

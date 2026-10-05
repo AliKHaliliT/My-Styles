@@ -65,8 +65,7 @@ def run_drift_experiment(count: int) -> ExperimentReport:
 
     Raises
     ------
-    ValueError
-        If `count` is smaller than one.
+    None.
 
     """
 

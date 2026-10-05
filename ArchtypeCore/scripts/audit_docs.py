@@ -1180,8 +1180,9 @@ def check_docstrings(problems: list[str]) -> None:
     Whether a docstring says something true, and which classes warrant a Usage block, stay
     with review; what is held here is the house rhythm of blank lines and lone triple quotes,
     that a function documenting any of Parameters, Returns, or Raises documents all three,
-    that Parameters names exactly the signature with every entry typed, and that an
-    Attributes section names only attributes the class declares.
+    that Parameters names exactly the signature with every entry typed, that Raises names
+    exactly the exceptions the body raises by name outside a try that may catch them, and
+    that an Attributes section names only attributes the class declares.
     """
     for root in python_roots():
         for source in sorted(root.rglob("*.py")):
@@ -1213,6 +1214,8 @@ def check_source_docstrings(problems: list[str], rel: str, text: str) -> None:
         check_trio(problems, rel, node, sections)
         if "Parameters" in sections:
             check_parameters(problems, rel, node, sections["Parameters"])
+        if "Raises" in sections:
+            check_raises(problems, rel, node, sections["Raises"])
 
 
 def docstring_sections(doc: str) -> dict[str, str]:
@@ -1260,6 +1263,64 @@ def check_parameters(problems: list[str], rel: str, node: ast.FunctionDef | ast.
     ]
     if untyped:
         problems.append(f"{rel}:{node.lineno}: {node.name} lists parameters without a type ({', '.join(untyped)}); an entry reads name : type")
+
+
+def raised_class(statement: ast.Raise) -> str | None:
+    """The class a raise statement names, or None for a bare re-raise or a raise of a value the rule cannot read."""
+    expression = statement.exc
+    if isinstance(expression, ast.Call):
+        expression = expression.func
+    if isinstance(expression, ast.Attribute):
+        name = expression.attr
+    elif isinstance(expression, ast.Name):
+        name = expression.id
+    else:
+        return None
+    return name if name[:1].isupper() else None
+
+
+def raised_names(node: ast.FunctionDef | ast.AsyncFunctionDef) -> tuple[set[str], set[str], bool]:
+    """The classes a body raises by name outside a try that may catch them, those inside one, and whether a raise the rule cannot read exists.
+
+    A nested function or class raises for itself, a handler's raise escapes the try it belongs
+    to, and a try without a handler catches nothing.
+    """
+    direct: set[str] = set()
+    guarded: set[str] = set()
+    opaque = False
+    pending: list[tuple[ast.AST, bool]] = [(child, False) for child in ast.iter_child_nodes(node)]
+    while pending:
+        current, inside = pending.pop()
+        if isinstance(current, (ast.FunctionDef, ast.AsyncFunctionDef, ast.Lambda, ast.ClassDef)):
+            continue
+        if isinstance(current, ast.Raise):
+            name = raised_class(current)
+            if name is None:
+                opaque = True
+            elif inside:
+                guarded.add(name)
+            else:
+                direct.add(name)
+        elif isinstance(current, (ast.Try, ast.TryStar)) and current.handlers:
+            pending.extend((statement, True) for statement in current.body)
+            pending.extend((child, inside) for child in [*current.handlers, *current.orelse, *current.finalbody])
+        else:
+            pending.extend((child, inside) for child in ast.iter_child_nodes(current))
+    return direct, guarded, opaque
+
+
+def check_raises(problems: list[str], rel: str, node: ast.FunctionDef | ast.AsyncFunctionDef, section: str) -> None:
+    """The Raises section names exactly the exceptions the body raises by name outside a try that may catch them.
+
+    A raise inside such a try is neither demanded nor forbidden, and a raise the rule cannot
+    read, a bare re-raise or a raise of a variable, leaves the section to review.
+    """
+    documented = section_entries(section)
+    direct, guarded, opaque = raised_names(node)
+    unlisted = sorted(direct - set(documented))
+    unraised = [] if opaque else sorted(set(documented) - direct - guarded)
+    if unlisted or unraised:
+        problems.append(f"{rel}:{node.lineno}: {node.name} lists {documented} under Raises but its body raises {sorted(direct)} by name")
 
 
 def check_layout(problems: list[str]) -> list[Path]:
@@ -1456,7 +1517,16 @@ DOCSTRING_PLANT = (
     "    return a + 1\n\n\n"
     "class Holder:\n\n"
     '    """\n\n    Holds.\n\n    Attributes\n    ----------\n    seen : int\n        Declared.\n\n    ghost : int\n        Not declared.\n\n    """\n\n'
-    "    seen: int = 0\n"
+    "    seen: int = 0\n\n\n"
+    "def lists_unraised(a: int) -> int:\n\n"
+    '    """\n\n    Adds one.\n\n\n    Parameters\n    ----------\n    a : int\n        One.\n\n\n    Returns\n    -------\n    int\n        The sum.\n\n\n    Raises\n    ------\n    ValueError\n        Never, which is the defect.\n\n    """\n\n'
+    "    return a + 1\n\n\n"
+    "def raises_unlisted(a: int) -> int:\n\n"
+    '    """\n\n    Checks the sign.\n\n\n    Parameters\n    ----------\n    a : int\n        One.\n\n\n    Returns\n    -------\n    int\n        The same value.\n\n\n    Raises\n    ------\n    None.\n\n    """\n\n'
+    "    if a < 0:\n        raise TypeError('negative')\n    return a\n\n\n"
+    "def guarded_raise(a: int) -> int:\n\n"
+    '    """\n\n    Raises and catches in one body.\n\n\n    Parameters\n    ----------\n    a : int\n        One.\n\n\n    Returns\n    -------\n    int\n        The value or zero.\n\n\n    Raises\n    ------\n    None.\n\n    """\n\n'
+    "    try:\n        if a < 0:\n            raise ValueError('negative')\n    except ValueError:\n        return 0\n    return a\n"
 )
 DOCSTRING_EXPECTS = (
     "a module carries no docstring",
@@ -1466,7 +1536,11 @@ DOCSTRING_EXPECTS = (
     "bad_rhythm's docstring opens and closes with a triple quote alone on its line",
     "Holder's Attributes section stands after two blank lines",
     "Holder documents attributes ['ghost'] that the class does not declare",
+    "lists_unraised lists ['ValueError'] under Raises but its body raises [] by name",
+    "raises_unlisted lists [] under Raises but its body raises ['TypeError'] by name",
 )
+# A function in the plant whose raise is caught in its own body and whose section says None.; a finding naming it is a rule reading too much.
+DOCSTRING_SILENT = "guarded_raise"
 
 UPSTREAM_HEAD = "# Upstream\n\nAligned to Planted at 0123456789ab.\n\nEvery entry is a lead, not a verdict.\n\n## Open\n\n"
 UPSTREAM_PARTS_TEXT = (
@@ -1693,7 +1767,7 @@ def prove_upstream_plants() -> int:
 
 
 def prove_docstring_plants() -> int:
-    """Each decidable docstring rule fires against one planted source file."""
+    """Each decidable docstring rule fires against one planted source file, and a raise caught in its own body is left alone."""
     roots = python_roots()
     if not roots:
         print("docstring plants skipped: no package root in this tree")
@@ -1702,7 +1776,10 @@ def prove_docstring_plants() -> int:
     target.write_text(DOCSTRING_PLANT, encoding="utf-8")
     try:
         problems = run()[0]
-        return sum(expect(problems, needle, "the docstring plant") for needle in DOCSTRING_EXPECTS)
+        failures = sum(expect(problems, needle, "the docstring plant") for needle in DOCSTRING_EXPECTS)
+        if any(DOCSTRING_SILENT in p for p in problems):
+            failures += wrong(f"a raise caught in its own body was reported: {[p for p in problems if DOCSTRING_SILENT in p]}")
+        return failures
     finally:
         target.unlink()
 
