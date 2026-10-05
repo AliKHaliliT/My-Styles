@@ -144,6 +144,7 @@ Docstrings follow the NumPy style with one house addition, a `Usage` block on cl
 
 - Where a function warrants a full docstring, all three of `Parameters`, `Returns`, and `Raises` are always present, using the `None.` sentinel when a section is empty (no arguments, or nothing raised).
 - A returned or yielded value is named only where its type cannot carry the meaning, so an opaque `str`, `bool`, or `dict[str, Any]` gets a name that says what it holds while a `RunResult` or an `AuthToken` is left bare, since repeating the type as a name tells the reader nothing twice.
+- A pydantic model's docstring is also the description of the JSON schema pydantic generates from it, so a schema a language model reads, a tool's parameters or a structured output, is built by the adapter's translator from fields named for it, or the model drops its docstring from the schema with the reason beside it. The docstring stays written for the reader of the source.
 
 Not everything is documented that heavily, by design. Purely internal helpers and thin mappers, such as the translator functions that bridge schemas across a boundary, keep a summary of one sentence, in the house rhythm. Unlike a service with an HTTP edge, this package has no layer whose contract is expressed elsewhere, so the `facade` is documented in full like every other layer. It is the surface an embedding application imports and calls directly, and its docstrings are the only place its failure modes are stated.
 
