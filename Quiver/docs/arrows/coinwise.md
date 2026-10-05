@@ -13,4 +13,4 @@
 - **Claims resting on it**:
   [0008, The tie rule moves the total by dollars, not cents](../claims/0008-the-tie-rule-moves-the-total-by-dollars-not-cents.md) and
   [0009, Half even cancels the drift that half up accumulates](../claims/0009-half-even-cancels-the-drift-that-half-up-accumulates.md).
-- **Verified**: 0008 at a9b7fcea8683, 0009 at a9b7fcea8683.
+- **Verified**: 0008 at 493419ced3e8, 0009 at 493419ced3e8.
