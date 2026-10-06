@@ -185,6 +185,25 @@ function proveTrackedPlants() {
   );
 }
 
+/** A tracked file over the budget that the attributes file declares linguist-generated raises nothing, and the file and the declaration both leave. */
+function proveDeclaredDashes() {
+  const attributes = join(ROOT, ".gitattributes");
+  const original = existsSync(attributes) ? readFileSync(attributes) : null;
+  const rel = "docs/PLANTED-DECLARED.md";
+  writeFileSync(attributes, Buffer.concat([original ?? Buffer.alloc(0), Buffer.from(`\n${rel} linguist-generated\n`)]));
+  plant(rel, "\u2014 \u2014 \u2014\n");
+  git("add", "-N", "--", rel);
+  try {
+    const noise = findings().filter((line) => line.includes(`${rel} carries`));
+    if (noise.length > 0) wrong(`a declared file over the budget was counted: ${noise.join("; ")}`);
+  } finally {
+    git("rm", "--cached", "-q", "--", rel);
+    unplant(rel);
+    if (original === null) unlinkSync(attributes);
+    else writeFileSync(attributes, original);
+  }
+}
+
 /** A record over the budget born in this working tree is judged; one born before the rule arrived is left to history, so the rehearsal proves that half. */
 function proveRecordDashes() {
   const number = freeNumber();
@@ -715,7 +734,7 @@ if (baseline.length > 0) {
   for (const p of baseline.slice(0, 5)) console.log(`  ${p}`);
   process.exit(1);
 }
-for (const proof of [proveFilePlants, proveTrackedPlants, proveRecordDashes, proveAppendedPlants, proveInvariantPlants, proveStatePlants, proveUpstreamPlants, provePalettePlant, proveCitationPlant, proveDensePlant, proveVocabularyPlant, proveSpliceAdvice, proveActionPins, proveSpellingPlant, proveUntrackedSpelling, proveIgnoredTerm, proveImmutability, proveBulletEdit, proveLinkRepair, proveIgnoredPath, proveRecordLinkPlant, proveAnchors, proveTemplateCopy, proveDisposition, proveIgnorePlant, proveStaleBranch, proveNoRemoteReport, proveUnrunReport]) {
+for (const proof of [proveFilePlants, proveTrackedPlants, proveRecordDashes, proveDeclaredDashes, proveAppendedPlants, proveInvariantPlants, proveStatePlants, proveUpstreamPlants, provePalettePlant, proveCitationPlant, proveDensePlant, proveVocabularyPlant, proveSpliceAdvice, proveActionPins, proveSpellingPlant, proveUntrackedSpelling, proveIgnoredTerm, proveImmutability, proveBulletEdit, proveLinkRepair, proveIgnoredPath, proveRecordLinkPlant, proveAnchors, proveTemplateCopy, proveDisposition, proveIgnorePlant, proveStaleBranch, proveNoRemoteReport, proveUnrunReport]) {
   proof();
 }
 console.log(failures === 0 ? "every rule fires" : `${failures} rule(s) do not work`);

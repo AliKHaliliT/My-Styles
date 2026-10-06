@@ -172,6 +172,24 @@ def tracked_files() -> list[str]:
     return [p for p in git("ls-files", "-z").split("\0") if p]
 
 
+def declared_generated() -> set[str]:
+    """Every tracked path the attributes file declares linguist-generated, written by a machine and kept as it was written, so the prose law does not read it."""
+    tracked = tracked_files()
+    if not tracked:
+        return set()
+    # The arguments are this script's own constants and git is the tool the family runs on.
+    done = subprocess.run(
+        ["git", "check-attr", "linguist-generated", "-z", "--stdin"],  # noqa: S607
+        cwd=ROOT,
+        input="\0".join(tracked),
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    fields = done.stdout.split("\0") if done.returncode == 0 else []
+    return {fields[i] for i in range(0, len(fields) - 2, 3) if fields[i + 2] in ("set", "true")}
+
+
 def drawn_entries(text: str) -> set[str]:
     """Every name drawn in a document's tree diagrams, directories without their trailing slash."""
     names: set[str] = set()
@@ -363,9 +381,10 @@ def judged_for_dashes(rel: str, born: str | None, arrival: str | None) -> bool:
 def check_em_dashes(problems: list[str]) -> None:
     """Every tracked text file stays within the em dash budget, a record from the rule's arrival on, since a record admits no edit that could bring it under."""
     over: list[tuple[str, int]] = []
+    declared = declared_generated()
     for rel in tracked_files():
         path = ROOT / rel
-        if rel.startswith("docs/inherited/") or not path.is_file():
+        if rel.startswith("docs/inherited/") or rel in declared or not path.is_file():
             continue
         data = path.read_bytes()
         if b"\0" not in data and data.count(EM_DASH) > EM_DASH_BUDGET:
@@ -376,7 +395,10 @@ def check_em_dashes(problems: list[str]) -> None:
     added = added_commits("docs")
     for rel, count in over:
         if judged_for_dashes(rel, added.get(rel), arrival):
-            problems.append(f"{rel} carries {count} em dashes; the budget is {EM_DASH_BUDGET} per file")
+            problems.append(
+                f"{rel} carries {count} em dashes; the budget is {EM_DASH_BUDGET} per file, and a file a machine wrote"
+                " and the tree keeps as written is declared linguist-generated in .gitattributes"
+            )
 
 
 def invariant_rows(text: str) -> list[tuple[int, list[str]]] | None:
@@ -553,7 +575,7 @@ def advise_spelling(advice: list[str]) -> None:
     # and the project's own list of terms, which lives beside the check and is never recopied.
     own_terms = ["--ignore-words", IGNORE_FILE] if (ROOT / IGNORE_FILE).is_file() else []
     done = subprocess.run([tool, "--skip", CODESPELL_SKIP, *own_terms, "."], cwd=ROOT, capture_output=True, text=True, check=False)  # noqa: S603
-    tracked = set(tracked_files())
+    tracked = set(tracked_files()) - declared_generated()
     advice.extend(
         f"{line.strip()}; correct it, or name a real term of the domain in {IGNORE_FILE}, one word per line"
         for line in done.stdout.splitlines()
@@ -1706,6 +1728,26 @@ def prove_tracked_plants() -> int:
     return failures
 
 
+def prove_declared_dashes() -> int:
+    """A tracked file over the budget that the attributes file declares linguist-generated raises nothing, and the file and the declaration both leave."""
+    attributes = ROOT / ".gitattributes"
+    original = attributes.read_bytes() if attributes.exists() else None
+    rel = "docs/PLANTED-DECLARED.md"
+    target = ROOT / rel
+    attributes.write_bytes((original or b"") + f"\n{rel} linguist-generated\n".encode())
+    target.write_text("\u2014 \u2014 \u2014\n", encoding="utf-8")
+    git("add", "-N", "--", rel)
+    try:
+        noise = [p for p in run()[0] if f"{rel} carries" in p]
+        if not noise:
+            return 0
+        return wrong(f"a declared file over the budget was counted: {noise}")
+    finally:
+        git("rm", "--cached", "-q", "--", rel)
+        remove_planted(target, ROOT)
+        restore(attributes, original)
+
+
 def prove_record_dashes() -> int:
     """A record over the budget born in this working tree is judged; one born before the rule arrived is left to history, so the rehearsal proves that half."""
     decisions = ROOT / "docs/decisions"
@@ -2380,6 +2422,7 @@ def selftest() -> int:
         prove_invariant_plants,
         prove_tracked_plants,
         prove_record_dashes,
+        prove_declared_dashes,
         prove_twin_numbers,
         prove_state_plants,
         prove_upstream_plants,

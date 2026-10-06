@@ -686,11 +686,29 @@ function emDashCount(bytes) {
 
 // Every tracked text file stays within the em dash budget, a record from the rule's arrival on, since a
 // record admits no edit that could bring it under; the inherited folder is counted where it was written.
+// Every tracked path the attributes file declares linguist-generated, written by a machine and kept as it was
+// written, so the prose law does not read it.
+function declaredGenerated() {
+  const tracked = trackedFiles();
+  const declared = new Set();
+  if (tracked.length === 0) return declared;
+  let out = "";
+  try {
+    out = execFileSync("git", ["check-attr", "linguist-generated", "-z", "--stdin"], { cwd: ROOT, encoding: "utf-8", input: tracked.join("\0"), stdio: ["pipe", "pipe", "ignore"] });
+  } catch {
+    return declared;
+  }
+  const fields = out.split("\0");
+  for (let i = 0; i + 2 < fields.length; i += 3) if (fields[i + 2] === "set" || fields[i + 2] === "true") declared.add(fields[i]);
+  return declared;
+}
+
 function checkEmDashes() {
   const over = [];
+  const declared = declaredGenerated();
   for (const rel of trackedFiles()) {
     const path = join(ROOT, rel);
-    if (rel.startsWith("docs/inherited/") || !existsSync(path) || statSync(path).isDirectory()) continue;
+    if (rel.startsWith("docs/inherited/") || declared.has(rel) || !existsSync(path) || statSync(path).isDirectory()) continue;
     const count = emDashCount(readFileSync(path));
     if (count > EM_DASH_BUDGET) over.push([rel, count]);
   }
@@ -698,7 +716,7 @@ function checkEmDashes() {
   const arrival = firstCommit(EM_DASH_SCOPE, "scripts/audit-docs.mjs");
   const added = addedCommits("docs");
   for (const [rel, count] of over) {
-    if (judgedForDashes(rel, added.get(rel), arrival)) problems.push(`${rel} carries ${count} em dashes; the budget is ${EM_DASH_BUDGET} per file`);
+    if (judgedForDashes(rel, added.get(rel), arrival)) problems.push(`${rel} carries ${count} em dashes; the budget is ${EM_DASH_BUDGET} per file, and a file a machine wrote and the tree keeps as written is declared linguist-generated in .gitattributes`);
   }
 }
 checkEmDashes();
@@ -827,6 +845,7 @@ function adviseSpelling() {
   const ownTerms = existsSync(join(ROOT, IGNORE_FILE)) ? ["--ignore-words", IGNORE_FILE] : [];
   const done = spawnSync("codespell", ["--skip", CODESPELL_SKIP, ...ownTerms, "."], { cwd: ROOT, encoding: "utf-8" });
   const tracked = new Set(trackedFiles());
+  for (const rel of declaredGenerated()) tracked.delete(rel);
   for (const line of `${done.stdout}`.split("\n")) {
     if (line.trim() && tracked.has(spelledPath(line))) advice.push(`${line.trim()}; correct it, or name a real term of the domain in ${IGNORE_FILE}, one word per line`);
   }

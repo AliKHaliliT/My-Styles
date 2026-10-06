@@ -10,6 +10,8 @@
 *.cmd text eol=crlf
 *.ps1 text eol=crlf
 
+# Replies recorded from a provider and kept as observed; the prose law does not read them.
+tests/fixtures/*.json linguist-generated
 # Common binary formats; never diff or normalize.
 *.png binary
 *.jpg binary
