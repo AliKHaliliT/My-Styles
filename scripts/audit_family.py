@@ -21,9 +21,15 @@ to later revisions of the style is the child owner's own refactoring choice.
 Anchors cut a block from its file: text from the start anchor (inclusive) to
 the end anchor (exclusive), or the whole file when both anchors are None. A
 block passes when every copy is byte-identical.
+
+The third duty is the root's own workflow, which no seat's audit reads: every
+action it uses from another repository is pinned to a commit with its version
+named beside it, the rule each seat's docs audit holds for the seat's own
+workflow. Run with --selftest to see that rule fire against a planted tag.
 """
 
 import hashlib
+import re
 import sys
 from pathlib import Path
 
@@ -238,12 +244,81 @@ def check_carried_trees(problems: list[str]) -> None:
                 )
 
 
+# An action a workflow uses from another repository names the commit it runs, forty hex characters,
+# with its version in the comment beside it, because a tag is a name that moves. A local action,
+# a path beginning with ./, and a container image, docker://, name no ref in another repository.
+USES_LINE = re.compile(r"^\s*-?\s*uses:\s*(\S+)(.*)$")
+PINNED_USES = re.compile(r"^[^@]+@[0-9a-f]{40}$")
+VERSION_COMMENT = re.compile(r"^\s+#\s*v?\d")
+
+
+def workflow_files(root: Path) -> list[Path]:
+    """Every workflow file in the tree's .github/workflows folder, in name order."""
+    folder = root / ".github/workflows"
+    if not folder.is_dir():
+        return []
+    return sorted(path for path in folder.iterdir() if path.suffix in (".yml", ".yaml") and path.is_file())
+
+
+def check_action_pins(problems: list[str], root: Path) -> None:
+    """Every action a workflow uses from another repository is pinned to a commit, with its version named beside it."""
+    for path in workflow_files(root):
+        rel = path.relative_to(root).as_posix()
+        for number, line in enumerate(path.read_text(encoding="utf-8").split("\n"), 1):
+            match = USES_LINE.match(line)
+            if match is None:
+                continue
+            reference, tail = match.group(1).strip("'\""), match.group(2)
+            if reference.startswith(("./", "docker://")):
+                continue
+            if not PINNED_USES.match(reference):
+                problems.append(
+                    f"{rel}:{number}: {reference} is pinned by a name that can move; an action from another repository"
+                    " names the commit it runs, forty hex characters, with its version in a comment beside it"
+                )
+            elif not VERSION_COMMENT.match(tail):
+                problems.append(f"{rel}:{number}: {reference} names its commit and not its version; the comment beside the pin says which release the commit is")
+
+
+def prove_action_pins() -> int:
+    """A planted tag and a planted pin without its version each raise their finding, and the plant leaves."""
+    failures = 0
+    for rel, content, needle in (
+        (".github/workflows/PLANTED.yml", "on: push\njobs:\n  planted:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v7\n", ".github/workflows/PLANTED.yml:6: actions/checkout@v7 is pinned by a name that can move"),
+        (".github/workflows/PLANTED.yml", "on: push\njobs:\n  planted:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1\n", ".github/workflows/PLANTED.yml:6: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 names its commit and not its version"),
+    ):
+        target = ROOT / rel
+        target.write_text(content, encoding="utf-8")
+        try:
+            problems: list[str] = []
+            check_action_pins(problems, ROOT)
+            if not any(needle in p for p in problems):
+                print(f"WRONG: plant {rel} did not raise {needle!r}")
+                failures += 1
+        finally:
+            target.unlink()
+    return failures
+
+
+def selftest() -> int:
+    """The pin rule fires on each planted defect."""
+    failures = prove_action_pins()
+    if failures:
+        print(f"{failures} rule(s) did not fire.")
+        return 1
+    print("The family audit's pin rule fires on every planted defect.")
+    return 0
+
+
 def main() -> int:
-    """Compare every copy of every shared block and report each divergence."""
+    """Compare every copy of every shared block, hold the root's workflow to its pins, and report each divergence."""
+    if "--selftest" in sys.argv:
+        return selftest()
     problems: list[str] = []
     check_blocks(problems)
     check_carries(problems)
     check_carried_trees(problems)
+    check_action_pins(problems, ROOT)
 
     for problem in problems:
         print(problem)

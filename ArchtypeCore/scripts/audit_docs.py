@@ -6,8 +6,8 @@ checked here, along with the shapes the rulebook fixes: budgets, the index contr
 whole docs zone, names, the STATE schema, the version floor claims, the Python layout
 conventions, the room every directory and root file has in the map or the baseline, the
 coverage of the import graph the Dependency Rule contract runs over, the immutability of
-records, the title beside every citation of one, and the decidable half of the docstring
-convention. Decision records are exempt from
+records, the title beside every citation of one, the decidable half of the docstring
+convention, and the commit every action a workflow uses is pinned to. Decision records are exempt from
 the freshness rules because they describe the past, which does not rot; what is held about
 them is that nobody rewrites the past.
 
@@ -978,6 +978,42 @@ def check_ignored_working_trees(problems: list[str]) -> None:
         )
 
 
+# An action a workflow uses from another repository names the commit it runs, forty hex characters,
+# with its version in the comment beside it, because a tag is a name that moves. A local action,
+# a path beginning with ./, and a container image, docker://, name no ref in another repository.
+USES_LINE = re.compile(r"^\s*-?\s*uses:\s*(\S+)(.*)$")
+PINNED_USES = re.compile(r"^[^@]+@[0-9a-f]{40}$")
+VERSION_COMMENT = re.compile(r"^\s+#\s*v?\d")
+
+
+def workflow_files(root: Path) -> list[Path]:
+    """Every workflow file in the tree's .github/workflows folder, in name order."""
+    folder = root / ".github/workflows"
+    if not folder.is_dir():
+        return []
+    return sorted(path for path in folder.iterdir() if path.suffix in (".yml", ".yaml") and path.is_file())
+
+
+def check_action_pins(problems: list[str]) -> None:
+    """Every action a workflow uses from another repository is pinned to a commit, with its version named beside it."""
+    for path in workflow_files(ROOT):
+        rel = path.relative_to(ROOT).as_posix()
+        for number, line in enumerate(path.read_text(encoding="utf-8").split("\n"), 1):
+            match = USES_LINE.match(line)
+            if match is None:
+                continue
+            reference, tail = match.group(1).strip("'\""), match.group(2)
+            if reference.startswith(("./", "docker://")):
+                continue
+            if not PINNED_USES.match(reference):
+                problems.append(
+                    f"{rel}:{number}: {reference} is pinned by a name that can move; an action from another repository"
+                    " names the commit it runs, forty hex characters, with its version in a comment beside it"
+                )
+            elif not VERSION_COMMENT.match(tail):
+                problems.append(f"{rel}:{number}: {reference} names its commit and not its version; the comment beside the pin says which release the commit is")
+
+
 def check_import_graph(problems: list[str]) -> None:
     """The import graph the Dependency Rule contract runs over covers every module on disk.
 
@@ -1412,6 +1448,7 @@ CHECK_NEEDS = (
     ("check_rooms", "docs/ARCHITECTURE.md"),
     ("check_docs_zone", "docs"),
     ("check_record_links", "docs"),
+    ("check_action_pins", ".github/workflows"),
 )
 
 
@@ -1461,6 +1498,7 @@ def run() -> tuple[list[str], list[str], list[Path]]:
     check_em_dashes(problems)
     check_rooms(problems)
     check_ignored_working_trees(problems)
+    check_action_pins(problems)
     check_stale_branches(problems)
     held = check_layout(problems)
     check_import_graph(problems)
@@ -1481,6 +1519,8 @@ FILE_PLANTS = [
         "# 0093. Planted\n\nStatus: Accepted\nDate: 2026-01-01\n",
         f"the cap is {NAME_CAP}",
     ),
+    (".github/workflows/PLANTED.yml", "on: push\njobs:\n  planted:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v7\n", ".github/workflows/PLANTED.yml:6: actions/checkout@v7 is pinned by a name that can move"),
+    (".github/workflows/PLANTED.yml", "on: push\njobs:\n  planted:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1\n", ".github/workflows/PLANTED.yml:6: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 names its commit and not its version"),
 ]
 
 # Plants appended to a living document, whose bytes are restored afterwards.

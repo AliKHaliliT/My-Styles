@@ -849,6 +849,39 @@ function checkIgnoredWorkingTrees() {
 
 checkIgnoredWorkingTrees();
 
+// An action a workflow uses from another repository names the commit it runs, forty hex characters, with its
+// version in the comment beside it, because a tag is a name that moves. A local action, a path beginning with ./,
+// and a container image, docker://, name no ref in another repository.
+const USES_LINE = /^\s*-?\s*uses:\s*['"]?([^'"\s]+)['"]?(.*)$/;
+const PINNED_USES = /^[^@]+@[0-9a-f]{40}$/;
+const VERSION_COMMENT = /^\s+#\s*v?\d/;
+
+// Every workflow file in the tree's .github/workflows folder, in name order.
+function workflowFiles() {
+  const folder = join(ROOT, ".github", "workflows");
+  if (!existsSync(folder) || !statSync(folder).isDirectory()) return [];
+  return readdirSync(folder).filter((name) => /\.ya?ml$/.test(name)).sort().map((name) => join(folder, name));
+}
+
+// Every action a workflow uses from another repository is pinned to a commit, with its version named beside it.
+function checkActionPins() {
+  for (const path of workflowFiles()) {
+    const rel = relative(ROOT, path).split("\\").join("/");
+    readFileSync(path, "utf-8").split(/\r?\n/).forEach((line, index) => {
+      const match = USES_LINE.exec(line);
+      if (!match || match[1].startsWith("./") || match[1].startsWith("docker://")) return;
+      const [, reference, tail] = match;
+      if (!PINNED_USES.test(reference)) {
+        problems.push(`${rel}:${index + 1}: ${reference} is pinned by a name that can move; an action from another repository names the commit it runs, forty hex characters, with its version in a comment beside it`);
+      } else if (!VERSION_COMMENT.test(tail)) {
+        problems.push(`${rel}:${index + 1}: ${reference} names its commit and not its version; the comment beside the pin says which release the commit is`);
+      }
+    });
+  }
+}
+
+checkActionPins();
+
 // Whether the tree has a local branch named main, which the stale-branch check reads against.
 function localMain() {
   return git("rev-parse", "--verify", "--quiet", "refs/heads/main").trim() !== "";
@@ -1036,6 +1069,7 @@ const CHECK_NEEDS = [
   ["the rooms check", "docs/ARCHITECTURE.md"],
   ["the docs-zone checks", "docs"],
   ["the record-link check", "docs"],
+  ["the action pin check", ".github/workflows"],
 ];
 const unrun = CHECK_NEEDS.filter(([, need]) => !existsSync(join(ROOT, need))).map(([name, need]) => `${name} did not run: ${need} is absent from this tree`);
 if (existsSync(join(ROOT, "docs", "inherited")) && alignedAtHost()) unrun.push("the disposition check did not run: docs/UPSTREAM.md aligns this arrow at the host's own commit, so the family audit holds its inherited folder and no re-alignment gains it a record");

@@ -364,6 +364,12 @@ function proveVocabularyPlant() {
 }
 
 /** Three spliced clauses in a record main does not hold are advised, one across a wrap and one in a bullet, while the label, the list intro and a two-word label behind a list marker are not, and the record leaves. */
+/** A planted tag and a planted pin without its version each raise their finding, and the plant leaves. */
+function proveActionPins() {
+  proveGroup("a workflow action pinned by tag", [[".github/workflows/PLANTED.yml", "on: push\njobs:\n  planted:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v7\n"]], [".github/workflows/PLANTED.yml:6: actions/checkout@v7 is pinned by a name that can move"]);
+  proveGroup("a workflow action pinned without its version", [[".github/workflows/PLANTED.yml", "on: push\njobs:\n  planted:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1\n"]], [".github/workflows/PLANTED.yml:6: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 names its commit and not its version"]);
+}
+
 function proveSpliceAdvice() {
   const number = freeNumber();
   const name = `${number}-planted-splice.md`;
@@ -709,7 +715,7 @@ if (baseline.length > 0) {
   for (const p of baseline.slice(0, 5)) console.log(`  ${p}`);
   process.exit(1);
 }
-for (const proof of [proveFilePlants, proveTrackedPlants, proveRecordDashes, proveAppendedPlants, proveInvariantPlants, proveStatePlants, proveUpstreamPlants, provePalettePlant, proveCitationPlant, proveDensePlant, proveVocabularyPlant, proveSpliceAdvice, proveSpellingPlant, proveUntrackedSpelling, proveIgnoredTerm, proveImmutability, proveBulletEdit, proveLinkRepair, proveIgnoredPath, proveRecordLinkPlant, proveAnchors, proveTemplateCopy, proveDisposition, proveIgnorePlant, proveStaleBranch, proveNoRemoteReport, proveUnrunReport]) {
+for (const proof of [proveFilePlants, proveTrackedPlants, proveRecordDashes, proveAppendedPlants, proveInvariantPlants, proveStatePlants, proveUpstreamPlants, provePalettePlant, proveCitationPlant, proveDensePlant, proveVocabularyPlant, proveSpliceAdvice, proveActionPins, proveSpellingPlant, proveUntrackedSpelling, proveIgnoredTerm, proveImmutability, proveBulletEdit, proveLinkRepair, proveIgnoredPath, proveRecordLinkPlant, proveAnchors, proveTemplateCopy, proveDisposition, proveIgnorePlant, proveStaleBranch, proveNoRemoteReport, proveUnrunReport]) {
   proof();
 }
 console.log(failures === 0 ? "every rule fires" : `${failures} rule(s) do not work`);

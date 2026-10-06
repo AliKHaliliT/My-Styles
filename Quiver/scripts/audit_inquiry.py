@@ -954,6 +954,44 @@ def check_ignored_working_trees(problems: list[str], root: Path) -> None:
         )
 
 
+# An action a workflow uses from another repository names the commit it runs, forty hex characters,
+# with its version in the comment beside it, because a tag is a name that moves. A local action,
+# a path beginning with ./, and a container image, docker://, name no ref in another repository.
+USES_LINE = re.compile(r"^\s*-?\s*uses:\s*(\S+)(.*)$")
+PINNED_USES = re.compile(r"^[^@]+@[0-9a-f]{40}$")
+VERSION_COMMENT = re.compile(r"^\s+#\s*v?\d")
+
+
+def workflow_files(root: Path) -> list[Path]:
+    """Every workflow file in the tree's .github/workflows folder, in name order."""
+    folder = root / ".github/workflows"
+    if not folder.is_dir():
+        return []
+    return sorted(path for path in folder.iterdir() if path.suffix in (".yml", ".yaml") and path.is_file())
+
+
+def check_action_pins(problems: list[str], root: Path) -> None:
+    """Every action a workflow uses from another repository is pinned to a commit, with its version named beside it; an arrow's audit holds its own."""
+    if root != ROOT:
+        return
+    for path in workflow_files(root):
+        rel = path.relative_to(root).as_posix()
+        for number, line in enumerate(path.read_text(encoding="utf-8").split("\n"), 1):
+            match = USES_LINE.match(line)
+            if match is None:
+                continue
+            reference, tail = match.group(1).strip("'\""), match.group(2)
+            if reference.startswith(("./", "docker://")):
+                continue
+            if not PINNED_USES.match(reference):
+                problems.append(
+                    f"{rel}:{number}: {reference} is pinned by a name that can move; an action from another repository"
+                    " names the commit it runs, forty hex characters, with its version in a comment beside it"
+                )
+            elif not VERSION_COMMENT.match(tail):
+                problems.append(f"{rel}:{number}: {reference} names its commit and not its version; the comment beside the pin says which release the commit is")
+
+
 def check_record_immutability(problems: list[str], root: Path) -> None:
     """A record changes only on its Status line or at a link target that resolves, in the working tree and in every commit since this scope arrived.
 
@@ -1492,6 +1530,7 @@ CHECK_NEEDS = (
     ("check_arrows", "docs/arrows"),
     ("check_pins", "docs/claims"),
     ("check_record_links", "docs"),
+    ("check_action_pins", ".github/workflows"),
 )
 
 
@@ -1530,6 +1569,7 @@ def run(root: Path) -> tuple[list[str], list[str]]:
     check_record_links(problems, root)
     check_rooms(problems, root)
     check_ignored_working_trees(problems, root)
+    check_action_pins(problems, root)
     check_stale_branches(problems, root)
     check_upstream(problems, root)
     check_record_names(problems, root)
@@ -1551,6 +1591,8 @@ def run(root: Path) -> tuple[list[str], list[str]]:
 
 
 PLANTS = [
+    (".github/workflows/PLANTED.yml", "on: push\njobs:\n  planted:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v7\n", ".github/workflows/PLANTED.yml:6: actions/checkout@v7 is pinned by a name that can move"),
+    (".github/workflows/PLANTED.yml", "on: push\njobs:\n  planted:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1\n", ".github/workflows/PLANTED.yml:6: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 names its commit and not its version"),
     ("docs/claims/0009-planted.md",
      "# 0009. Planted\n\nStatus: Supported\nDate: 2026-01-01\n\n## Claim\n\nx.\n\n## Evidence\n\nNone.\n\n## Threats\n\n- None named.\n",
      "settled claim has no evidence"),
