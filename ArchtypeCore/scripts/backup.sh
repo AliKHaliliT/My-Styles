@@ -42,7 +42,7 @@ fi
 
 # Remove old backups
 log "Cleaning up backups older than $RETENTION_DAYS days..."
-find "$BACKUP_DIR" -type f -mtime +$RETENTION_DAYS -name "*.db" -or -name "*.conf" -exec rm -f {} \;
+find "$BACKUP_DIR" -type f -mtime +$RETENTION_DAYS \( -name "*.db" -o -name "*.conf" \) -exec rm -f {} \;
 log "Old backups cleanup complete."
 
 log "Backup process completed successfully."
