@@ -6,21 +6,21 @@ the audit script; its structure is the flow of knowledge.
 ## The flow
 
 ```text
-docs/QUESTION.md ──decomposes into──▶ conjectures (claims at Status: Conjecture)
-        │                                     │
-        │ cites                               │ runs an experiment in
-        ▼                                     ▼
-docs/BIBLIOGRAPHY.md                 arrows/<name>/   (that style's law)
-                                              │
-                                              │ produces results, quoted and
-                                              │ pinned to the host commit
-                                              ▼
-                             docs/claims/NNNN  (Conjecture, Supported, Refuted, Stale, Superseded)
-                                              ▲
-                       docs/arrows/<name>.md  lists what rests on each arrow
+docs/QUESTIONS.md ──asks──▶ questions ──decompose into──▶ conjectures (claims at Status: Conjecture)
+        │                                                         │
+        │ cites                                                   │ runs an experiment in
+        ▼                                                         ▼
+docs/BIBLIOGRAPHY.md                                     arrows/<name>/   (that style's law)
+                                                                  │
+                                                                  │ produces results, quoted and
+                                                                  │ pinned to the host commit
+                                                                  ▼
+                                                 docs/claims/NNNN  (Conjecture, Supported, Refuted, Stale, Superseded)
+                                                                  ▲
+                                           docs/arrows/<name>.md  lists what rests on each arrow
 ```
 
-A conjecture is written before its experiment. Evidence flips it to Supported
+The aim stands over numbered questions, and every claim still standing is linked from a question it serves, which the audit holds, so the map and the ledger cannot drift apart unseen. A conjecture is written before its experiment. Evidence flips it to Supported
 or Refuted, quoting the results and pinning the commit whose tree produced
 them. Movement of an arrow past a pin, or past a claim's latest verification,
 raises the audit's advisory, and a person answers it by re-verifying in the
@@ -44,7 +44,7 @@ reaches into an arrow, and an arrow's suite never checks a claim.
 
 ## Passes over the literature
 
-Reading enters the same chain as running. A pass over one slice of the question is bounded before it begins and leaves one dated record in the `reviews/` folder under `docs/`, naming what it searched, the stages it ran or collapsed, the keys it found with the depth each was read at, the ledger entries it moved, and what it left to a person, which `STATE.md` queues; the bibliography, the claims, and the decomposition hold what it found, so no synthesis document sits beside them to rot. The next pass over the slice extends the last from the date it stopped.
+Reading enters the same chain as running. A pass over one slice of one question, named by number in its record, is bounded before it begins and leaves one dated record in the `reviews/` folder under `docs/`, naming what it searched, the stages it ran or collapsed, the keys it found with the depth each was read at, the ledger entries it moved, and what it left to a person, which `STATE.md` queues; the bibliography, the claims, and the decomposition hold what it found, so no synthesis document sits beside them to rot. The next pass over the slice extends the last from the date it stopped.
 
 ## Exemplars
 
@@ -54,5 +54,5 @@ The map says where things live; these files say how they read. An artifact of a 
 - A superseded claim, showing the re-pin form: `docs/claims/0007-half-even-cancels-the-drift-that-half-up-accumulates.md`.
 - A decision record: `docs/decisions/0009-advise-only-on-movement-that-can-move-a-number.md`.
 - An arrow manifest: `docs/arrows/coinwise.md`.
-- The question with its decomposition: `docs/QUESTION.md`.
+- The aim and the questions, each with its decomposition: `docs/QUESTIONS.md`.
 - A review pass record: `docs/reviews/2026-09-30-endings-of-retail-prices-in-one-index.md`.

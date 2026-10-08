@@ -29,15 +29,16 @@ LIVING = [
     "AGENTS.md",
     "README.md",
     "STATE.md",
-    "docs/QUESTION.md",
+    "docs/QUESTIONS.md",
     "docs/ARCHITECTURE.md",
     "docs/BIBLIOGRAPHY.md",
     "docs/CONVENTIONS.md",
     "docs/BASELINE.md",
     "docs/INVARIANTS.md",
 ]
-# The rulebook grows with the law it states, as the manual, the map, and the invariants ledger grow with the system.
-FREE_GROWING = {"AGENTS.md", "README.md", "docs/ARCHITECTURE.md", "docs/BIBLIOGRAPHY.md", "docs/UPSTREAM.md", "docs/CONVENTIONS.md", "docs/INVARIANTS.md"}
+# The rulebook grows with the law it states, as the manual, the map, and the invariants ledger grow with the system,
+# and the questions file with the claims its sections index.
+FREE_GROWING = {"AGENTS.md", "README.md", "docs/ARCHITECTURE.md", "docs/BIBLIOGRAPHY.md", "docs/UPSTREAM.md", "docs/CONVENTIONS.md", "docs/INVARIANTS.md", "docs/QUESTIONS.md"}
 BUDGET_LINES = 150
 HORIZON_DAYS = 90
 # In-flight work that has not moved in this long is either finished or stalled, and Now is
@@ -75,7 +76,18 @@ FLOW_SCOPE = "review passes held to a funnel line in Boundary from the rule's ar
 PROVENANCE = ("by the owner", "by the agent")
 PROVENANCE_SCOPE = "review passes held to who ran each stage from the rule's arrival on"
 # The rules that bind a pass from their own arrival, each dated by its scope sentence.
-ARRIVAL_SCOPES = {"depth": DEPTH_SCOPE, "flow": FLOW_SCOPE, "provenance": PROVENANCE_SCOPE}
+# The questions file opens with the aim and asks one numbered question per section, each holding the
+# claims that serve it; a number is never reused, so the headings count from one without a gap.
+QUESTIONS_FILE = "docs/QUESTIONS.md"
+QUESTION_HEADING = re.compile(r"^### (\d+)\. (.+)$", re.MULTILINE)
+CLAIM_LINK = re.compile(r"\]\((?:\.\./)*claims/(\d{4})-[a-z0-9-]+\.md(?:#[^)\s]*)?\)")
+DECISION_LINK = re.compile(r"\]\((?:\.\./)*(?:decisions|inherited)/\d{4}-[a-z0-9-]+\.md(?:#[^)\s]*)?\)")
+NO_CONJECTURE = "Not yet conjectured"
+WITHDRAWN = "Withdrawn"
+QUESTION_NUMBER = re.compile(r"\bquestion (\d+)\b", re.IGNORECASE)
+# A pass written from this rule's arrival on names the question it serves by number in its Slice.
+QUESTION_SCOPE = "review passes held to a question named by number in Slice from the rule's arrival on"
+ARRIVAL_SCOPES = {"depth": DEPTH_SCOPE, "flow": FLOW_SCOPE, "provenance": PROVENANCE_SCOPE, "question": QUESTION_SCOPE}
 STATE_DATE = re.compile(r"\((\d{4}-\d{2}-\d{2})\)")
 # The upstream file a project built from this template carries: one Open section, entries dated by
 # heading with a kind, a pin, and four labeled parts, expiring on the same horizon as STATE.
@@ -655,6 +667,82 @@ def check_docs_below_top(problems: list[str], root: Path, rows: str) -> None:
             )
 
 
+def asked_questions(root: Path) -> list[int]:
+    """The numbers the questions file asks, in the order its headings stand; nothing where the file is absent."""
+    path = root / QUESTIONS_FILE
+    if not path.exists():
+        return []
+    return [int(m.group(1)) for m in QUESTION_HEADING.finditer(path.read_text(encoding="utf-8"))]
+
+
+def question_sections(text: str) -> list[tuple[int, str]]:
+    """Each question's number with the text of its section, which runs to the next question or to the next section of the file."""
+    headings = list(QUESTION_HEADING.finditer(text))
+    sections: list[tuple[int, str]] = []
+    for index, heading in enumerate(headings):
+        end = headings[index + 1].start() if index + 1 < len(headings) else len(text)
+        closing = re.search(r"^## ", text[heading.end():end], re.MULTILINE)
+        if closing is not None:
+            end = heading.end() + closing.start()
+        sections.append((int(heading.group(1)), text[heading.end():end]))
+    return sections
+
+
+def check_questions(problems: list[str], root: Path) -> None:
+    """The questions file opens with the aim, numbers its questions from one without a gap, and agrees with the ledger.
+
+    Every question's section links a claim that serves it, says Not yet conjectured, or says
+    Withdrawn with the record that withdrew it, and every claim still standing, its status
+    anything but Superseded, is linked from at least one question, because a claim that serves
+    no question and a question nothing serves are the two ways the map and the ledger drift
+    apart. Which question a claim serves, and whether a question is answered, stay with review.
+    """
+    path = root / QUESTIONS_FILE
+    if not path.exists():
+        return
+    text = path.read_text(encoding="utf-8")
+    opening: list[str] = []
+    for line in text.split("\n")[1:]:
+        if line.startswith("#"):
+            break
+        opening.append(line)
+    if not any(line.strip() for line in opening):
+        problems.append(f"{QUESTIONS_FILE}: opens with no aim; the paragraph under the title says what the inquiry is about and what would answer it, before its first section")
+    sections = question_sections(text)
+    numbers = [number for number, _ in sections]
+    if not numbers:
+        problems.append(f"{QUESTIONS_FILE}: asks no question; each question is a section headed ### N. and the question, numbered from 1")
+    elif numbers != list(range(1, len(numbers) + 1)):
+        counted = ", ".join(str(number) for number in numbers)
+        problems.append(f"{QUESTIONS_FILE}: questions are numbered {counted}; the headings count from 1 without a gap or a repeat, because a number is never reused and a withdrawn question keeps its place")
+    check_question_homes(problems, root, check_question_sections(problems, sections))
+
+
+def check_question_sections(problems: list[str], sections: list[tuple[int, str]]) -> set[str]:
+    """Every question links a claim, says Not yet conjectured, or says Withdrawn with its record; the claims linked are returned."""
+    linked: set[str] = set()
+    for number, body in sections:
+        claims = set(CLAIM_LINK.findall(body))
+        linked |= claims
+        if WITHDRAWN in body and DECISION_LINK.search(body) is None:
+            problems.append(f"{QUESTIONS_FILE}: question {number} is withdrawn without the record that withdrew it; a withdrawn question links its decision record")
+        elif not claims and NO_CONJECTURE not in body and WITHDRAWN not in body:
+            problems.append(f"{QUESTIONS_FILE}: question {number} names no claim; a question's section links the claims that serve it, says Not yet conjectured, or says Withdrawn with the record that withdrew it")
+    return linked
+
+
+def check_question_homes(problems: list[str], root: Path, linked: set[str]) -> None:
+    """Every claim whose status is not Superseded is linked from at least one question."""
+    claims = root / "docs/claims"
+    if not claims.is_dir():
+        return
+    for path in sorted(claims.glob("*.md")):
+        lines = path.read_text(encoding="utf-8").split("\n")
+        if any(line.startswith("Status: Superseded") for line in lines) or path.name[:4] in linked:
+            continue
+        problems.append(f"docs/claims/{path.name}: is linked from no question in {QUESTIONS_FILE}; every standing claim serves a question, so that question's section links it")
+
+
 def check_records(problems: list[str], root: Path) -> None:
     """Names and status lines for every numbered record folder, and claim shapes."""
     for folder, status in (
@@ -1138,7 +1226,7 @@ def section_body(text: str, heading: str) -> str:
 
 
 def check_reviews(problems: list[str], root: Path) -> None:
-    """Every review pass carries its shape, names its boundary's completeness, runs or collapses each stage in writing, names the pass it extends, and, from each rule's arrival on, names a depth beside every key, counts its funnel and says who ran each stage.
+    """Every review pass carries its shape, names its boundary's completeness, runs or collapses each stage in writing, names the pass it extends, and, from each rule's arrival on, names a depth beside every key, counts its funnel, says who ran each stage and names by number the question it serves.
 
     Whether the boundary was well chosen or the reading was good stays with review; what is held
     here is that a pass claiming exhaustion ran the completeness review, that the checks never
@@ -1150,6 +1238,7 @@ def check_reviews(problems: list[str], root: Path) -> None:
         return
     arrivals = {name: first_commit(scope, "scripts/audit_inquiry.py") for name, scope in ARRIVAL_SCOPES.items()}
     added = added_commits("docs/reviews")
+    asked = asked_questions(root)
     for path in sorted(folder.glob("*.md")):
         rel = f"docs/reviews/{path.name}"
         text = path.read_text(encoding="utf-8")
@@ -1164,17 +1253,27 @@ def check_reviews(problems: list[str], root: Path) -> None:
         check_review_stages(problems, rel, section_body(text, "## Stages"), completeness)
         check_review_slice(problems, rel, path, section_body(text, "## Slice"))
         bound = {name: bound_from_arrival(added.get(rel), arrival) for name, arrival in arrivals.items()}
-        check_review_from_arrival(problems, rel, text, bound)
+        check_review_from_arrival(problems, rel, text, bound, asked)
 
 
-def check_review_from_arrival(problems: list[str], rel: str, text: str, bound: dict[str, bool]) -> None:
-    """The shapes that bind a pass from their own arrival: the depth beside each key, the funnel line, and who ran each stage."""
+def check_review_from_arrival(problems: list[str], rel: str, text: str, bound: dict[str, bool], asked: list[int]) -> None:
+    """The shapes that bind a pass from their own arrival: the depth beside each key, the funnel line, who ran each stage, and the question served."""
     if bound["depth"]:
         check_review_depths(problems, rel, section_body(text, "## Found"))
     if bound["flow"]:
         check_review_flow(problems, rel, section_body(text, "## Boundary"), section_body(text, "## Found"))
     if bound["provenance"]:
         check_review_provenance(problems, rel, section_body(text, "## Stages"))
+    if bound["question"]:
+        check_review_question(problems, rel, section_body(text, "## Slice"), asked)
+
+
+def check_review_question(problems: list[str], rel: str, slice_text: str, asked: list[int]) -> None:
+    """The Slice names the question the pass served by number, and the questions file asks it."""
+    named = [int(n) for n in QUESTION_NUMBER.findall(slice_text)]
+    if not named:
+        problems.append(f"{rel}: the Slice names no question by number; a pass serves one question's slice, written as question N")
+    problems.extend(f"{rel}: serves question {n}, which {QUESTIONS_FILE} does not ask" for n in named if n not in asked)
 
 
 def check_review_provenance(problems: list[str], rel: str, stages_text: str) -> None:
@@ -1408,15 +1507,32 @@ def advise_shallow_reads(advice: list[str], root: Path) -> None:
 
 
 def check_arrows(problems: list[str], root: Path) -> None:
-    """Every arrow has a manifest and every manifest an arrow."""
+    """Every arrow has a manifest, every manifest an arrow, and every manifest names the question it serves."""
     arrows = {p.name for p in (root / "arrows").iterdir() if p.is_dir()} if (root / "arrows").exists() else set()
     manifests = {p.stem for p in (root / "docs/arrows").glob("*.md")} if (root / "docs/arrows").exists() else set()
     for name in sorted(arrows - manifests):
         problems.append(f"arrows/{name}: no manifest at docs/arrows/{name}.md")
     for name in sorted(manifests - arrows):
         problems.append(f"docs/arrows/{name}.md: manifest for an arrow that does not exist")
+    for name in sorted(manifests):
+        check_manifest_serves(problems, root, name)
     for name in sorted(arrows & manifests):
         check_manifest_currency(problems, root, name)
+
+
+def check_manifest_serves(problems: list[str], root: Path, name: str) -> None:
+    """A manifest's Serves line names the question the arrow serves by number, and the questions file asks it."""
+    serves: list[str] = []
+    for line in (root / "docs/arrows" / f"{name}.md").read_text(encoding="utf-8").split("\n"):
+        if line.startswith("- **Serves**") or (serves and line.startswith("  ")):
+            serves.append(line)
+        elif serves:
+            break
+    named = [int(n) for n in QUESTION_NUMBER.findall(" ".join(serves))]
+    if not named:
+        problems.append(f"docs/arrows/{name}.md: Serves names no question by number; the line says which question the arrow serves, written as question N")
+    asked = asked_questions(root)
+    problems.extend(f"docs/arrows/{name}.md: serves question {n}, which {QUESTIONS_FILE} does not ask" for n in named if n not in asked)
 
 
 def check_manifest_currency(problems: list[str], root: Path, name: str) -> None:
@@ -1586,6 +1702,7 @@ def run(root: Path) -> tuple[list[str], list[str]]:
     advise_vocabulary(advice, root)
     advise_splices(advice, root)
     check_living(problems, root)
+    check_questions(problems, root)
     check_invariants(problems, advice, root)
     check_references(problems, root)
     check_record_links(problems, root)
@@ -1630,6 +1747,11 @@ PLANTS = [
     ("docs/claims/0011-planted.md",
      "# 0011. Planted\n\nStatus: Conjecture\nDate: 2026-01-01\n\n## Claim\n\ncites [fake754-2019].\n\n## Evidence\n\nNone.\n\n## Threats\n\n- None named.\n",
      "[fake754-2019] not in the bibliography"),
+    ("docs/claims/0094-planted-orphan.md",
+     "# 0094. Planted orphan\n\nStatus: Conjecture\nDate: 2026-01-01\n\n## Claim\n\nx.\n\n## Evidence\n\nNone.\n\n## Threats\n\n- None named.\n",
+     "0094-planted-orphan.md: is linked from no question"),
+    ("docs/arrows/ghost.md", "# Arrow: ghost\n\n- **Serves**: question 99, by nothing.\n", "serves question 99, which docs/QUESTIONS.md does not ask"),
+    ("docs/arrows/ghost.md", "# Arrow: ghost\n\n- **Serves**: the planted line, by nothing.\n", "Serves names no question by number"),
     ("docs/arrows/ghost.md", "# Arrow: ghost\n", "manifest for an arrow that does not exist"),
     ("docs/claims/0093-planted-with-a-title-so-long-that-it-runs-past-the-seventy-two-character-cap.md",
      "# 0093. Planted\n\nStatus: Conjecture\nDate: 2026-01-01\n\n## Claim\n\nx.\n\n## Evidence\n\nNone.\n\n## Threats\n\n- None named.\n",
@@ -1685,7 +1807,7 @@ def docs_only_moved_pin() -> tuple[str, str] | None:
 
 # A well-formed review pass; each review plant breaks exactly one rule of it.
 REVIEW_TEMPLATE = (
-    "# Planted pass\n\nDate: 2026-01-01\n\n## Slice\n\nFirst pass over the planted slice.\n\n"
+    "# Planted pass\n\nDate: 2026-01-01\n\n## Slice\n\nFirst pass over the planted slice of question 1.\n\n"
     "## Boundary\n\nRead the works the question cites and nothing else.\n"
     "Flow: retrieved 1, screened 1, entered 1, read in full 1\nCompleteness: judgment\n\n"
     "## Method\n\nA scoping read of a known corpus.\n\n## Stages\n\n"
@@ -1702,10 +1824,12 @@ REVIEW_PLANTS = [
     ("docs/reviews/2026-01-01-planted-exhausted.md", REVIEW_TEMPLATE.replace("Completeness: judgment", "Completeness: exhausted"), "ran the completeness review"),
     ("docs/reviews/2026-01-01-planted-checks-collapsed.md", REVIEW_TEMPLATE.replace("- Checks: ran by the agent, every key resolves.", "- Checks: collapsed, no time this pass."), "the checks never collapse"),
     ("docs/reviews/2026-01-01-planted-nobody-ran.md", REVIEW_TEMPLATE.replace("- Enumeration: ran by the agent, over the cited works.", "- Enumeration: ran, over the cited works."), "without saying who ran it"),
-    ("docs/reviews/2026-01-01-planted-no-prior.md", REVIEW_TEMPLATE.replace("First pass over the planted slice.", "Extends an earlier pass."), "names the prior pass it extends or says First pass"),
+    ("docs/reviews/2026-01-01-planted-no-prior.md", REVIEW_TEMPLATE.replace("First pass over the planted slice of question 1.", "Extends an earlier pass of question 1."), "names the prior pass it extends or says First pass"),
     ("docs/reviews/2026-01-01-planted-no-fold.md", REVIEW_TEMPLATE.replace("- Fold: collapsed, the ledger did not move.\n", ""), "stage Fold has no line"),
     ("docs/reviews/2026-01-01-planted-bare-collapse.md", REVIEW_TEMPLATE.replace("- Resolution: collapsed, no two sources conflict.", "- Resolution: collapsed."), "collapsed without a reason"),
-    ("docs/reviews/2026-01-01-planted-dead-prior.md", REVIEW_TEMPLATE.replace("First pass over the planted slice.", "Extends [an earlier pass](2025-01-01-nothing-here.md)."), "which does not exist"),
+    ("docs/reviews/2026-01-01-planted-dead-prior.md", REVIEW_TEMPLATE.replace("First pass over the planted slice of question 1.", "Extends [an earlier pass](2025-01-01-nothing-here.md) of question 1."), "which does not exist"),
+    ("docs/reviews/2026-01-01-planted-no-question.md", REVIEW_TEMPLATE.replace("the planted slice of question 1.", "the planted slice."), "the Slice names no question by number"),
+    ("docs/reviews/2026-01-01-planted-ghost-question.md", REVIEW_TEMPLATE.replace("of question 1.", "of question 99."), "serves question 99, which docs/QUESTIONS.md does not ask"),
     ("docs/reviews/2026-01-01-planted-no-depth.md", REVIEW_TEMPLATE.replace("- [planted9999] full", "[planted9999], read in full."), "without its depth"),
     ("docs/reviews/2026-01-01-planted-table-no-depth.md", REVIEW_TEMPLATE.replace("- [planted9999] full", "| Key | Facet |\n| --- | --- |\n| [planted9999] | x |"), "without its depth"),
     ("docs/reviews/2026-01-01-planted-no-flow.md", REVIEW_TEMPLATE.replace("Flow: retrieved 1, screened 1, entered 1, read in full 1\n", ""), "carries a line Flow"),
@@ -1737,7 +1861,8 @@ PLANTED_ENTRY = b"- **planted9999**: Planted, P. 9999. A work entered by the sel
 
 # A superseded conjecture keeps Evidence None. and must PASS, or this checker
 # would force evidence into an immutable record to earn a clean run; and a key
-# inside backticks is a mention of the form, so a record explaining the form must PASS too.
+# inside backticks is a mention of the form, so a record explaining the form must PASS too,
+# superseded like the first, because a standing claim is linked from a question and a plant has no home.
 # Their numbers sit above any a young project's ledger reaches, so a legal plant never shares
 # a number with a real claim and fails the check written for two sessions.
 LEGAL_PLANTS = [
@@ -1745,7 +1870,7 @@ LEGAL_PLANTS = [
      ("# 0086. Planted legal\n\nStatus: Superseded by 0002\nDate: 2026-01-01\n\n"
       "## Claim\n\nx.\n\n## Evidence\n\nNone.\n\n## Threats\n\n- None named.\n")),
     ("docs/claims/0085-planted-legal-mention.md",
-     ("# 0085. Planted legal mention\n\nStatus: Conjecture\nDate: 2026-01-01\n\n"
+     ("# 0085. Planted legal mention\n\nStatus: Superseded by 0002\nDate: 2026-01-01\n\n"
       "## Claim\n\nA key written as `[nobody9999]` names the citation form and cites nothing.\n\n"
       "## Evidence\n\nNone.\n\n## Threats\n\n- None named.\n")),
 ]
@@ -1870,6 +1995,82 @@ def prove_review_plants() -> int:
             bibliography.write_bytes(original_bibliography)
         if not reviews_existed and not any(reviews.iterdir()):
             reviews.rmdir()
+    return failures
+
+
+# The line the verification proof plants under the first question, so its planted claims serve one as a standing claim must.
+PLANTED_HOMES = (
+    "- Planted. [claim 0088, Planted advisory](claims/0088-planted-recorded.md) and"
+    " [claim 0089, Planted advisory](claims/0089-planted-verified.md) rest here for the selftest."
+)
+
+
+def plant_under_question(original: bytes, line: str) -> bytes:
+    """The questions file with one line planted under its first question, or unchanged where it asks none."""
+    text = original.decode("utf-8")
+    heading = QUESTION_HEADING.search(text)
+    if heading is None:
+        return original
+    return (text[:heading.end()] + "\n\n" + line + text[heading.end():]).encode()
+
+
+def withdrawn_line() -> str | None:
+    """A withdrawal citing the tree's first decision record with its title, or None where the tree has no record to cite."""
+    folder = ROOT / "docs/decisions"
+    records = sorted(folder.glob("*.md")) if folder.is_dir() else []
+    if not records:
+        return None
+    title = record_title(records[0])
+    if title is None:
+        return None
+    return f"Withdrawn by [decision {records[0].name[:4]}, {title}](decisions/{records[0].name})."
+
+
+def expect_question_plant(content: bytes, needle: str, wanted: bool, label: str) -> int:
+    """Whether the questions file as planted raises, or stays silent on, the finding named."""
+    (ROOT / QUESTIONS_FILE).write_bytes(content)
+    found = any(needle in p for p in run(ROOT)[0])
+    if found == wanted:
+        return 0
+    verb = "did not raise" if wanted else "wrongly raised"
+    print(f"WRONG: {label} {verb} {needle!r}")
+    return 1
+
+
+def prove_question_plants() -> int:
+    """Each plant in the questions file raises its finding, and a question with nothing yet, or withdrawn by a record, raises nothing.
+
+    The file is a living document the tree always carries, so each plant borrows it, appending a
+    question after its last or replacing it whole, and its bytes are restored afterwards.
+    """
+    failures = 0
+    path = ROOT / QUESTIONS_FILE
+    original = path.read_bytes()
+    asked = asked_questions(ROOT)
+    following = (asked[-1] if asked else 0) + 1
+    appended: list[tuple[str, str, bool]] = [
+        (f"### {following + 7}. A planted question?\n\n- Not yet conjectured.", "count from 1 without a gap", True),
+        (f"### {following}. A planted question?\n\nNothing stands under it yet.", f"question {following} names no claim", True),
+        (f"### {following}. A planted question?\n\nWithdrawn.", f"question {following} is withdrawn without the record", True),
+        (f"### {following}. A planted question?\n\n- Not yet conjectured.", f"question {following}", False),
+    ]
+    withdrawn = withdrawn_line()
+    if withdrawn is None:
+        print("withdrawn question plant skipped: no decision record to cite")
+    else:
+        appended.append((f"### {following}. A planted question?\n\n{withdrawn}", f"question {following}", False))
+    whole = [
+        ("# Planted\n\n## The questions\n\n### 1. Planted?\n\n- Not yet conjectured.\n", "opens with no aim"),
+        ("# Planted\n\nAn aim without a question.\n", "asks no question"),
+    ]
+    try:
+        for plant, needle, wanted in appended:
+            planted = original.rstrip(b"\n") + b"\n\n" + plant.encode() + b"\n"
+            failures += expect_question_plant(planted, needle, wanted, f"questions plant {plant.splitlines()[0]!r}")
+        for content, needle in whole:
+            failures += expect_question_plant(content.encode(), needle, True, "whole questions plant")
+    finally:
+        path.write_bytes(original)
     return failures
 
 
@@ -2011,11 +2212,14 @@ def prove_verifications(arrow_name: str, old_pin: str, pinned: str) -> int:
     A verification in the arrow's manifest answers a movement whose figures reproduced, so
     it must silence the advisory; a recorded observation is never advised; a verification
     at a commit history lacks, or older than the pin, or of a claim that is not current,
-    is a verdict. The manifest's bytes are restored afterwards.
+    is a verdict. The planted claims rest under the first question for the run, as a standing claim
+    must, and the manifest's bytes and the questions file's are restored afterwards.
     """
     failures = 0
     manifest_path = ROOT / "docs/arrows" / f"{arrow_name}.md"
     original_manifest = manifest_path.read_bytes()
+    questions_path = ROOT / QUESTIONS_FILE
+    original_questions = questions_path.read_bytes()
     head = git("rev-parse", "HEAD")
     older = git("rev-parse", f"{old_pin}^")
     verified_claim = ROOT / "docs/claims/0089-planted-verified.md"
@@ -2026,12 +2230,13 @@ def prove_verifications(arrow_name: str, old_pin: str, pinned: str) -> int:
             ADVISORY_BODY.format(
                 num="0088",
                 status="Supported",
-                evidence=f"Recorded: one paid run, preserved as `docs/QUESTION.md`.\n\n{pinned}",
+                evidence=f"Recorded: one paid run, preserved as `docs/QUESTIONS.md`.\n\n{pinned}",
             ),
             encoding="utf-8",
         )
         listing = "\n- Planted: 0088-planted-recorded.md and 0089-planted-verified.md rest here for the selftest.\n"
         manifest_path.write_bytes(original_manifest.rstrip(b"\n") + f"{listing}- **Verified**: 0089 at {head}.\n".encode())
+        questions_path.write_bytes(plant_under_question(original_questions, PLANTED_HOMES))
         verified_problems, verified_advice = run(ROOT)
         if any("0089" in a for a in verified_advice):
             failures += 1
@@ -2059,6 +2264,7 @@ def prove_verifications(arrow_name: str, old_pin: str, pinned: str) -> int:
                 print(f"WRONG: manifest line {line.strip()!r} did not raise {expect!r}")
     finally:
         manifest_path.write_bytes(original_manifest)
+        questions_path.write_bytes(original_questions)
         verified_claim.unlink(missing_ok=True)
         recorded_claim.unlink(missing_ok=True)
     return failures
@@ -2847,6 +3053,7 @@ ANCHORED_SCOPES = (
     (DEPTH_SCOPE, "depth"),
     (FLOW_SCOPE, "funnel"),
     (PROVENANCE_SCOPE, "provenance"),
+    (QUESTION_SCOPE, "question"),
 )
 
 
@@ -2947,6 +3154,7 @@ def selftest() -> int:
         prove_legal_plants,
         prove_unlisted_claim,
         prove_review_plants,
+        prove_question_plants,
         prove_shallow_read_advice,
         prove_standing_plants,
         prove_movement,

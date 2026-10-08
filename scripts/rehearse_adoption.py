@@ -164,10 +164,11 @@ def strip_demo_inquiry(child: Path, today: str) -> None:
     agents.write_text("\n".join(kept), encoding="utf-8")
     readme = child / "README.md"
     readme.write_text(readme.read_text(encoding="utf-8").replace("([coinwise](arrows/coinwise/))", "(the demo arrow)"), encoding="utf-8")
-    (child / "docs/QUESTION.md").write_text(
-        "# The Question\n\n"
-        "What a rehearsed inquiry asks, bounded to what this child can answer.\n\n"
-        "## The decomposition\n\n"
+    (child / "docs/QUESTIONS.md").write_text(
+        "# The Questions\n\n"
+        "What a rehearsed inquiry is about, bounded to what this child can answer and answered when its one question is.\n\n"
+        "## The questions\n\n"
+        "### 1. What does a rehearsed inquiry ask?\n\n"
         "- Open. The first conjecture stands in [claim 0001, A rehearsed conjecture](claims/0001-a-rehearsed-conjecture.md), unbacked until an arrow exists.\n",
         encoding="utf-8",
     )

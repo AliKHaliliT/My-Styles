@@ -3,7 +3,7 @@
 - **Style**: [Keel](../../../Keel/), the installable Python package template.
   The arrow is whole and governed by Keel's law; its named incompleteness is
   stated in [its own README](../../arrows/coinwise/README.md).
-- **Serves**: the tie-breaking line of [the question](../QUESTION.md), by
+- **Serves**: question 1 of [the questions](../QUESTIONS.md), by
   implementing both rounding strategies and the deterministic drift
   experiment.
 - **Reproduce**: from `arrows/coinwise`, with the package installed, run
