@@ -12,6 +12,7 @@ ArchetypeCore is a strict, AI-ready Clean Architecture template for FastAPI serv
 - Docs: `python scripts/audit_docs.py` (the living documents against the tree and the calendar)
 - Prove the audit itself: `python scripts/audit_docs.py --selftest` (every rule against a planted defect, because a check that never fires and a check that cannot fire look identical)
 - Migrate: `alembic upgrade head`
+- Generate a migration: `alembic revision --autogenerate -m "what changed"` (the post-write hook in `alembic.ini` runs ruff's fix over the file Alembic writes, so the revision lands in the gate's shape; ruff comes with the dev requirements)
 - Docker: `docker-compose up --build -d`
 
 The checks report at two levels. A failure is a verdict, it stops the
