@@ -16,6 +16,7 @@ check that cannot fire look identical.
 """
 
 import ast
+import importlib.machinery
 import posixpath
 import re
 import shutil
@@ -1078,13 +1079,29 @@ def graph_modules(problems: list[str], roots: list[str]) -> set[str] | None:
     return set(graph.modules)
 
 
+def root_home(root: str) -> Path | None:
+    """The directory a root's dotted path descends from: src/ or the tree's top where the root lives here, else the import path entry holding its top package, found without importing it."""
+    parts = root.split(".")
+    for base in (ROOT / "src", ROOT):
+        if base.joinpath(*parts).is_dir():
+            return base
+    spec = importlib.machinery.PathFinder.find_spec(parts[0])
+    if spec is None or not spec.submodule_search_locations:
+        return None
+    for location in spec.submodule_search_locations:
+        base = Path(location).parent
+        if base.joinpath(*parts).is_dir():
+            return base
+    return None
+
+
 def modules_on_disk(problems: list[str], roots: list[str]) -> set[str]:
-    """Every module under the contract roots as it sits on disk, dotted the way the graph names it."""
+    """Every module under the contract roots as it sits on disk, in the tree or on the import path, dotted the way the graph names it."""
     on_disk: set[str] = set()
     for root in roots:
-        home = next((b for b in (ROOT / "src", ROOT) if b.joinpath(*root.split(".")).is_dir()), None)
+        home = root_home(root)
         if home is None:
-            problems.append(f"{root}: named as an import-linter root, yet no directory matches it")
+            problems.append(f"{root}: named as an import-linter root, yet no directory in the tree or on the import path matches it")
             continue
         for module in home.joinpath(*root.split(".")).rglob("*.py"):
             if "__pycache__" in module.parts:
@@ -2365,7 +2382,40 @@ def prove_anchors() -> int:
             print(f"anchor plant skipped: the {name} scope sentence has not reached history yet")
         elif scope in git("show", f"{arrival[0]}^:scripts/audit_docs.py"):
             failures += wrong(f"the {name} anchor is older than the commit that introduced the current scope")
-    print("import graph plants skipped: the graph library sees every module on disk, and a root it cannot import stops the build first")
+    print("coverage plant skipped: the graph library sees every module on disk, so no partial graph can be planted")
+    return failures
+
+
+def prove_installed_root() -> int:
+    """A root that lives on the import path and not in the tree passes the coverage check, and a root found nowhere stops the graph's build.
+
+    The graph library itself is the installed root, because the check needs it to run at all, and
+    the project file is borrowed for each plant and restored.
+    """
+    pyproject = ROOT / "pyproject.toml"
+    if not pyproject.exists() or "root_packages" not in pyproject.read_text(encoding="utf-8"):
+        print("installed root plants skipped: pyproject.toml names no importlinter root_packages")
+        return 0
+    try:
+        import grimp  # noqa: F401  # the plant needs the library the check itself needs
+    except ImportError:
+        print("installed root plants skipped: the graph library is not installed")
+        return 0
+    original = pyproject.read_bytes()
+    failures = 0
+    try:
+        for root, needle, wanted, label in (
+            ("grimp", "grimp", False, "an installed root"),
+            ("planted_nowhere", "could not be built", True, "a root found nowhere"),
+        ):
+            pyproject.write_bytes(re.sub(rb"root_packages = \[", b'root_packages = ["' + root.encode() + b'", ', original, count=1))
+            problems = run()[0]
+            found = any(needle in p for p in problems)
+            if found != wanted:
+                verb = "raised" if found else "did not raise"
+                failures += wrong(f"{label} {verb} {needle!r}: {[p for p in problems if needle in p][:2]}")
+    finally:
+        pyproject.write_bytes(original)
     return failures
 
 
@@ -2446,6 +2496,7 @@ def selftest() -> int:
         prove_template_copy,
         prove_disposition,
         prove_anchors,
+        prove_installed_root,
         prove_ignore_plant,
         prove_stale_branch,
         prove_no_remote_report,
