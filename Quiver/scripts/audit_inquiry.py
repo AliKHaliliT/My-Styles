@@ -1507,7 +1507,7 @@ def advise_shallow_reads(advice: list[str], root: Path) -> None:
 
 
 def check_arrows(problems: list[str], root: Path) -> None:
-    """Every arrow has a manifest, every manifest an arrow, and every manifest names the question it serves."""
+    """Every arrow has a manifest, every manifest an arrow, and every manifest names its style and the question it serves."""
     arrows = {p.name for p in (root / "arrows").iterdir() if p.is_dir()} if (root / "arrows").exists() else set()
     manifests = {p.stem for p in (root / "docs/arrows").glob("*.md")} if (root / "docs/arrows").exists() else set()
     for name in sorted(arrows - manifests):
@@ -1515,9 +1515,20 @@ def check_arrows(problems: list[str], root: Path) -> None:
     for name in sorted(manifests - arrows):
         problems.append(f"docs/arrows/{name}.md: manifest for an arrow that does not exist")
     for name in sorted(manifests):
+        check_manifest_style(problems, root, name)
         check_manifest_serves(problems, root, name)
     for name in sorted(arrows & manifests):
         check_manifest_currency(problems, root, name)
+
+
+def check_manifest_style(problems: list[str], root: Path, name: str) -> None:
+    """A manifest's Style line names a style the stale-pin scan has paths for, so the scan watches something in every arrow."""
+    style = arrow_style(root, name)
+    known = ", ".join(STYLE_EVIDENCE)
+    if style is None:
+        problems.append(f"docs/arrows/{name}.md: names no style; the Style line links one of {known}, and the stale-pin scan watches that style's code, suites and project files")
+    elif style not in STYLE_EVIDENCE:
+        problems.append(f"docs/arrows/{name}.md: Style names {style!r}, which the stale-pin scan has no paths for; a manifest names one of {known}")
 
 
 def check_manifest_serves(problems: list[str], root: Path, name: str) -> None:
@@ -1561,11 +1572,31 @@ def check_manifest_currency(problems: list[str], root: Path, name: str) -> None:
             problems.append(f"docs/arrows/{name}.md: verifies {number}, which is not a current claim pinned to this arrow")
 
 
-# The paths inside an arrow that can change what a run produces: the code, the
-# suites, and the project file that selects dependencies and warning behavior.
-# Documentation and workflow bytes carried inside an arrow execute nothing
-# during an experiment, so their movement can move no number and never advises.
-EVIDENCE_PATHS = ("src", "tests", "pyproject.toml")
+# The paths inside an arrow that can change what a run produces, per style: the
+# code, the suites, and the project files that select dependencies and warning
+# behavior. Documentation and workflow bytes carried inside an arrow execute
+# nothing during an experiment, so their movement can move no number and never
+# advises. The manifest's Style line says which row an arrow reads.
+STYLE_EVIDENCE: dict[str, tuple[str, ...]] = {
+    "Keel": ("src", "tests", "pyproject.toml"),
+    "ArchetypeCore": ("app", "db", "engines", "main.py", "tests", "requirements.txt", "pyproject.toml"),
+    "Helm": ("src", "tests", "index.html", "package.json", "package-lock.json", "vite.config.ts", "tsconfig.json", "tsconfig.app.json", "tsconfig.node.json"),
+}
+STYLE_LINE = re.compile(r"^- \*\*Style\*\*: \[([^\]]+)\]", re.MULTILINE)
+
+
+def arrow_style(root: Path, name: str) -> str | None:
+    """The style an arrow's manifest names on its Style line, or None where the line is absent."""
+    manifest = root / "docs/arrows" / f"{name}.md"
+    if not manifest.exists():
+        return None
+    match = STYLE_LINE.search(manifest.read_text(encoding="utf-8"))
+    return match.group(1).strip() if match else None
+
+
+def evidence_paths(root: Path, name: str) -> tuple[str, ...]:
+    """The paths the stale-pin scan watches in one arrow, its style's row, or nothing where the manifest names no style the scan knows."""
+    return STYLE_EVIDENCE.get(arrow_style(root, name) or "", ())
 
 
 def verifications(root: Path, arrow: str) -> dict[str, str]:
@@ -1608,7 +1639,9 @@ def check_pins(problems: list[str], advice: list[str], root: Path) -> None:
             if resting or recorded:
                 continue
             base, basis = movement_base(problems, root, arrow, number, pin)
-            spec = [f"arrows/{arrow}/{part}" for part in EVIDENCE_PATHS]
+            spec = [f"arrows/{arrow}/{part}" for part in evidence_paths(root, arrow)]
+            if not spec:
+                continue
             moved = git("log", "--oneline", f"{base}..HEAD", "--", *spec)
             if moved:
                 advice.append(
@@ -1750,6 +1783,8 @@ PLANTS = [
     ("docs/claims/0094-planted-orphan.md",
      "# 0094. Planted orphan\n\nStatus: Conjecture\nDate: 2026-01-01\n\n## Claim\n\nx.\n\n## Evidence\n\nNone.\n\n## Threats\n\n- None named.\n",
      "0094-planted-orphan.md: is linked from no question"),
+    ("docs/arrows/ghost.md", "# Arrow: ghost\n\n- **Style**: [Nowhere](../../../Nowhere/).\n- **Serves**: question 1, by nothing.\n", "Style names 'Nowhere', which the stale-pin scan has no paths for"),
+    ("docs/arrows/ghost.md", "# Arrow: ghost\n\n- **Serves**: question 1, by nothing.\n", "docs/arrows/ghost.md: names no style"),
     ("docs/arrows/ghost.md", "# Arrow: ghost\n\n- **Serves**: question 99, by nothing.\n", "serves question 99, which docs/QUESTIONS.md does not ask"),
     ("docs/arrows/ghost.md", "# Arrow: ghost\n\n- **Serves**: the planted line, by nothing.\n", "Serves names no question by number"),
     ("docs/arrows/ghost.md", "# Arrow: ghost\n", "manifest for an arrow that does not exist"),
@@ -1780,7 +1815,9 @@ def moved_evidence_pin() -> tuple[str, str] | None:
     for path in sorted((ROOT / "arrows").iterdir()):
         if not path.is_dir():
             continue
-        spec = [f"arrows/{path.name}/{part}" for part in EVIDENCE_PATHS]
+        spec = [f"arrows/{path.name}/{part}" for part in evidence_paths(ROOT, path.name)]
+        if not spec:
+            continue
         shas = git("log", "--reverse", "--format=%H", "--", *spec).split("\n")
         if len(shas) >= 2 and shas[0]:
             return path.name, shas[0]
@@ -1794,7 +1831,9 @@ def docs_only_moved_pin() -> tuple[str, str] | None:
     for path in sorted((ROOT / "arrows").iterdir()):
         if not path.is_dir():
             continue
-        spec = [f"arrows/{path.name}/{part}" for part in EVIDENCE_PATHS]
+        spec = [f"arrows/{path.name}/{part}" for part in evidence_paths(ROOT, path.name)]
+        if not spec:
+            continue
         last_evidence = git("log", "-1", "--format=%H", "--", *spec)
         if not last_evidence:
             continue
