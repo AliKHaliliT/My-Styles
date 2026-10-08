@@ -125,12 +125,13 @@ class Settings(BaseSettings):
 
         """
 
-        The database URL with the async driver marker stripped for synchronous tools.
+        The database URL with the async driver marker stripped for synchronous tools, PostgreSQL's and SQLite's alike.
 
         """
 
-        if self.DATABASE_URL.startswith("postgresql+asyncpg://"):
-            return self.DATABASE_URL.replace("postgresql+asyncpg://", "postgresql://")
+        for marker, plain in (("postgresql+asyncpg://", "postgresql://"), ("sqlite+aiosqlite://", "sqlite://")):
+            if self.DATABASE_URL.startswith(marker):
+                return plain + self.DATABASE_URL.removeprefix(marker)
         return self.DATABASE_URL
 
     @property

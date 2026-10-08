@@ -15,6 +15,7 @@ if config.config_file_name is not None:
 # add your model's MetaData object here
 # for 'autogenerate' support
 # from myapp import mymodel
+from app.core.config.settings import settings
 from app.models import Admin, Device, User
 # target_metadata = mymodel.Base.metadata
 from db.base import Base
@@ -39,7 +40,7 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-    url = config.get_main_option("sqlalchemy.url")
+    url = settings.database_url_sync
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -59,7 +60,7 @@ def run_migrations_online() -> None:
 
     """
     connectable = engine_from_config(
-        config.get_section(config.config_ini_section, {}),
+        {"sqlalchemy.url": settings.database_url_sync},
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
     )
