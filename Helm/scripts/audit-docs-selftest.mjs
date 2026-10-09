@@ -435,7 +435,10 @@ function proveUntrackedSpelling() {
 
 function proveImmutability() {
   const folder = join(ROOT, "docs", "decisions");
-  const name = readdirSync(folder).sort().find((entry) => readFileSync(join(folder, entry), "utf-8").includes("\nStatus: Accepted\n"));
+  // The record edited is one git tracks, read with either line ending, because an untracked record a script has
+  // just written has no diff for the audit to refuse, and a Windows checkout keeps carriage returns.
+  const tracked = new Set(git("ls-files", "-z", "--", "docs/decisions").split("\0").filter(Boolean).map((rel) => rel.split("/").pop()));
+  const name = readdirSync(folder).sort().find((entry) => tracked.has(entry) && /\r?\nStatus: Accepted\r?\n/.test(readFileSync(join(folder, entry), "utf-8")));
   if (!name) {
     console.log("immutability plants skipped: no accepted record of this project's own to plant on");
     return;
@@ -455,7 +458,9 @@ function proveImmutability() {
 /** One word added to a list line inside an accepted record fails, because a list marker is content and not a diff header. */
 function proveBulletEdit() {
   const folder = join(ROOT, "docs", "decisions");
+  const tracked = new Set(git("ls-files", "-z", "--", "docs/decisions").split("\0").filter(Boolean).map((rel) => rel.split("/").pop()));
   for (const name of readdirSync(folder).sort()) {
+    if (!tracked.has(name)) continue;
     const path = join(folder, name);
     const original = readFileSync(path);
     const text = original.toString("utf-8");
