@@ -1902,17 +1902,21 @@ PLANTED_ENTRY = b"- **planted9999**: Planted, P. 9999. A work entered by the sel
 # would force evidence into an immutable record to earn a clean run; and a key
 # inside backticks is a mention of the form, so a record explaining the form must PASS too,
 # superseded like the first, because a standing claim is linked from a question and a plant has no home.
-# Their numbers sit above any a young project's ledger reaches, so a legal plant never shares
-# a number with a real claim and fails the check written for two sessions.
-LEGAL_PLANTS = [
-    ("docs/claims/0086-planted-legal.md",
-     ("# 0086. Planted legal\n\nStatus: Superseded by 0002\nDate: 2026-01-01\n\n"
-      "## Claim\n\nx.\n\n## Evidence\n\nNone.\n\n## Threats\n\n- None named.\n")),
-    ("docs/claims/0085-planted-legal-mention.md",
-     ("# 0085. Planted legal mention\n\nStatus: Superseded by 0002\nDate: 2026-01-01\n\n"
-      "## Claim\n\nA key written as `[nobody9999]` names the citation form and cites nothing.\n\n"
-      "## Evidence\n\nNone.\n\n## Threats\n\n- None named.\n")),
-]
+# Their numbers are allocated above any the ledger uses when the proof runs, so a legal plant
+# never shares a number with a real claim and fails the check written for two sessions.
+def legal_plants() -> list[tuple[str, str]]:
+    """The legal plants, each at a claim number the ledger does not use."""
+    first = free_number(ROOT / "docs/claims", 900)
+    second = free_number(ROOT / "docs/claims", int(first) + 1)
+    return [
+        (f"docs/claims/{first}-planted-legal.md",
+         (f"# {first}. Planted legal\n\nStatus: Superseded by 0002\nDate: 2026-01-01\n\n"
+          "## Claim\n\nx.\n\n## Evidence\n\nNone.\n\n## Threats\n\n- None named.\n")),
+        (f"docs/claims/{second}-planted-legal-mention.md",
+         (f"# {second}. Planted legal mention\n\nStatus: Superseded by 0002\nDate: 2026-01-01\n\n"
+          "## Claim\n\nA key written as `[nobody9999]` names the citation form and cites nothing.\n\n"
+          "## Evidence\n\nNone.\n\n## Threats\n\n- None named.\n")),
+    ]
 
 
 # The claim body the advisory plants share; status and evidence vary per plant.
@@ -1941,7 +1945,7 @@ def prove_single_plants() -> int:
 def prove_legal_plants() -> int:
     """Each legal plant passes, or the checker would forbid a record the rulebook allows."""
     failures = 0
-    for rel, content in LEGAL_PLANTS:
+    for rel, content in legal_plants():
         target = ROOT / rel
         target.write_text(content, encoding="utf-8")
         try:
@@ -2037,11 +2041,12 @@ def prove_review_plants() -> int:
     return failures
 
 
-# The line the verification proof plants under the first question, so its planted claims serve one as a standing claim must.
-PLANTED_HOMES = (
-    "- Planted. [claim 0088, Planted advisory](claims/0088-planted-recorded.md) and"
-    " [claim 0089, Planted advisory](claims/0089-planted-verified.md) rest here for the selftest."
-)
+def planted_homes(recorded: str, verified: str) -> str:
+    """The line the verification proof plants under the first question, so its planted claims serve one as a standing claim must."""
+    return (
+        f"- Planted. [claim {recorded}, Planted advisory](claims/{recorded}-planted-recorded.md) and"
+        f" [claim {verified}, Planted advisory](claims/{verified}-planted-verified.md) rest here for the selftest."
+    )
 
 
 def plant_under_question(original: bytes, line: str) -> bytes:
@@ -2251,8 +2256,9 @@ def prove_verifications(arrow_name: str, old_pin: str, pinned: str) -> int:
     A verification in the arrow's manifest answers a movement whose figures reproduced, so
     it must silence the advisory; a recorded observation is never advised; a verification
     at a commit history lacks, or older than the pin, or of a claim that is not current,
-    is a verdict. The planted claims rest under the first question for the run, as a standing claim
-    must, and the manifest's bytes and the questions file's are restored afterwards.
+    is a verdict. The planted claims take numbers the ledger does not use and rest under
+    the first question for the run, as a standing claim must, and the manifest's bytes and
+    the questions file's are restored afterwards.
     """
     failures = 0
     manifest_path = ROOT / "docs/arrows" / f"{arrow_name}.md"
@@ -2261,38 +2267,42 @@ def prove_verifications(arrow_name: str, old_pin: str, pinned: str) -> int:
     original_questions = questions_path.read_bytes()
     head = git("rev-parse", "HEAD")
     older = git("rev-parse", f"{old_pin}^")
-    verified_claim = ROOT / "docs/claims/0089-planted-verified.md"
-    recorded_claim = ROOT / "docs/claims/0088-planted-recorded.md"
+    claims = ROOT / "docs/claims"
+    recorded = free_number(claims, 900)
+    verified = free_number(claims, int(recorded) + 1)
+    absent = free_number(claims, int(verified) + 1)
+    verified_claim = claims / f"{verified}-planted-verified.md"
+    recorded_claim = claims / f"{recorded}-planted-recorded.md"
     try:
-        verified_claim.write_text(ADVISORY_BODY.format(num="0089", status="Supported", evidence=pinned), encoding="utf-8")
+        verified_claim.write_text(ADVISORY_BODY.format(num=verified, status="Supported", evidence=pinned), encoding="utf-8")
         recorded_claim.write_text(
             ADVISORY_BODY.format(
-                num="0088",
+                num=recorded,
                 status="Supported",
                 evidence=f"Recorded: one paid run, preserved as `docs/QUESTIONS.md`.\n\n{pinned}",
             ),
             encoding="utf-8",
         )
-        listing = "\n- Planted: 0088-planted-recorded.md and 0089-planted-verified.md rest here for the selftest.\n"
-        manifest_path.write_bytes(original_manifest.rstrip(b"\n") + f"{listing}- **Verified**: 0089 at {head}.\n".encode())
-        questions_path.write_bytes(plant_under_question(original_questions, PLANTED_HOMES))
+        listing = f"\n- Planted: {recorded}-planted-recorded.md and {verified}-planted-verified.md rest here for the selftest.\n"
+        manifest_path.write_bytes(original_manifest.rstrip(b"\n") + f"{listing}- **Verified**: {verified} at {head}.\n".encode())
+        questions_path.write_bytes(plant_under_question(original_questions, planted_homes(recorded, verified)))
         verified_problems, verified_advice = run(ROOT)
-        if any("0089" in a for a in verified_advice):
+        if any(verified in a for a in verified_advice):
             failures += 1
             print("WRONG: a claim verified in its manifest at HEAD still raised the movement advisory")
-        if any("0088" in a for a in verified_advice):
+        if any(recorded in a for a in verified_advice):
             failures += 1
             print("WRONG: a recorded observation raised the movement advisory")
-        legal_noise = [p for p in verified_problems if "0089" in p or "0088" in p]
+        legal_noise = [p for p in verified_problems if verified in p or recorded in p]
         if legal_noise:
             failures += 1
             print(f"WRONG: a legal verification or recorded claim raised {legal_noise[:2]}")
         bad_lines = [
-            ("- **Verified**: 0089 at 0123456789ab.\n", "which is not a commit in this history"),
-            (f"- **Verified**: 0087 at {head}.\n", "verifies 0087, which is not a current claim pinned to this arrow"),
+            (f"- **Verified**: {verified} at 0123456789ab.\n", "which is not a commit in this history"),
+            (f"- **Verified**: {absent} at {head}.\n", f"verifies {absent}, which is not a current claim pinned to this arrow"),
         ]
         if older:
-            bad_lines.append((f"- **Verified**: 0089 at {older}.\n", "which is older than the claim's pin"))
+            bad_lines.append((f"- **Verified**: {verified} at {older}.\n", "which is older than the claim's pin"))
         else:
             print("older-verification plant skipped: the first evidence commit has no parent")
         for line, expect in bad_lines:
