@@ -84,6 +84,7 @@ A project built from this template carries one living document for this, `UPSTRE
 - The file opens with its title, one line naming the template and the commit the project is aligned to, `Aligned to <template> at <commit>`, or at the host's own commit for an arrow carried inside its style's repository, and one sentence saying that every entry is a lead and not a verdict, to be verified against the template's own tree before it is adopted.
 - One section, `## Open`, holds either the words `Nothing open.` or entries.
 - Each entry is a heading of the form `### YYYY-MM-DD` followed by a title, then a `Kind:` line reading `improvement` or `defect`, and a `Pin:` line naming the template commit the entry was written against.
+- An entry sent outside the file, as an issue on the template's repository or in a message, keeps its heading whole as its first line, the date and the title together, because the date is the day the entry was written against its pin and the channel's own stamp is the day it was sent.
 - Each entry carries four parts under the bold labels **What it is**, **How the work surfaced it**, **Why it is believed better** or **What was worked around**, and **Records checked**.
 
 An entry names nothing that identifies the project, no project name, no person, no host, no path or address that points at the project, and no fact about its domain beyond what the entry needs, because the file is handed to the template's public repository and may be quoted verbatim into its records, whatever the visibility of the project that wrote it.
