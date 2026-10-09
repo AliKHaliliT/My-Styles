@@ -20,7 +20,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -623,7 +623,7 @@ def standing_days(raw: str, binding: str, today: date) -> int:
 def check_state_entries(problems: list[str], text: str, binding: str | None) -> None:
     """Every entry carries a date within its section's horizon, and no queued entry has stood for two of them."""
     section = ""
-    today = datetime.now(timezone.utc).date()
+    today = datetime.now(UTC).date()
     for raw in text.split("\n"):
         if raw.startswith("## "):
             section = raw[3:].strip()
@@ -1002,7 +1002,7 @@ def check_upstream(problems: list[str], root: Path) -> None:
         problems.append("docs/UPSTREAM.md: Open holds entries or the words Nothing open.")
     if entries and "Nothing open." in body:
         problems.append("docs/UPSTREAM.md: says Nothing open. beside open entries")
-    today = datetime.now(timezone.utc).date()
+    today = datetime.now(UTC).date()
     for index, entry in enumerate(entries):
         end = entries[index + 1].start() if index + 1 < len(entries) else len(body)
         check_upstream_entry(problems, entry, body[entry.end():end], today)
@@ -1420,7 +1420,7 @@ def check_bibliography(problems: list[str], root: Path) -> None:
 def advise_unchecked_preprints(advice: list[str], root: Path) -> None:
     """A preprint not checked for a published version within the horizon is advised until its date moves."""
     found, _ = standings(root)
-    today = datetime.now(timezone.utc).date()
+    today = datetime.now(UTC).date()
     for key, (_, checked) in found.items():
         if checked is not None and (today - checked).days > HORIZON_DAYS:
             advice.append(
@@ -2195,7 +2195,7 @@ def prove_standing_plants() -> int:
         failures += expect_standing_advice(claim.name, "below the floor", False, "a claim whose threats name the key was still advised")
         bibliography.write_text(STANDING_BIBLIOGRAPHY.format(floor="reviewed", standing="preprint, checked 2020-01-01"), encoding="utf-8")
         failures += expect_standing_advice("planted9999", "past the", True, "a preprint checked years ago was not advised")
-        today = datetime.now(timezone.utc).date().isoformat()
+        today = datetime.now(UTC).date().isoformat()
         bibliography.write_text(STANDING_BIBLIOGRAPHY.format(floor="reviewed", standing=f"preprint, checked {today}"), encoding="utf-8")
         failures += expect_standing_advice("planted9999", "past the", False, "a preprint checked today was advised")
     finally:
@@ -2524,7 +2524,7 @@ def prove_upstream_plants() -> int:
     original_upstream = upstream.read_bytes() if upstream.exists() else None
     upstream_row = b"| [docs/UPSTREAM.md](docs/UPSTREAM.md) | Planted: what this project has for its style. |\n"
     head_text = "# Upstream\n\nAligned to Planted at 0123456789ab.\n\nEvery entry is a lead, not a verdict.\n\n## Open\n\n"
-    today_stamp = datetime.now(timezone.utc).date().isoformat()
+    today_stamp = datetime.now(UTC).date().isoformat()
     parts = (
         "**What it is.** x.\n\n**How the work surfaced it.** x.\n\n"
         "**Why it is believed better.** x.\n\n**Records checked.** None.\n"
@@ -2766,7 +2766,7 @@ def prove_queue_age() -> int:
     state_text = original_state.decode("utf-8").replace("\r\n", "\n")
     fresh = state_text.replace(
         "## Next\n\n- Nothing queued.\n",
-        f"## Next\n\n- Planted queued work, written today ({datetime.now(timezone.utc).date().isoformat()}).\n",
+        f"## Next\n\n- Planted queued work, written today ({datetime.now(UTC).date().isoformat()}).\n",
         1,
     )
     if fresh == state_text:
