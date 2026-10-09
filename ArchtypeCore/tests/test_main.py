@@ -5,13 +5,13 @@ from main import app
 
 # Booting the whole application is the point of this suite: every module under app imports
 # under the warnings-as-errors gate, and one malformed request proves the validation handler
-# answers in the standard error shape with the request id echoed.
+# answers in the standard error shape with the request id echoed. The client is entered, so
+# the application's startup runs before the request and its shutdown after it, as deployed.
 
 
 def test_a_malformed_request_is_refused_in_the_standard_error_shape() -> None:
-    client = TestClient(app)
-
-    response = client.post("/api/v1/auth/login", data={})
+    with TestClient(app) as client:
+        response = client.post("/api/v1/auth/login", data={})
 
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
     payload = response.json()
