@@ -1057,7 +1057,9 @@ def check_import_graph(problems: list[str]) -> None:
     if unseen:
         problems.append(
             f"the import graph covers {len(on_disk) - len(unseen)} of {len(on_disk)} modules under the contract roots, "
-            f"so the Dependency Rule contract decides less than it reports; unseen: {', '.join(unseen[:5])}"
+            f"so the Dependency Rule contract decides less than it reports; unseen: {', '.join(unseen[:5])};"
+            " a bare grouping directory below a door is invisible to the graph reader, so it is named as an"
+            " import-linter root of its own, as the layers are"
         )
 
 
@@ -2382,7 +2384,6 @@ def prove_anchors() -> int:
             print(f"anchor plant skipped: the {name} scope sentence has not reached history yet")
         elif scope in git("show", f"{arrival[0]}^:scripts/audit_docs.py"):
             failures += wrong(f"the {name} anchor is older than the commit that introduced the current scope")
-    print("coverage plant skipped: the graph library sees every module on disk, so no partial graph can be planted")
     return failures
 
 
@@ -2417,6 +2418,35 @@ def prove_installed_root() -> int:
     finally:
         pyproject.write_bytes(original)
     return failures
+
+
+def prove_hidden_directory() -> int:
+    """A bare grouping directory below a door is invisible to the graph reader, so the coverage check names it with its remedy.
+
+    The plant is a door package under the first contract root with a bare directory beneath it
+    holding one module, the one legal layout the reader cannot see, and every planted byte is
+    removed afterwards.
+    """
+    pyproject = ROOT / "pyproject.toml"
+    roots = tomllib.loads(pyproject.read_text(encoding="utf-8")).get("tool", {}).get("importlinter", {}).get("root_packages", []) if pyproject.exists() else []
+    home = root_home(roots[0]) if roots else None
+    if home is None:
+        print("hidden directory plant skipped: pyproject.toml names no importlinter root the tree holds")
+        return 0
+    try:
+        import grimp  # noqa: F401  # the plant needs the library the check itself needs
+    except ImportError:
+        print("hidden directory plant skipped: the graph library is not installed")
+        return 0
+    door = home.joinpath(*roots[0].split(".")) / "planted_door"
+    leaf = door / "group" / "leaf.py"
+    try:
+        leaf.parent.mkdir(parents=True)
+        (door / "__init__.py").write_text("", encoding="utf-8")
+        leaf.write_text("PLANTED = 1\n", encoding="utf-8")
+        return expect(run()[0], "named as an import-linter root of its own", "the hidden directory plant")
+    finally:
+        shutil.rmtree(door, ignore_errors=True)
 
 
 def prove_ignore_plant() -> int:
@@ -2497,6 +2527,7 @@ def selftest() -> int:
         prove_disposition,
         prove_anchors,
         prove_installed_root,
+        prove_hidden_directory,
         prove_ignore_plant,
         prove_stale_branch,
         prove_no_remote_report,
