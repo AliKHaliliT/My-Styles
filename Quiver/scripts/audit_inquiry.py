@@ -97,6 +97,12 @@ UPSTREAM_PIN = re.compile(r"^Pin: [0-9a-f]{7,40}$", re.MULTILINE)
 UPSTREAM_PARTS = ("**What it is", "**How the work surfaced it", "**Records checked")
 UPSTREAM_WHY = ("**Why it is believed better", "**What was worked around")
 UPSTREAM_ALIGNED = re.compile(r"^Aligned to .+ at (`?[0-9a-f]{7,40}`?|the host's own commit)\.?$", re.MULTILINE)
+# The leaks a tool can decide in an entry written to leave the repository: a URL, a web host, an email,
+# a drive path and an absolute path under the usual roots. A name is review's.
+UPSTREAM_ADDRESS = re.compile(
+    r"[a-z][a-z0-9+.-]*://|\bwww\.|[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+"
+    r"|(?<![A-Za-z0-9])[A-Za-z]:[\\/]|(?<![\w./-])/(?:home|Users|root|mnt|srv|opt|var|tmp|etc)/"
+)
 # A key is an author name closed by a year, or a standard's designation with
 # its year suffixed, so digits may sit inside the name (ieee754-2019).
 CITE_KEY = re.compile(r"\[([a-z][a-z0-9]*[0-9]{4}[a-z]?|[a-z][a-z0-9]*-[0-9]{4})\](?!\()")
@@ -1003,7 +1009,7 @@ def check_upstream(problems: list[str], root: Path) -> None:
 
 
 def check_upstream_entry(problems: list[str], entry: re.Match[str], chunk: str, today: date) -> None:
-    """One upstream entry carries its kind, its pin, its four parts, and a date within the horizon."""
+    """One upstream entry carries its kind, its pin, its four parts, a date within the horizon, and no address a tool can see."""
     label = f"docs/UPSTREAM.md: entry {entry.group(1)} {entry.group(2)[:40]}"
     if not UPSTREAM_KIND.search(chunk):
         problems.append(f"{label}: no Kind line reading improvement or defect")
@@ -1014,6 +1020,9 @@ def check_upstream_entry(problems: list[str], entry: re.Match[str], chunk: str, 
             problems.append(f"{label}: part {part}** missing")
     if not any(why in chunk for why in UPSTREAM_WHY):
         problems.append(f"{label}: neither Why it is believed better nor What was worked around")
+    hit = UPSTREAM_ADDRESS.search(entry.group(2) + "\n" + chunk)
+    if hit:
+        problems.append(f"{label}: carries {hit.group(0)!r}, an address, a URL, an email or an absolute path; an entry names none, because it is written to leave the repository")
     if (today - date.fromisoformat(entry.group(1))).days > HORIZON_DAYS:
         problems.append(
             f"{label}: past the {HORIZON_DAYS}-day horizon; re-verify against the template and re-date,"
@@ -2527,6 +2536,8 @@ def prove_upstream_plants() -> int:
         (head_text + "### 2026-01-01 Planted entry\n\nKind: defect\nPin: 0123456789ab\n\n" + parts, "past the 90-day horizon"),
         (head_text + f"### {today_stamp} Planted entry\n\nPin: 0123456789ab\n\n" + parts, "no Kind line"),
         (head_text + f"Nothing open.\n\n### {today_stamp} Planted entry\n\nKind: defect\nPin: 0123456789ab\n\n" + parts, "beside open entries"),
+        (head_text + f"### {today_stamp} Planted entry\n\nKind: defect\nPin: 0123456789ab\n\n" + parts.replace("**What it is.** x.", "**What it is.** x, as https://example.invalid/private shows."), "an address, a URL, an email or an absolute path"),
+        (head_text + f"### {today_stamp} Planted entry\n\nKind: defect\nPin: 0123456789ab\n\n" + parts.replace("**What it is.** x.", "**What it is.** x, in /home/someone/project/app."), "an address, a URL, an email or an absolute path"),
     ]
     try:
         if "(docs/UPSTREAM.md)" not in index_rows(original_agents.decode("utf-8")):

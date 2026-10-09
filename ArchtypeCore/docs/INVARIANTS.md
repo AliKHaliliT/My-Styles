@@ -9,3 +9,4 @@ What must stay true about this product, one row per claim, each bound to the hol
 | A malformed request is refused in the standard error shape. | `tests/test_main.py` "test_a_malformed_request_is_refused_in_the_standard_error_shape" | listed cases |
 | The core never learns which provider implementation it drives. | review | review |
 | No suite replaces a collaborator by patching a module's internals. | `.github/workflows/ci.yml` "Module mocking is banned" | impossible |
+| An upstream entry carries no address, URL, email or absolute path. | `scripts/audit_docs.py` "check_upstream_entry" | impossible |

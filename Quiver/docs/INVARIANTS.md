@@ -13,3 +13,4 @@ What must stay true about this product, one row per claim, each bound to the hol
 | Read evidence a pass took from less than the whole work is named on every run while a Supported claim rests on it. | `scripts/audit_inquiry.py` "advise_shallow_reads" | advised |
 | A Supported claim resting on a work below the declared evidence floor is named on every run. | `scripts/audit_inquiry.py` "advise_standing" | advised |
 | A preprint unchecked for a published version for a season is named on every run. | `scripts/audit_inquiry.py` "advise_unchecked_preprints" | advised |
+| An upstream entry carries no address, URL, email or absolute path. | `scripts/audit_inquiry.py` "check_upstream_entry" | impossible |

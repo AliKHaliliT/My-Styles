@@ -9,3 +9,4 @@ What must stay true about this product, one row per claim, each bound to the hol
 | The step budget bounds a reasoner that never finishes. | `tests/src/keel/services/execution/test_agent_runner.py` "test_the_step_budget_bounds_a_reasoner_that_never_finishes" | listed cases |
 | A broken plugin found at build time is logged and skipped, never fatal. | review | review |
 | No suite replaces a collaborator by patching a module's internals. | `.github/workflows/ci.yml` "Module mocking is banned" | impossible |
+| An upstream entry carries no address, URL, email or absolute path. | `scripts/audit_docs.py` "check_upstream_entry" | impossible |

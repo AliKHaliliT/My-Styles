@@ -67,6 +67,12 @@ UPSTREAM_PIN = re.compile(r"^Pin: [0-9a-f]{7,40}$", re.MULTILINE)
 UPSTREAM_PARTS = ("**What it is", "**How the work surfaced it", "**Records checked")
 UPSTREAM_WHY = ("**Why it is believed better", "**What was worked around")
 UPSTREAM_ALIGNED = re.compile(r"^Aligned to .+ at (`?[0-9a-f]{7,40}`?|the host's own commit)\.?$", re.MULTILINE)
+# The leaks a tool can decide in an entry written to leave the repository: a URL, a web host, an email,
+# a drive path and an absolute path under the usual roots. A name is review's.
+UPSTREAM_ADDRESS = re.compile(
+    r"[a-z][a-z0-9+.-]*://|\bwww\.|[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+"
+    r"|(?<![A-Za-z0-9])[A-Za-z]:[\\/]|(?<![\w./-])/(?:home|Users|root|mnt|srv|opt|var|tmp|etc)/"
+)
 FENCE = re.compile(r"```[^\n]*\n(.*?)```", re.DOTALL)
 DOTTED_MODULE = re.compile(r"[a-z_][a-z0-9_]*(?:\.[a-z_][a-z0-9_]*)+")
 TREE_FILE = re.compile(r"[A-Za-z0-9_\-]+(?:\.[A-Za-z0-9_\-]+)+")
@@ -929,7 +935,7 @@ def check_upstream(problems: list[str]) -> None:
 
 
 def check_upstream_entry(problems: list[str], entry: re.Match[str], chunk: str, today: date) -> None:
-    """One upstream entry carries its kind, its pin, its four parts, and a date within the horizon."""
+    """One upstream entry carries its kind, its pin, its four parts, a date within the horizon, and no address a tool can see."""
     label = f"docs/UPSTREAM.md: entry {entry.group(1)} {entry.group(2)[:40]}"
     if not UPSTREAM_KIND.search(chunk):
         problems.append(f"{label}: no Kind line reading improvement or defect")
@@ -938,6 +944,9 @@ def check_upstream_entry(problems: list[str], entry: re.Match[str], chunk: str, 
     problems.extend(f"{label}: part {part}** missing" for part in UPSTREAM_PARTS if part not in chunk)
     if not any(why in chunk for why in UPSTREAM_WHY):
         problems.append(f"{label}: neither Why it is believed better nor What was worked around")
+    hit = UPSTREAM_ADDRESS.search(entry.group(2) + "\n" + chunk)
+    if hit:
+        problems.append(f"{label}: carries {hit.group(0)!r}, an address, a URL, an email or an absolute path; an entry names none, because it is written to leave the repository")
     age = (today - datetime.strptime(entry.group(1), "%Y-%m-%d").date()).days
     if age > HORIZON_DAYS:
         problems.append(
@@ -1846,6 +1855,8 @@ def upstream_variants() -> list[tuple[str, str | None]]:
         (UPSTREAM_HEAD + entry + "**What it is.** x.\n\n**Why it is believed better.** x.\n", "part **How the work surfaced it** missing"),
         (UPSTREAM_HEAD + entry + "**What it is.** x.\n\n**How the work surfaced it.** x.\n\n**Records checked.** None.\n", "neither Why it is believed better"),
         (UPSTREAM_HEAD + "### 2026-01-01 Planted entry\n\nKind: defect\nPin: 0123456789ab\n\n" + UPSTREAM_PARTS_TEXT, f"past the {HORIZON_DAYS}-day horizon"),
+        (UPSTREAM_HEAD + entry + UPSTREAM_PARTS_TEXT.replace("**What it is.** x.", "**What it is.** x, as https://example.invalid/private shows."), "an address, a URL, an email or an absolute path"),
+        (UPSTREAM_HEAD + entry + UPSTREAM_PARTS_TEXT.replace("**What it is.** x.", "**What it is.** x, in /home/someone/project/app."), "an address, a URL, an email or an absolute path"),
     ]
 
 

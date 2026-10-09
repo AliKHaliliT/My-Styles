@@ -58,6 +58,9 @@ const UPSTREAM_PIN = /^Pin: [0-9a-f]{7,40}$/m;
 const UPSTREAM_PARTS = ["**What it is", "**How the work surfaced it", "**Records checked"];
 const UPSTREAM_WHY = ["**Why it is believed better", "**What was worked around"];
 const UPSTREAM_ALIGNED = /^Aligned to .+ at (`?[0-9a-f]{7,40}`?|the host's own commit)\.?$/m;
+// The leaks a tool can decide in an entry written to leave the repository: a URL, a web host, an email,
+// a drive path and an absolute path under the usual roots. A name is review's.
+const UPSTREAM_ADDRESS = /[a-z][a-z0-9+.-]*:\/\/|\bwww\.|[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+|(?<![A-Za-z0-9])[A-Za-z]:[\\/]|(?<![\w./-])\/(?:home|Users|root|mnt|srv|opt|var|tmp|etc)\//;
 const RAW_PALETTE =
   /\b(?:bg|text|border|ring|fill|stroke|from|via|to)-(?:red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose|slate|gray|zinc|neutral|stone)-\d{2,3}\b/;
 const FENCE = /```[^\n]*\n([\s\S]*?)```/g;
@@ -485,6 +488,10 @@ function checkUpstream() {
     }
     if (!UPSTREAM_WHY.some((why) => chunk.includes(why))) {
       problems.push(`${label}: neither Why it is believed better nor What was worked around`);
+    }
+    const hit = UPSTREAM_ADDRESS.exec(`${entry[2]}\n${chunk}`);
+    if (hit) {
+      problems.push(`${label}: carries ${JSON.stringify(hit[0])}, an address, a URL, an email or an absolute path; an entry names none, because it is written to leave the repository`);
     }
     const age = Math.floor((today - new Date(`${entry[1]}T00:00:00`)) / 86_400_000);
     if (age > HORIZON_DAYS) {
