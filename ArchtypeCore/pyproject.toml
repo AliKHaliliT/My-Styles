@@ -5,6 +5,8 @@
 
 [tool.ruff]
 line-length = 100
+# The style's floor rather than a stack binding. The exemplars name a class in its own annotations
+# unquoted, which only deferred annotations allow, so a project on an older interpreter is off the style.
 target-version = "py314"
 
 [tool.ruff.lint]
@@ -85,6 +87,7 @@ type = "layers"
 layers = ["app.api", "app.services", "app.domain"]
 
 [tool.mypy]
+# The style's floor, as the lint's target says; the checker reads the exemplars as the interpreter does.
 python_version = "3.14"
 # Strict, with the re-export doors kept implicit because an __init__.py here is a door by
 # convention and the checker's explicit-door dialect is not the house's.

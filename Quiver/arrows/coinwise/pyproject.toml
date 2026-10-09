@@ -8,6 +8,8 @@ name = "coinwise"
 version = "0.0.1"
 description = "A Keel-style library arrow measuring rounding drift in monetary accumulation."
 readme = "README.md"
+# The style's floor rather than a stack binding. The exemplars name a class in its own annotations
+# unquoted, which only deferred annotations allow, so a project on an older interpreter is off the style.
 requires-python = ">=3.14"
 license = "MIT"
 authors = [
@@ -53,6 +55,7 @@ src_paths = ["src", "tests"]
 
 [tool.ruff]
 line-length = 100
+# The style's floor, as requires-python says; the lint reads the exemplars as the interpreter does.
 target-version = "py314"
 
 [tool.ruff.lint]
@@ -106,6 +109,7 @@ type = "layers"
 layers = ["coinwise.facade", "coinwise.services", "coinwise.domain"]
 
 [tool.mypy]
+# The style's floor, as requires-python says; the checker reads the exemplars as the interpreter does.
 python_version = "3.14"
 strict = true
 # Every grouping directory is a bare namespace package, so the checker takes the source root as
