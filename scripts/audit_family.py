@@ -30,6 +30,7 @@ workflow. Run with --selftest to see that rule fire against a planted tag.
 
 import hashlib
 import re
+import shutil
 import sys
 from pathlib import Path
 
@@ -300,18 +301,56 @@ def prove_action_pins() -> int:
     return failures
 
 
+def seat_folders(root: Path) -> list[str]:
+    """Every top-level folder that is a seat, which is one carrying an agent guide at its top."""
+    return sorted(p.name for p in root.iterdir() if p.is_dir() and (p / "AGENTS.md").is_file())
+
+
+def check_landing(problems: list[str], root: Path) -> None:
+    """The landing page links every seat folder and the treasury, so a style cannot arrive unannounced."""
+    readme = root / "README.md"
+    if not readme.exists():
+        problems.append("README.md: the family has no landing page")
+        return
+    page = readme.read_text(encoding="utf-8")
+    for name in [*seat_folders(root), "treasury"]:
+        if f"]({name}/)" not in page:
+            problems.append(f"README.md: does not link {name}/; the landing page names every seat folder and the treasury")
+
+
+def prove_landing() -> int:
+    """A seat folder the landing page does not link is reported, and the page as it stands raises nothing."""
+    planted = ROOT / "Planted"
+    planted.mkdir()
+    (planted / "AGENTS.md").write_text("# Planted Agent Guide\n", encoding="utf-8")
+    try:
+        problems: list[str] = []
+        check_landing(problems, ROOT)
+        if not any("does not link Planted/" in p for p in problems):
+            print("WRONG: a seat folder the landing page does not link raised nothing")
+            return 1
+    finally:
+        shutil.rmtree(planted)
+    standing: list[str] = []
+    check_landing(standing, ROOT)
+    if standing:
+        print(f"WRONG: the landing page as it stands raised {standing[:2]}")
+        return 1
+    return 0
+
+
 def selftest() -> int:
-    """The pin rule fires on each planted defect."""
-    failures = prove_action_pins()
+    """The pin rule and the landing rule fire on each planted defect."""
+    failures = prove_action_pins() + prove_landing()
     if failures:
         print(f"{failures} rule(s) did not fire.")
         return 1
-    print("The family audit's pin rule fires on every planted defect.")
+    print("The family audit's rules fire on every planted defect.")
     return 0
 
 
 def main() -> int:
-    """Compare every copy of every shared block, hold the root's workflow to its pins, and report each divergence."""
+    """Compare every copy of every shared block, hold the root's workflow to its pins and its landing page to its seats, and report each divergence."""
     if "--selftest" in sys.argv:
         return selftest()
     problems: list[str] = []
@@ -319,6 +358,7 @@ def main() -> int:
     check_carries(problems)
     check_carried_trees(problems)
     check_action_pins(problems, ROOT)
+    check_landing(problems, ROOT)
 
     for problem in problems:
         print(problem)
