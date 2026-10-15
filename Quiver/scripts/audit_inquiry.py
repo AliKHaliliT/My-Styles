@@ -71,6 +71,10 @@ DEPTH_SCOPE = "review passes held to a depth word beside every key in Found from
 # never rising, its last two numbers agreeing with the keys Found names and marks full.
 FLOW = re.compile(r"^Flow: retrieved (\d+), screened (\d+), entered (\d+), read in full (\d+)\s*$", re.MULTILINE)
 FLOW_SCOPE = "review passes held to a funnel line in Boundary from the rule's arrival on"
+# A seeds line names the works a pass fixed as relevant before any string ran and how many of them the
+# strings found, so a search is measured by what it was known to owe; a pass that ran no string says none.
+SEEDS = re.compile(r"^Seeds: (none|(\d+) fixed, (\d+) indexed, (\d+) found(.*))\s*$", re.MULTILINE)
+SEEDS_SCOPE = "review passes held to a seeds line in Boundary from the rule's arrival on"
 # Who ran a stage that ran, the owner or the agent, roles and never names, so a reader knows which
 # stages a person judged and which a person has only read about.
 PROVENANCE = ("by the owner", "by the agent")
@@ -87,7 +91,7 @@ WITHDRAWN = "Withdrawn"
 QUESTION_NUMBER = re.compile(r"\bquestion (\d+)\b", re.IGNORECASE)
 # A pass written from this rule's arrival on names the question it serves by number in its Slice.
 QUESTION_SCOPE = "review passes held to a question named by number in Slice from the rule's arrival on"
-ARRIVAL_SCOPES = {"depth": DEPTH_SCOPE, "flow": FLOW_SCOPE, "provenance": PROVENANCE_SCOPE, "question": QUESTION_SCOPE}
+ARRIVAL_SCOPES = {"depth": DEPTH_SCOPE, "flow": FLOW_SCOPE, "provenance": PROVENANCE_SCOPE, "question": QUESTION_SCOPE, "seeds": SEEDS_SCOPE}
 STATE_DATE = re.compile(r"\((\d{4}-\d{2}-\d{2})\)")
 # The upstream file a project built from this template carries: one Open section, entries dated by
 # heading with a kind, a pin, and four labeled parts, expiring on the same horizon as STATE.
@@ -1235,7 +1239,7 @@ def section_body(text: str, heading: str) -> str:
 
 
 def check_reviews(problems: list[str], root: Path) -> None:
-    """Every review pass carries its shape, names its boundary's completeness, runs or collapses each stage in writing, names the pass it extends, and, from each rule's arrival on, names a depth beside every key, counts its funnel, says who ran each stage and names by number the question it serves.
+    """Every review pass carries its shape, names its boundary's completeness, runs or collapses each stage in writing, names the pass it extends, and, from each rule's arrival on, names a depth beside every key, counts its funnel, counts its seeds, says who ran each stage and names by number the question it serves.
 
     Whether the boundary was well chosen or the reading was good stays with review; what is held
     here is that a pass claiming exhaustion ran the completeness review, that the checks never
@@ -1266,11 +1270,13 @@ def check_reviews(problems: list[str], root: Path) -> None:
 
 
 def check_review_from_arrival(problems: list[str], rel: str, text: str, bound: dict[str, bool], asked: list[int]) -> None:
-    """The shapes that bind a pass from their own arrival: the depth beside each key, the funnel line, who ran each stage, and the question served."""
+    """The shapes that bind a pass from their own arrival: the depth beside each key, the funnel line, the seeds line, who ran each stage, and the question served."""
     if bound["depth"]:
         check_review_depths(problems, rel, section_body(text, "## Found"))
     if bound["flow"]:
         check_review_flow(problems, rel, section_body(text, "## Boundary"), section_body(text, "## Found"))
+    if bound["seeds"]:
+        check_review_seeds(problems, rel, section_body(text, "## Boundary"), section_body(text, "## Found"))
     if bound["provenance"]:
         check_review_provenance(problems, rel, section_body(text, "## Stages"))
     if bound["question"]:
@@ -1307,6 +1313,27 @@ def check_review_flow(problems: list[str], rel: str, boundary_text: str, found_t
         problems.append(f"{rel}: the funnel says entered {entered} but Found names {named} key(s)")
     if full != marked_full:
         problems.append(f"{rel}: the funnel says read in full {full} but Found marks {marked_full} key(s) full")
+
+
+def check_review_seeds(problems: list[str], rel: str, boundary_text: str, found_text: str) -> None:
+    """The Boundary names the seeds the pass fixed before its strings ran, fixed, indexed and found never rising, each a key Found names, or says none."""
+    seeds = SEEDS.search(boundary_text)
+    if seeds is None:
+        problems.append(f"{rel}: the Boundary carries a line Seeds: N fixed, N indexed, N found, followed by the seeds' keys, or Seeds: none")
+        return
+    if seeds.group(1) == "none":
+        return
+    fixed, indexed, found = (int(seeds.group(i)) for i in (2, 3, 4))
+    if not fixed >= indexed >= found:
+        problems.append(f"{rel}: the seeds never rise, fixed {fixed}, indexed {indexed}, found {found}")
+    keys = list(dict.fromkeys(CITE_KEY.findall(seeds.group(5))))
+    if len(keys) != fixed:
+        problems.append(f"{rel}: the seeds line says {fixed} fixed but names {len(keys)} key(s)")
+    named = set(CITE_KEY.findall(prose_only(found_text)))
+    problems.extend(
+        f"{rel}: seed [{key}] is not among the keys Found names; a seed is a relevant work and the pass enters it"
+        for key in keys if key not in named
+    )
 
 
 def depth_marks(found_text: str) -> list[tuple[str, str]]:
@@ -1857,6 +1884,7 @@ def docs_only_moved_pin() -> tuple[str, str] | None:
 REVIEW_TEMPLATE = (
     "# Planted pass\n\nDate: 2026-01-01\n\n## Slice\n\nFirst pass over the planted slice of question 1.\n\n"
     "## Boundary\n\nRead the works the question cites and nothing else.\n"
+    "Seeds: none\n"
     "Flow: retrieved 1, screened 1, entered 1, read in full 1\nCompleteness: judgment\n\n"
     "## Method\n\nA scoping read of a known corpus.\n\n## Stages\n\n"
     "- Scouting: collapsed, the slice was already scouted by the question.\n"
@@ -1884,6 +1912,10 @@ REVIEW_PLANTS = [
     ("docs/reviews/2026-01-01-planted-rising-flow.md", REVIEW_TEMPLATE.replace("Flow: retrieved 1, screened 1,", "Flow: retrieved 1, screened 2,"), "the funnel never rises"),
     ("docs/reviews/2026-01-01-planted-entered-flow.md", REVIEW_TEMPLATE.replace("Flow: retrieved 1, screened 1, entered 1, read in full 1", "Flow: retrieved 3, screened 2, entered 2, read in full 1"), "entered 2 but Found names 1"),
     ("docs/reviews/2026-01-01-planted-full-flow.md", REVIEW_TEMPLATE.replace("read in full 1", "read in full 0"), "read in full 0 but Found marks 1"),
+    ("docs/reviews/2026-01-01-planted-no-seeds.md", REVIEW_TEMPLATE.replace("Seeds: none\n", ""), "carries a line Seeds"),
+    ("docs/reviews/2026-01-01-planted-rising-seeds.md", REVIEW_TEMPLATE.replace("Seeds: none", "Seeds: 1 fixed, 2 indexed, 1 found, [planted9999]"), "the seeds never rise"),
+    ("docs/reviews/2026-01-01-planted-miscounted-seeds.md", REVIEW_TEMPLATE.replace("Seeds: none", "Seeds: 2 fixed, 1 indexed, 1 found, [planted9999]"), "says 2 fixed but names 1 key"),
+    ("docs/reviews/2026-01-01-planted-unentered-seed.md", REVIEW_TEMPLATE.replace("Seeds: none", "Seeds: 1 fixed, 1 indexed, 1 found, [planted8888]"), "seed [planted8888] is not among the keys Found names"),
 ]
 
 # The claim the depth advisory's plants share; its threats vary per plant.
@@ -1906,6 +1938,8 @@ TRACKED_PLANTS = [
 
 # The well-formed pass cites this key, planted in the bibliography for the review plants alone.
 PLANTED_ENTRY = b"- **planted9999**: Planted, P. 9999. A work entered by the selftest and removed after it. Source: reviewed.\n"
+# A second planted work, cited as a seed the planted pass never entered.
+PLANTED_SEED = b"- **planted8888**: Planted, P. 8888. A seed entered by the selftest and removed after it. Source: reviewed.\n"
 
 # A superseded conjecture keeps Evidence None. and must PASS, or this checker
 # would force evidence into an immutable record to earn a clean run; and a key
@@ -2012,7 +2046,7 @@ def prove_review_plants() -> int:
     failures = 0
     bibliography = ROOT / "docs/BIBLIOGRAPHY.md"
     original_bibliography = bibliography.read_bytes() if bibliography.exists() else None
-    bibliography.write_bytes((original_bibliography or b"# Bibliography\n").rstrip(b"\n") + b"\n" + PLANTED_ENTRY)
+    bibliography.write_bytes((original_bibliography or b"# Bibliography\n").rstrip(b"\n") + b"\n" + PLANTED_ENTRY + PLANTED_SEED)
     reviews = ROOT / "docs/reviews"
     reviews_existed = reviews.exists()
     reviews.mkdir(exist_ok=True)
@@ -2030,7 +2064,8 @@ def prove_review_plants() -> int:
         # The well-formed passes must pass, the list form and the table form alike, or the shape would
         # forbid the only legal records.
         table = REVIEW_TEMPLATE.replace("- [planted9999] full", "| Key | Depth | Facet |\n| --- | --- | --- |\n| [planted9999] | full | x |")
-        for name, content in (("planted-legal-pass", REVIEW_TEMPLATE), ("planted-legal-table", table)):
+        seeded = REVIEW_TEMPLATE.replace("Seeds: none", "Seeds: 1 fixed, 1 indexed, 1 found, [planted9999]")
+        for name, content in (("planted-legal-pass", REVIEW_TEMPLATE), ("planted-legal-table", table), ("planted-legal-seeds", seeded)):
             target = ROOT / f"docs/reviews/2026-01-01-{name}.md"
             target.write_text(content, encoding="utf-8")
             try:
@@ -3112,6 +3147,7 @@ ANCHORED_SCOPES = (
     (EM_DASH_SCOPE, "em dash budget"),
     (DEPTH_SCOPE, "depth"),
     (FLOW_SCOPE, "funnel"),
+    (SEEDS_SCOPE, "seeds"),
     (PROVENANCE_SCOPE, "provenance"),
     (QUESTION_SCOPE, "question"),
 )
