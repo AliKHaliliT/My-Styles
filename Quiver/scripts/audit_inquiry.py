@@ -75,6 +75,10 @@ FLOW_SCOPE = "review passes held to a funnel line in Boundary from the rule's ar
 # strings found, so a search is measured by what it was known to owe; a pass that ran no string says none.
 SEEDS = re.compile(r"^Seeds: (none|(\d+) fixed, (\d+) indexed, (\d+) found(.*))\s*$", re.MULTILINE)
 SEEDS_SCOPE = "review passes held to a seeds line in Boundary from the rule's arrival on"
+# An extending pass names the date it extends from, set before the day the prior pass ran, so a work
+# indexed after that day and dated before it does not fall between two passes that meet exactly.
+SINCE = re.compile(r"\bfrom (\d{4}-\d{2}-\d{2})\b")
+EXTENSION_SCOPE = "review passes held to an extension date before the day of the pass they extend from the rule's arrival on"
 # Who ran a stage that ran, the owner or the agent, roles and never names, so a reader knows which
 # stages a person judged and which a person has only read about.
 PROVENANCE = ("by the owner", "by the agent")
@@ -91,7 +95,7 @@ WITHDRAWN = "Withdrawn"
 QUESTION_NUMBER = re.compile(r"\bquestion (\d+)\b", re.IGNORECASE)
 # A pass written from this rule's arrival on names the question it serves by number in its Slice.
 QUESTION_SCOPE = "review passes held to a question named by number in Slice from the rule's arrival on"
-ARRIVAL_SCOPES = {"depth": DEPTH_SCOPE, "flow": FLOW_SCOPE, "provenance": PROVENANCE_SCOPE, "question": QUESTION_SCOPE, "seeds": SEEDS_SCOPE}
+ARRIVAL_SCOPES = {"depth": DEPTH_SCOPE, "flow": FLOW_SCOPE, "provenance": PROVENANCE_SCOPE, "question": QUESTION_SCOPE, "seeds": SEEDS_SCOPE, "extension": EXTENSION_SCOPE}
 STATE_DATE = re.compile(r"\((\d{4}-\d{2}-\d{2})\)")
 # The upstream file a project built from this template carries: one Open section, entries dated by
 # heading with a kind, a pin, and four labeled parts, expiring on the same horizon as STATE.
@@ -1239,7 +1243,7 @@ def section_body(text: str, heading: str) -> str:
 
 
 def check_reviews(problems: list[str], root: Path) -> None:
-    """Every review pass carries its shape, names its boundary's completeness, runs or collapses each stage in writing, names the pass it extends, and, from each rule's arrival on, names a depth beside every key, counts its funnel, counts its seeds, says who ran each stage and names by number the question it serves.
+    """Every review pass carries its shape, names its boundary's completeness, runs or collapses each stage in writing, names the pass it extends, and, from each rule's arrival on, names a depth beside every key, counts its funnel, counts its seeds, says who ran each stage, names by number the question it serves and, where it extends a pass, starts from a date before the day that pass ran.
 
     Whether the boundary was well chosen or the reading was good stays with review; what is held
     here is that a pass claiming exhaustion ran the completeness review, that the checks never
@@ -1266,17 +1270,19 @@ def check_reviews(problems: list[str], root: Path) -> None:
         check_review_stages(problems, rel, section_body(text, "## Stages"), completeness)
         check_review_slice(problems, rel, path, section_body(text, "## Slice"))
         bound = {name: bound_from_arrival(added.get(rel), arrival) for name, arrival in arrivals.items()}
-        check_review_from_arrival(problems, rel, text, bound, asked)
+        check_review_from_arrival(problems, rel, path, text, bound, asked)
 
 
-def check_review_from_arrival(problems: list[str], rel: str, text: str, bound: dict[str, bool], asked: list[int]) -> None:
-    """The shapes that bind a pass from their own arrival: the depth beside each key, the funnel line, the seeds line, who ran each stage, and the question served."""
+def check_review_from_arrival(problems: list[str], rel: str, path: Path, text: str, bound: dict[str, bool], asked: list[int]) -> None:
+    """The shapes that bind a pass from their own arrival: the depth beside each key, the funnel line, the seeds line, who ran each stage, the question served, and the date an extension starts from."""
     if bound["depth"]:
         check_review_depths(problems, rel, section_body(text, "## Found"))
     if bound["flow"]:
         check_review_flow(problems, rel, section_body(text, "## Boundary"), section_body(text, "## Found"))
     if bound["seeds"]:
         check_review_seeds(problems, rel, section_body(text, "## Boundary"), section_body(text, "## Found"))
+    if bound["extension"]:
+        check_review_extension(problems, rel, path, section_body(text, "## Slice"))
     if bound["provenance"]:
         check_review_provenance(problems, rel, section_body(text, "## Stages"))
     if bound["question"]:
@@ -1374,6 +1380,27 @@ def check_review_slice(problems: list[str], rel: str, path: Path, slice_text: st
         f"{rel}: extends {target}, which does not exist"
         for target in prior if not (path.parent / target.split("#", 1)[0]).exists()
     )
+
+
+def check_review_extension(problems: list[str], rel: str, path: Path, slice_text: str) -> None:
+    """An extending pass names the date it extends from, and that date falls before the day the pass it extends ran, so the two overlap by the index's lag."""
+    if "First pass" in slice_text:
+        return
+    since = SINCE.search(slice_text)
+    if since is None:
+        problems.append(f"{rel}: the Slice names the date it extends from, as from YYYY-MM-DD, set before the day the prior pass ran by the lag of the index searched")
+        return
+    start = parse_date(since.group(1))
+    if start is None:
+        problems.append(f"{rel}: extends from {since.group(1)}, which is not a date")
+        return
+    for target in LINK.findall(slice_text):
+        prior = path.parent / target.split("#", 1)[0]
+        if not target.endswith(".md") or not prior.exists():
+            continue
+        ran = record_date(prior.read_text(encoding="utf-8"))
+        if start >= ran:
+            problems.append(f"{rel}: extends from {start.isoformat()}, on or after {ran.isoformat()}, the day the prior pass ran; a later pass overlaps the one it extends by the index's lag")
 
 
 def prose_only(text: str) -> str:
@@ -2082,6 +2109,43 @@ def prove_review_plants() -> int:
             bibliography.write_bytes(original_bibliography)
         if not reviews_existed and not any(reviews.iterdir()):
             reviews.rmdir()
+    return failures
+
+
+EXTENSION_SLICE = "Extends [the prior pass](2026-01-01-planted-prior.md) over the planted slice of question 1 from {since}."
+
+
+def prove_extension_plants() -> int:
+    """An extending pass without its date, or dated on or after the day of the pass it extends, raises, and one dated before it raises nothing."""
+    failures = 0
+    bibliography = ROOT / "docs/BIBLIOGRAPHY.md"
+    original = bibliography.read_bytes() if bibliography.exists() else None
+    bibliography.write_bytes((original or b"# Bibliography\n").rstrip(b"\n") + b"\n" + PLANTED_ENTRY)
+    prior = ROOT / "docs/reviews/2026-01-01-planted-prior.md"
+    extension = ROOT / "docs/reviews/2026-01-02-planted-extension.md"
+    prior.write_text(REVIEW_TEMPLATE, encoding="utf-8")
+    base = REVIEW_TEMPLATE.replace("Date: 2026-01-01", "Date: 2026-01-02")
+    first = "First pass over the planted slice of question 1."
+    cases = (
+        (base.replace(first, "Extends [the prior pass](2026-01-01-planted-prior.md) over the planted slice of question 1."), "names the date it extends from", True),
+        (base.replace(first, EXTENSION_SLICE.format(since="2026-01-01")), "on or after 2026-01-01", True),
+        (base.replace(first, EXTENSION_SLICE.format(since="2025-12-31")), "planted-extension", False),
+    )
+    try:
+        for content, needle, wanted in cases:
+            extension.write_text(content, encoding="utf-8")
+            found = any(needle in p for p in run(ROOT)[0])
+            if found != wanted:
+                failures += 1
+                verb = "did not raise" if wanted else "wrongly raised"
+                print(f"WRONG: the extension plant {verb} {needle!r}")
+    finally:
+        extension.unlink(missing_ok=True)
+        prior.unlink()
+        if original is None:
+            bibliography.unlink()
+        else:
+            bibliography.write_bytes(original)
     return failures
 
 
@@ -3148,6 +3212,7 @@ ANCHORED_SCOPES = (
     (DEPTH_SCOPE, "depth"),
     (FLOW_SCOPE, "funnel"),
     (SEEDS_SCOPE, "seeds"),
+    (EXTENSION_SCOPE, "extension"),
     (PROVENANCE_SCOPE, "provenance"),
     (QUESTION_SCOPE, "question"),
 )
@@ -3250,6 +3315,7 @@ def selftest() -> int:
         prove_legal_plants,
         prove_unlisted_claim,
         prove_review_plants,
+        prove_extension_plants,
         prove_question_plants,
         prove_shallow_read_advice,
         prove_standing_plants,

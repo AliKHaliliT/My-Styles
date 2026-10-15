@@ -44,7 +44,7 @@ reaches into an arrow, and an arrow's suite never checks a claim.
 
 ## Passes over the literature
 
-Reading enters the same chain as running. A pass over one slice of one question, named by number in its record, is bounded before it begins and leaves one dated record in the `reviews/` folder under `docs/`, naming what it searched and the seeds it tested its strings against, the stages it ran or collapsed, the keys it found with the depth each was read at, the ledger entries it moved, and what it left to a person, which `STATE.md` queues; the bibliography, the claims, and the decomposition hold what it found, so no synthesis document sits beside them to rot. The next pass over the slice extends the last from the date it stopped.
+Reading enters the same chain as running. A pass over one slice of one question, named by number in its record, is bounded before it begins and leaves one dated record in the `reviews/` folder under `docs/`, naming what it searched and the seeds it tested its strings against, the stages it ran or collapsed, the keys it found with the depth each was read at, the ledger entries it moved, and what it left to a person, which `STATE.md` queues; the bibliography, the claims, and the decomposition hold what it found, so no synthesis document sits beside them to rot. The next pass over the slice extends the last from before the date it stopped, by the lag of the index it searches.
 
 ## Exemplars
 
