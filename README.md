@@ -2,7 +2,7 @@
 
 ![License](https://img.shields.io/github/license/AliKHaliliT/My-Styles) ![Last Commit](https://img.shields.io/github/last-commit/AliKHaliliT/My-Styles) ![Open Issues](https://img.shields.io/github/issues/AliKHaliliT/My-Styles)
 
-A family of templates for software a person and an agent build together, four so far: a server, a package, a client and a research host. Each template ships its law as bytes an audit checks, every decision as a dated record that is never edited, and a selftest that proves the audit against planted defects. It is not a framework and not a generator. A style is copied whole into a project and adopted, and what the project learns flows back here.
+A family of templates for software a person and an agent build together, four so far: a backend, a package, a client and a research host. Each template ships its law as bytes an audit checks, every decision as a dated record that is never edited, and a selftest that proves the audit against planted defects. It is not a framework and not a generator. A style is copied whole into a project and adopted, and what the project learns flows back here.
 
 ## The ideas
 
