@@ -30,10 +30,17 @@ jobs:
           git grep -PIno "\x{2014}" -- . > em-dashes.tmp || true
           awk -F: 'NR == FNR { generated[$0] = 1; next } !($1 in generated) { count[$1]++ } END {bad = 0; for (f in count) if (count[f] > 2) { printf "%s carries %d em dashes; the budget is two per file\n", f, count[f]; bad = 1 }; exit bad}' generated.tmp em-dashes.tmp
           rm em-dashes.tmp generated.tmp
+      - name: Invisible characters
+        run: |
+          # The seat audits refuse these inside each seat; this step reads the whole tree once more, generated files apart.
+          git ls-files -z | git check-attr --stdin -z linguist-generated | tr '\0' '\n' | awk 'NR % 3 == 1 { f = $0 } NR % 3 == 0 && ($0 == "set" || $0 == "true") { print f }' > generated.tmp
+          git grep -PIn "[\x{200B}-\x{200F}\x{202A}-\x{202E}\x{2060}-\x{2064}\x{2066}-\x{2069}\x{FEFF}]" -- . > invisible.tmp || true
+          awk -F: 'NR == FNR { generated[$0] = 1; next } !($1 in generated) { print $1 ":" $2 ": carries an invisible character; a tracked file carries nothing a reader cannot see"; bad = 1 } END { exit bad }' generated.tmp invisible.tmp
+          rm generated.tmp invisible.tmp
       - name: Prose heuristics, advisory
         continue-on-error: true
         run: |
-          if git grep -inE "paradigm shift|game.changer|ever-evolving|cutting.edge|\bdelve|\btapestry\b|\bsupercharge|\btransformative\b|\bmultifaceted\b|\bmeticulous\b|\bparamount\b|\bembark\b|it.s worth noting|at the end of the day|in today.s world|let.s dive|going forward|a testament to|marks a pivotal|plays a vital role|experts agree|studies show|widely regarded as|\bTODO\b|\bFIXME\b|\bTBD\b|as an ai\b|as a language model|i hope this helps|certainly!" -- . ":(exclude)*.github*" ":(exclude)*docs/CONVENTIONS.md" ":(exclude)*docs/decisions/*" ":(exclude)*docs/claims/*" ":(exclude)treasury" ":(exclude)*scripts/audit_docs.py" ":(exclude)*scripts/audit_inquiry.py" ":(exclude)*scripts/audit-docs.mjs" ":(exclude)*scripts/audit-docs-selftest.mjs" ":(exclude)*eslint.config.js"; then
+          if git grep -inE "paradigm shift|game.changer|ever-evolving|cutting.edge|\bdelve|\btapestry\b|\bsupercharge|\btransformative\b|\bmultifaceted\b|\bmeticulous\b|\bparamount\b|\bembark\b|it.s worth noting|at the end of the day|in today.s world|let.s dive|going forward|a testament to|marks a pivotal|plays a vital role|experts agree|studies show|widely regarded as|\bTODO\b|\bFIXME\b|\bTBD\b|as an ai\b|as a language model|i hope this helps|certainly!" -- . ":(exclude)*.github*" ":(exclude)*docs/CONVENTIONS.md" ":(exclude)*docs/decisions/*" ":(exclude)*docs/inherited/*" ":(exclude)*docs/claims/*" ":(exclude)treasury" ":(exclude)*scripts/audit_docs.py" ":(exclude)*scripts/audit_inquiry.py" ":(exclude)*scripts/audit-docs.mjs" ":(exclude)*scripts/audit-docs-selftest.mjs" ":(exclude)*eslint.config.js"; then
             echo "Inflated vocabulary or weasel attribution in living prose; the verdict is review's."
             exit 1
           fi

@@ -202,6 +202,9 @@ EM_DASH = "\u2014".encode()
 # born before that arrival is never judged; every other tracked file can be edited and is held
 # whatever its age. The inherited folder is counted where it was written.
 EM_DASH_SCOPE = "records held to the em dash budget of two per file"
+# Characters that change how text reads without being seen, the bidirectional controls, the zero-width
+# spaces and joiners, the invisible operators and the byte-order mark; a tracked text file carries none.
+INVISIBLE = re.compile("[\u200b-\u200f\u202a-\u202e\u2060-\u2064\u2066-\u2069\ufeff]")
 # The vocabulary the prose law bans, advised and never gated, because an honest domain term
 # reads the same as a tell; the workflow's list, moved here so a tree with no remote hears it.
 VOCABULARY = re.compile(
@@ -940,6 +943,25 @@ def flag_dead_links(problems: list[str], rel: str, path: Path) -> None:
                 continue
             if not (path.parent / bare).exists():
                 problems.append(f"{rel}:{line_no}: links to {target}, which does not resolve")
+
+
+def check_invisible(problems: list[str], root: Path) -> None:
+    """No tracked text file carries an invisible character, because what a reader cannot see still changes what a compiler, a reviewer or a model reads; a generated file is kept as written."""
+    if root != ROOT:
+        return
+    declared = declared_generated()
+    for rel in tracked_files():
+        path = ROOT / rel
+        if rel.startswith(("arrows/", "docs/inherited/")) or rel in declared or not path.is_file():
+            continue
+        data = path.read_bytes()
+        if b"\0" in data:
+            continue
+        text = data.decode("utf-8", errors="replace")
+        hit = INVISIBLE.search(text)
+        if hit:
+            line = text.count("\n", 0, hit.start()) + 1
+            problems.append(f"{rel}:{line}: carries U+{ord(hit.group()):04X}, an invisible character; a tracked file carries nothing a reader cannot see")
 
 
 def invariant_rows(text: str) -> list[tuple[int, list[str]]] | None:
@@ -1914,6 +1936,7 @@ def run(root: Path) -> tuple[list[str], list[str]]:
     check_dispositions(problems, root)
     check_template_copies(problems, root)
     check_em_dashes(problems, root)
+    check_invisible(problems, root)
     check_record_immutability(problems, root)
     check_figures(problems, root)
     check_reviews(problems, root)
@@ -2071,6 +2094,7 @@ TRACKED_PLANTS = [
     ("stray/note.txt", "nobody gave this a room\n", "stray/: exists in the tree but has no room"),
     ("ROGUE.txt", "nobody named this\n", "ROGUE.txt: sits at the root but neither the map nor the baseline names it"),
     ("docs/PLANTED-DASHES.md", "\u2014 \u2014 \u2014\n", "docs/PLANTED-DASHES.md carries 3 em dashes; the budget is 2 per file"),
+    ("docs/PLANTED-INVISIBLE.md", "a\u200bb\n", "docs/PLANTED-INVISIBLE.md:1: carries U+200B, an invisible character"),
 ]
 
 # The well-formed pass cites this key, planted in the bibliography for the review plants alone.
@@ -2661,16 +2685,16 @@ def prove_tracked_plants() -> int:
 
 
 def prove_declared_dashes() -> int:
-    """A tracked file over the budget that the attributes file declares linguist-generated raises nothing, and the file and the declaration both leave."""
+    """A tracked file over the budget and carrying an invisible character that the attributes file declares linguist-generated raises nothing, and the file and the declaration both leave."""
     attributes = ROOT / ".gitattributes"
     original = attributes.read_bytes() if attributes.exists() else None
     rel = "docs/PLANTED-DECLARED.md"
     target = ROOT / rel
     attributes.write_bytes((original or b"") + f"\n{rel} linguist-generated\n".encode())
-    target.write_text("\u2014 \u2014 \u2014\n", encoding="utf-8")
+    target.write_text("\u2014 \u2014 \u2014 \u200b\n", encoding="utf-8")
     git("add", "-N", "--", rel)
     try:
-        noise = [p for p in run(ROOT)[0] if f"{rel} carries" in p]
+        noise = [p for p in run(ROOT)[0] if rel in p and "carries" in p]
         if not noise:
             return 0
         print(f"WRONG: a declared file over the budget was counted: {noise}")

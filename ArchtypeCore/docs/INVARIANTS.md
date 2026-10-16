@@ -4,6 +4,7 @@ What must stay true about this product, one row per claim, each bound to the hol
 
 | Claim | Held by | Rung |
 | --- | --- | --- |
+| No tracked text file carries an invisible character, a generated file apart. | `scripts/audit_docs.py` "check_invisible" | impossible |
 | No comment in the tree defers work with a marker. | `pyproject.toml` "FIX" | impossible |
 | The domain and the services never import the web framework, the database layer, or the outer layers. | `pyproject.toml` "The core is framework-free" | impossible |
 | A duplicate username is refused before the provider is touched. | `tests/app/services/test_user_service.py` "test_a_duplicate_username_is_refused_before_the_provider_is_touched" | listed cases |

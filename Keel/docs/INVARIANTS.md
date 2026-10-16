@@ -4,6 +4,7 @@ What must stay true about this product, one row per claim, each bound to the hol
 
 | Claim | Held by | Rung |
 | --- | --- | --- |
+| No tracked text file carries an invisible character, a generated file apart. | `scripts/audit_docs.py` "check_invisible" | impossible |
 | No comment in the tree defers work with a marker. | `pyproject.toml` "FIX" | impossible |
 | The domain and the services never import the facade, an adapter, or the vendor SDK. | `pyproject.toml` "The core stays inside the ports" | impossible |
 | A step report carries its record across the facade boundary without loss or invention. | `tests/src/keel/facade/translators/test_domain_to_facade.py` "test_property_a_step_report_carries_its_record_without_loss" | generated cases |

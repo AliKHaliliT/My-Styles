@@ -729,6 +729,24 @@ function checkEmDashes() {
 }
 checkEmDashes();
 
+// Characters that change how text reads without being seen, the bidirectional controls, the zero-width
+// spaces and joiners, the invisible operators and the byte-order mark; a tracked text file carries none,
+// because what a reader cannot see still changes what a compiler, a reviewer or a model reads.
+const INVISIBLE = /[\u200b-\u200f\u202a-\u202e\u2060-\u2064\u2066-\u2069\ufeff]/;
+function checkInvisible() {
+  const declared = declaredGenerated();
+  for (const rel of trackedFiles()) {
+    const path = join(ROOT, rel);
+    if (rel.startsWith("docs/inherited/") || declared.has(rel) || !existsSync(path) || statSync(path).isDirectory()) continue;
+    const bytes = readFileSync(path);
+    if (bytes.includes(0)) continue;
+    const text = bytes.toString("utf-8");
+    const hit = INVISIBLE.exec(text);
+    if (hit) problems.push(`${rel}:${lineOf(text, hit.index)}: carries U+${hit[0].codePointAt(0).toString(16).toUpperCase().padStart(4, "0")}, an invisible character; a tracked file carries nothing a reader cannot see`);
+  }
+}
+checkInvisible();
+
 // Every relative link in a record of the project's own resolves; the inherited folder is checked where it was written.
 function checkRecordLinks() {
   const docsRoot = join(ROOT, "docs");

@@ -4,6 +4,7 @@ What must stay true about this product, one row per claim, each bound to the hol
 
 | Claim | Held by | Rung |
 | --- | --- | --- |
+| No tracked text file carries an invisible character, a generated file apart. | `scripts/audit-docs.mjs` "checkInvisible" | impossible |
 | No comment in the tree defers work with a marker. | `eslint.config.js` "no-warning-comments" | impossible |
 | Imports point downward only, from app through pages, features, and entities to shared, never back up. | `eslint.config.js` "Imports point downward only" | impossible |
 | A payload that breaks the wire contract is refused before it reaches a component. | `tests/src/shared/api/client.test.ts` "refuses a payload that breaks the wire contract" | listed cases |

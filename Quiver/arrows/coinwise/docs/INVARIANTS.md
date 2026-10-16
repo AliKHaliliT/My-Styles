@@ -4,6 +4,7 @@ What must stay true about this product, one row per claim, each bound to the hol
 
 | Claim | Held by | Rung |
 | --- | --- | --- |
+| No tracked text file carries an invisible character, a generated file apart. | `scripts/audit_docs.py` "check_invisible" | impossible |
 | No comment in the tree defers work with a marker. | `pyproject.toml` "FIX" | impossible |
 | Dependencies point one way, from the facade through the services to the domain, never back. | `pyproject.toml` "The Dependency Rule points one way" | impossible |
 | The two strategies agree on every amount that is not a tie. | `tests/src/coinwise/domain/rounding/test_strategies.py` "test_property_the_strategies_agree_on_every_amount_that_is_not_a_tie" | generated cases |

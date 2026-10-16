@@ -171,6 +171,7 @@ function proveTrackedPlants() {
       ["docs/planted.png", "not a document\n"],
       ["docs/planted-folder/GUIDE.md", "# Guide\n"],
       ["docs/PLANTED-DASHES.md", "\u2014 \u2014 \u2014\n"],
+      ["docs/PLANTED-INVISIBLE.md", "a\u200bb\n"],
     ],
     [
       "stray-planted/: exists in the tree but has no room",
@@ -180,21 +181,22 @@ function proveTrackedPlants() {
       "docs/planted-folder/ has no row in the AGENTS.md index",
       "a file below a docs/ subfolder is a dated record named YYYY-MM-DD-short-kebab-title.md",
       "docs/PLANTED-DASHES.md carries 3 em dashes; the budget is 2 per file",
+      "docs/PLANTED-INVISIBLE.md:1: carries U+200B, an invisible character",
     ],
     true,
   );
 }
 
-/** A tracked file over the budget that the attributes file declares linguist-generated raises nothing, and the file and the declaration both leave. */
+/** A tracked file over the budget and carrying an invisible character that the attributes file declares linguist-generated raises nothing, and the file and the declaration both leave. */
 function proveDeclaredDashes() {
   const attributes = join(ROOT, ".gitattributes");
   const original = existsSync(attributes) ? readFileSync(attributes) : null;
   const rel = "docs/PLANTED-DECLARED.md";
   writeFileSync(attributes, Buffer.concat([original ?? Buffer.alloc(0), Buffer.from(`\n${rel} linguist-generated\n`)]));
-  plant(rel, "\u2014 \u2014 \u2014\n");
+  plant(rel, "\u2014 \u2014 \u2014 \u200b\n");
   git("add", "-N", "--", rel);
   try {
-    const noise = findings().filter((line) => line.includes(`${rel} carries`));
+    const noise = findings().filter((line) => line.includes(rel) && line.includes("carries"));
     if (noise.length > 0) wrong(`a declared file over the budget was counted: ${noise.join("; ")}`);
   } finally {
     git("rm", "--cached", "-q", "--", rel);
