@@ -82,6 +82,10 @@ EXTENSION_SCOPE = "review passes held to an extension date before the day of the
 # The Checks line answers for retraction, none or the key, because a retracted work under a claim is the one
 # failure the standing advisory cannot see until the entry says so.
 RETRACTION_SCOPE = "review passes held to a Checks line that answers for retraction from the rule's arrival on"
+# A pass names the review that already covers most of its slice, by key, with what the pass adds, or says that
+# none stands near, because a pass that repeats a standing review is a pass nobody needed.
+NEAREST = re.compile(r"^Nearest review: (none found\b.*|\[(?:[a-z][a-z0-9]*[0-9]{4}[a-z]?|[a-z][a-z0-9]*-[0-9]{4})\].*)$", re.MULTILINE)
+NEAREST_SCOPE = "review passes held to a nearest-review line in Boundary from the rule's arrival on"
 # Who ran a stage that ran, the owner or the agent, roles and never names, so a reader knows which
 # stages a person judged and which a person has only read about.
 PROVENANCE = ("by the owner", "by the agent")
@@ -98,7 +102,7 @@ WITHDRAWN = "Withdrawn"
 QUESTION_NUMBER = re.compile(r"\bquestion (\d+)\b", re.IGNORECASE)
 # A pass written from this rule's arrival on names the question it serves by number in its Slice.
 QUESTION_SCOPE = "review passes held to a question named by number in Slice from the rule's arrival on"
-ARRIVAL_SCOPES = {"depth": DEPTH_SCOPE, "flow": FLOW_SCOPE, "provenance": PROVENANCE_SCOPE, "question": QUESTION_SCOPE, "seeds": SEEDS_SCOPE, "extension": EXTENSION_SCOPE, "retraction": RETRACTION_SCOPE}
+ARRIVAL_SCOPES = {"depth": DEPTH_SCOPE, "flow": FLOW_SCOPE, "provenance": PROVENANCE_SCOPE, "question": QUESTION_SCOPE, "seeds": SEEDS_SCOPE, "extension": EXTENSION_SCOPE, "retraction": RETRACTION_SCOPE, "nearest": NEAREST_SCOPE}
 STATE_DATE = re.compile(r"\((\d{4}-\d{2}-\d{2})\)")
 # The upstream file a project built from this template carries: one Open section, entries dated by
 # heading with a kind, a pin, and four labeled parts, expiring on the same horizon as STATE.
@@ -1250,7 +1254,7 @@ def section_body(text: str, heading: str) -> str:
 
 
 def check_reviews(problems: list[str], root: Path) -> None:
-    """Every review pass carries its shape, names its boundary's completeness, runs or collapses each stage in writing, names the pass it extends, and, from each rule's arrival on, names a depth beside every key, counts its funnel, counts its seeds, says who ran each stage, names by number the question it serves, answers for retraction on its Checks line and, where it extends a pass, starts from a date before the day that pass ran.
+    """Every review pass carries its shape, names its boundary's completeness, runs or collapses each stage in writing, names the pass it extends, and, from each rule's arrival on, names a depth beside every key, counts its funnel, counts its seeds, names its nearest review, says who ran each stage, names by number the question it serves, answers for retraction on its Checks line and, where it extends a pass, starts from a date before the day that pass ran.
 
     Whether the boundary was well chosen or the reading was good stays with review; what is held
     here is that a pass claiming exhaustion ran the completeness review, that the checks never
@@ -1281,7 +1285,7 @@ def check_reviews(problems: list[str], root: Path) -> None:
 
 
 def check_review_from_arrival(problems: list[str], rel: str, path: Path, text: str, bound: dict[str, bool], asked: list[int]) -> None:
-    """The shapes that bind a pass from their own arrival: the depth beside each key, the funnel line, the seeds line, who ran each stage, the question served, the date an extension starts from, and the Checks line's answer for retraction."""
+    """The shapes that bind a pass from their own arrival: the depth beside each key, the funnel line, the seeds line, who ran each stage, the question served, the date an extension starts from, the Checks line's answer for retraction, and the nearest review."""
     if bound["depth"]:
         check_review_depths(problems, rel, section_body(text, "## Found"))
     if bound["flow"]:
@@ -1292,6 +1296,8 @@ def check_review_from_arrival(problems: list[str], rel: str, path: Path, text: s
         check_review_extension(problems, rel, path, section_body(text, "## Slice"))
     if bound["retraction"]:
         check_review_retraction(problems, rel, section_body(text, "## Stages"))
+    if bound["nearest"]:
+        check_review_nearest(problems, rel, section_body(text, "## Boundary"))
     if bound["provenance"]:
         check_review_provenance(problems, rel, section_body(text, "## Stages"))
     if bound["question"]:
@@ -1311,6 +1317,15 @@ def check_review_provenance(problems: list[str], rel: str, stages_text: str) -> 
     for name, mode, tail in STAGE_LINE.findall(stages_text):
         if mode == "ran" and not tail.strip().startswith(PROVENANCE):
             problems.append(f"{rel}: stage {name} ran without saying who ran it; a stage line reads ran by the owner or ran by the agent")
+
+
+def check_review_nearest(problems: list[str], rel: str, boundary_text: str) -> None:
+    """The Boundary names the nearest review by key with what the pass adds, or says none found."""
+    if NEAREST.search(boundary_text) is None:
+        problems.append(
+            f"{rel}: the Boundary carries a line Nearest review: [key] with what this pass adds, or Nearest review: none found,"
+            " because a pass that repeats a standing review is a pass nobody needed"
+        )
 
 
 def check_review_retraction(problems: list[str], rel: str, stages_text: str) -> None:
@@ -1945,6 +1960,7 @@ def docs_only_moved_pin() -> tuple[str, str] | None:
 REVIEW_TEMPLATE = (
     "# Planted pass\n\nDate: 2026-01-01\n\n## Slice\n\nFirst pass over the planted slice of question 1.\n\n"
     "## Boundary\n\nRead the works the question cites and nothing else.\n"
+    "Nearest review: none found, the planted slice has none.\n"
     "Seeds: none\n"
     "Flow: retrieved 1, screened 1, entered 1, read in full 1\nCompleteness: judgment\n\n"
     "## Method\n\nA scoping read of a known corpus.\n\n## Stages\n\n"
@@ -1975,6 +1991,8 @@ REVIEW_PLANTS = [
     ("docs/reviews/2026-01-01-planted-entered-flow.md", REVIEW_TEMPLATE.replace("Flow: retrieved 1, screened 1, entered 1, read in full 1", "Flow: retrieved 3, screened 2, entered 2, read in full 1"), "entered 2 but Found names 1"),
     ("docs/reviews/2026-01-01-planted-full-flow.md", REVIEW_TEMPLATE.replace("read in full 1", "read in full 0"), "read in full 0 but Found marks 1"),
     ("docs/reviews/2026-01-01-planted-no-seeds.md", REVIEW_TEMPLATE.replace("Seeds: none\n", ""), "carries a line Seeds"),
+    ("docs/reviews/2026-01-01-planted-no-nearest.md", REVIEW_TEMPLATE.replace("Nearest review: none found, the planted slice has none.\n", ""), "carries a line Nearest review"),
+    ("docs/reviews/2026-01-01-planted-vague-nearest.md", REVIEW_TEMPLATE.replace("Nearest review: none found, the planted slice has none.", "Nearest review: a survey somebody wrote."), "carries a line Nearest review"),
     ("docs/reviews/2026-01-01-planted-rising-seeds.md", REVIEW_TEMPLATE.replace("Seeds: none", "Seeds: 1 fixed, 2 indexed, 1 found, [planted9999]"), "the seeds never rise"),
     ("docs/reviews/2026-01-01-planted-miscounted-seeds.md", REVIEW_TEMPLATE.replace("Seeds: none", "Seeds: 2 fixed, 1 indexed, 1 found, [planted9999]"), "says 2 fixed but names 1 key"),
     ("docs/reviews/2026-01-01-planted-unentered-seed.md", REVIEW_TEMPLATE.replace("Seeds: none", "Seeds: 1 fixed, 1 indexed, 1 found, [planted8888]"), "seed [planted8888] is not among the keys Found names"),
@@ -2127,7 +2145,9 @@ def prove_review_plants() -> int:
         # forbid the only legal records.
         table = REVIEW_TEMPLATE.replace("- [planted9999] full", "| Key | Depth | Facet |\n| --- | --- | --- |\n| [planted9999] | full | x |")
         seeded = REVIEW_TEMPLATE.replace("Seeds: none", "Seeds: 1 fixed, 1 indexed, 1 found, [planted9999]")
-        for name, content in (("planted-legal-pass", REVIEW_TEMPLATE), ("planted-legal-table", table), ("planted-legal-seeds", seeded)):
+        neighboured = REVIEW_TEMPLATE.replace("Nearest review: none found, the planted slice has none.", "Nearest review: [planted9999], which covered the slice to 2025; this pass adds the year since.")
+        legal = (("planted-legal-pass", REVIEW_TEMPLATE), ("planted-legal-table", table), ("planted-legal-seeds", seeded), ("planted-legal-nearest", neighboured))
+        for name, content in legal:
             target = ROOT / f"docs/reviews/2026-01-01-{name}.md"
             target.write_text(content, encoding="utf-8")
             try:
@@ -3258,6 +3278,7 @@ ANCHORED_SCOPES = (
     (SEEDS_SCOPE, "seeds"),
     (EXTENSION_SCOPE, "extension"),
     (RETRACTION_SCOPE, "retraction"),
+    (NEAREST_SCOPE, "nearest review"),
     (PROVENANCE_SCOPE, "provenance"),
     (QUESTION_SCOPE, "question"),
 )
