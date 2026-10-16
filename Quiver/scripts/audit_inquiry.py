@@ -86,6 +86,12 @@ RETRACTION_SCOPE = "review passes held to a Checks line that answers for retract
 # none stands near, because a pass that repeats a standing review is a pass nobody needed.
 NEAREST = re.compile(r"^Nearest review: (none found\b.*|\[(?:[a-z][a-z0-9]*[0-9]{4}[a-z]?|[a-z][a-z0-9]*-[0-9]{4})\].*)$", re.MULTILINE)
 NEAREST_SCOPE = "review passes held to a nearest-review line in Boundary from the rule's arrival on"
+# A pass names its screening log, one record per reader under docs/screening/ with a decision and a reason per
+# record screened, so the funnel's contents are kept and not only its counts; a pass that screened nothing says none.
+SCREENING = re.compile(r"^Screening: (none|\[[^\]]+\]\(([^)\s]+)\))\s*$", re.MULTILINE)
+SCREENING_SCOPE = "review passes held to a screening line in Boundary, and screening logs to their shape, from the rule's arrival on"
+LOG_HEADER = "| Stage | Id | Work | Decision | Reason |"
+LOG_ROW = re.compile(r"^\| (abstract|full) \| ([^|]*?) \| ([^|]*?) \| (included|excluded|unsure) \| ([^|]*?) \|\s*$", re.MULTILINE)
 # Who ran a stage that ran, the owner or the agent, roles and never names, so a reader knows which
 # stages a person judged and which a person has only read about.
 PROVENANCE = ("by the owner", "by the agent")
@@ -102,7 +108,7 @@ WITHDRAWN = "Withdrawn"
 QUESTION_NUMBER = re.compile(r"\bquestion (\d+)\b", re.IGNORECASE)
 # A pass written from this rule's arrival on names the question it serves by number in its Slice.
 QUESTION_SCOPE = "review passes held to a question named by number in Slice from the rule's arrival on"
-ARRIVAL_SCOPES = {"depth": DEPTH_SCOPE, "flow": FLOW_SCOPE, "provenance": PROVENANCE_SCOPE, "question": QUESTION_SCOPE, "seeds": SEEDS_SCOPE, "extension": EXTENSION_SCOPE, "retraction": RETRACTION_SCOPE, "nearest": NEAREST_SCOPE}
+ARRIVAL_SCOPES = {"depth": DEPTH_SCOPE, "flow": FLOW_SCOPE, "provenance": PROVENANCE_SCOPE, "question": QUESTION_SCOPE, "seeds": SEEDS_SCOPE, "extension": EXTENSION_SCOPE, "retraction": RETRACTION_SCOPE, "nearest": NEAREST_SCOPE, "screening": SCREENING_SCOPE}
 STATE_DATE = re.compile(r"\((\d{4}-\d{2}-\d{2})\)")
 # The upstream file a project built from this template carries: one Open section, entries dated by
 # heading with a kind, a pin, and four labeled parts, expiring on the same horizon as STATE.
@@ -1254,7 +1260,7 @@ def section_body(text: str, heading: str) -> str:
 
 
 def check_reviews(problems: list[str], root: Path) -> None:
-    """Every review pass carries its shape, names its boundary's completeness, runs or collapses each stage in writing, names the pass it extends, and, from each rule's arrival on, names a depth beside every key, counts its funnel, counts its seeds, names its nearest review, says who ran each stage, names by number the question it serves, answers for retraction on its Checks line and, where it extends a pass, starts from a date before the day that pass ran.
+    """Every review pass carries its shape, names its boundary's completeness, runs or collapses each stage in writing, names the pass it extends, and, from each rule's arrival on, names a depth beside every key, counts its funnel, counts its seeds, names its nearest review and its screening log, says who ran each stage, names by number the question it serves, answers for retraction on its Checks line and, where it extends a pass, starts from a date before the day that pass ran.
 
     Whether the boundary was well chosen or the reading was good stays with review; what is held
     here is that a pass claiming exhaustion ran the completeness review, that the checks never
@@ -1282,10 +1288,12 @@ def check_reviews(problems: list[str], root: Path) -> None:
         check_review_slice(problems, rel, path, section_body(text, "## Slice"))
         bound = {name: bound_from_arrival(added.get(rel), arrival) for name, arrival in arrivals.items()}
         check_review_from_arrival(problems, rel, path, text, bound, asked)
+        for recorded in RECORDED.findall(section_body(text, "## Boundary")):
+            check_recorded(problems, rel, recorded, root)
 
 
 def check_review_from_arrival(problems: list[str], rel: str, path: Path, text: str, bound: dict[str, bool], asked: list[int]) -> None:
-    """The shapes that bind a pass from their own arrival: the depth beside each key, the funnel line, the seeds line, who ran each stage, the question served, the date an extension starts from, the Checks line's answer for retraction, and the nearest review."""
+    """The shapes that bind a pass from their own arrival: the depth beside each key, the funnel line, the seeds line, who ran each stage, the question served, the date an extension starts from, the Checks line's answer for retraction, the nearest review, and the screening log."""
     if bound["depth"]:
         check_review_depths(problems, rel, section_body(text, "## Found"))
     if bound["flow"]:
@@ -1298,6 +1306,8 @@ def check_review_from_arrival(problems: list[str], rel: str, path: Path, text: s
         check_review_retraction(problems, rel, section_body(text, "## Stages"))
     if bound["nearest"]:
         check_review_nearest(problems, rel, section_body(text, "## Boundary"))
+    if bound["screening"]:
+        check_review_screening(problems, rel, path, section_body(text, "## Boundary"))
     if bound["provenance"]:
         check_review_provenance(problems, rel, section_body(text, "## Stages"))
     if bound["question"]:
@@ -1317,6 +1327,48 @@ def check_review_provenance(problems: list[str], rel: str, stages_text: str) -> 
     for name, mode, tail in STAGE_LINE.findall(stages_text):
         if mode == "ran" and not tail.strip().startswith(PROVENANCE):
             problems.append(f"{rel}: stage {name} ran without saying who ran it; a stage line reads ran by the owner or ran by the agent")
+
+
+def check_review_screening(problems: list[str], rel: str, path: Path, boundary_text: str) -> None:
+    """The Boundary links the pass's screening log, a record under docs/screening/ whose abstract-stage rows passed are the funnel's screened count, or says none."""
+    screening = SCREENING.search(boundary_text)
+    if screening is None:
+        problems.append(f"{rel}: the Boundary carries a line Screening: [the log](../screening/YYYY-MM-DD-title.md) or Screening: none")
+        return
+    if screening.group(1) == "none":
+        return
+    target = (path.parent / screening.group(2).split("#", 1)[0]).resolve()
+    if not target.exists():
+        problems.append(f"{rel}: names a screening log {screening.group(2)}, which does not exist")
+        return
+    if target.parent.name != "screening":
+        problems.append(f"{rel}: the screening log {screening.group(2)} lives outside docs/screening/, the one folder that holds one")
+    flow = FLOW.search(boundary_text)
+    rows = LOG_ROW.findall(target.read_text(encoding="utf-8"))
+    passed = sum(1 for stage, _, _, decision, _ in rows if stage == "abstract" and decision in ("included", "unsure"))
+    if flow is not None and rows and passed != int(flow.group(2)):
+        problems.append(f"{rel}: the funnel says screened {flow.group(2)} but the log passes {passed} record(s) at the abstract stage")
+
+
+def check_screening_logs(problems: list[str], root: Path) -> None:
+    """Every screening log added from the rule's arrival opens its table with the header, names a reason for every exclusion, and leaves a record unsure at the abstract stage alone; whether a decision was right stays with review."""
+    folder = root / "docs/screening"
+    if not folder.exists():
+        return
+    arrival = first_commit(SCREENING_SCOPE, "scripts/audit_inquiry.py")
+    added = added_commits("docs/screening")
+    for path in sorted(folder.glob("*.md")):
+        rel = f"docs/screening/{path.name}"
+        if not bound_from_arrival(added.get(rel), arrival):
+            continue
+        log = path.read_text(encoding="utf-8")
+        if LOG_HEADER not in log:
+            problems.append(f"{rel}: a screening log opens its table with {LOG_HEADER}")
+        rows = LOG_ROW.findall(log)
+        if any(decision == "excluded" and not reason.strip() for _, _, _, decision, reason in rows):
+            problems.append(f"{rel}: excludes a record without a reason; each exclusion names a criterion's label or a standard reason")
+        if any(stage == "full" and decision == "unsure" for stage, _, _, decision, _ in rows):
+            problems.append(f"{rel}: leaves a record unsure at the full-text stage; unsure is allowed at the abstract stage alone")
 
 
 def check_review_nearest(problems: list[str], rel: str, boundary_text: str) -> None:
@@ -1864,6 +1916,7 @@ def run(root: Path) -> tuple[list[str], list[str]]:
     check_record_immutability(problems, root)
     check_figures(problems, root)
     check_reviews(problems, root)
+    check_screening_logs(problems, root)
     check_citations(problems, root)
     check_bibliography(problems, root)
     advise_shallow_reads(advice, root)
@@ -1962,6 +2015,7 @@ REVIEW_TEMPLATE = (
     "## Boundary\n\nRead the works the question cites and nothing else.\n"
     "Nearest review: none found, the planted slice has none.\n"
     "Seeds: none\n"
+    "Screening: none\n"
     "Flow: retrieved 1, screened 1, entered 1, read in full 1\nCompleteness: judgment\n\n"
     "## Method\n\nA scoping read of a known corpus.\n\n## Stages\n\n"
     "- Scouting: collapsed, the slice was already scouted by the question.\n"
@@ -1991,6 +2045,8 @@ REVIEW_PLANTS = [
     ("docs/reviews/2026-01-01-planted-entered-flow.md", REVIEW_TEMPLATE.replace("Flow: retrieved 1, screened 1, entered 1, read in full 1", "Flow: retrieved 3, screened 2, entered 2, read in full 1"), "entered 2 but Found names 1"),
     ("docs/reviews/2026-01-01-planted-full-flow.md", REVIEW_TEMPLATE.replace("read in full 1", "read in full 0"), "read in full 0 but Found marks 1"),
     ("docs/reviews/2026-01-01-planted-no-seeds.md", REVIEW_TEMPLATE.replace("Seeds: none\n", ""), "carries a line Seeds"),
+    ("docs/reviews/2026-01-01-planted-no-screening.md", REVIEW_TEMPLATE.replace("Screening: none\n", ""), "carries a line Screening"),
+    ("docs/reviews/2026-01-01-planted-dead-log.md", REVIEW_TEMPLATE.replace("Screening: none", "Screening: [the log](../screening/2025-01-01-nothing-here.md)"), "names a screening log ../screening/2025-01-01-nothing-here.md, which does not exist"),
     ("docs/reviews/2026-01-01-planted-no-nearest.md", REVIEW_TEMPLATE.replace("Nearest review: none found, the planted slice has none.\n", ""), "carries a line Nearest review"),
     ("docs/reviews/2026-01-01-planted-vague-nearest.md", REVIEW_TEMPLATE.replace("Nearest review: none found, the planted slice has none.", "Nearest review: a survey somebody wrote."), "carries a line Nearest review"),
     ("docs/reviews/2026-01-01-planted-rising-seeds.md", REVIEW_TEMPLATE.replace("Seeds: none", "Seeds: 1 fixed, 2 indexed, 1 found, [planted9999]"), "the seeds never rise"),
@@ -2164,6 +2220,65 @@ def prove_review_plants() -> int:
             bibliography.write_bytes(original_bibliography)
         if not reviews_existed and not any(reviews.iterdir()):
             reviews.rmdir()
+    return failures
+
+
+SCREENING_LOG = (
+    "# Screening of the planted pass\n\nDate: 2026-01-01\n\nPass: [the planted pass](../reviews/2026-01-01-planted-logged.md)\n\n"
+    "{header}\n| --- | --- | --- | --- | --- |\n{rows}"
+)
+LOGGED_PASS = REVIEW_TEMPLATE.replace("Screening: none", "Screening: [the log](../screening/2026-01-01-planted-log.md)")
+ONE_PASSED = "| abstract | 10.1/planted | Planted 9999 | included |  |\n"
+# Each plant is the table's header, its rows, and the finding expected, or an empty finding for a well-formed log.
+SCREENING_PLANTS = [
+    (LOG_HEADER, ONE_PASSED, ""),
+    ("| Planted | Id | Work | Decision | Reason |", ONE_PASSED, "opens its table with"),
+    (LOG_HEADER, ONE_PASSED + "| abstract | 10.2/planted | Planted 9998 | excluded |  |\n", "excludes a record without a reason"),
+    (LOG_HEADER, ONE_PASSED + "| full | 10.1/planted | Planted 9999 | unsure |  |\n", "unsure at the full-text stage"),
+    (LOG_HEADER, ONE_PASSED + "| abstract | 10.2/planted | Planted 9998 | unsure |  |\n", "the funnel says screened 1 but the log passes 2"),
+]
+
+
+def prove_screening_plants() -> int:
+    """A log whose table is misheaded, unreasoned, unsure at full text or out of step with the funnel raises, and a well-formed log raises nothing.
+
+    The log's folder is registered in the index for the plant's duration, because a folder below docs/
+    exists only by its row, and the index is restored byte for byte afterwards.
+    """
+    failures = 0
+    agents = ROOT / "AGENTS.md"
+    original_agents = agents.read_bytes()
+    bibliography = ROOT / "docs/BIBLIOGRAPHY.md"
+    original_bibliography = bibliography.read_bytes() if bibliography.exists() else None
+    bibliography.write_bytes((original_bibliography or b"# Bibliography\n").rstrip(b"\n") + b"\n" + PLANTED_ENTRY)
+    folder = ROOT / "docs/screening"
+    existed = folder.exists()
+    folder.mkdir(exist_ok=True)
+    row = b"| [docs/screening/](docs/screening/) | Planted for the selftest. |\n"
+    agents.write_bytes(original_agents.replace(b"| [docs/decisions/](docs/decisions/)", row + b"| [docs/decisions/](docs/decisions/)", 1))
+    review = ROOT / "docs/reviews/2026-01-01-planted-logged.md"
+    log = folder / "2026-01-01-planted-log.md"
+    try:
+        review.write_text(LOGGED_PASS, encoding="utf-8")
+        for header, rows, expect in SCREENING_PLANTS:
+            log.write_text(SCREENING_LOG.format(header=header, rows=rows), encoding="utf-8")
+            problems, _ = run(ROOT)
+            if expect and not any(expect in p for p in problems):
+                failures += 1
+                print(f"WRONG: the screening plant did not raise {expect!r}")
+            if not expect and any("planted-log" in p for p in problems):
+                failures += 1
+                print(f"WRONG: a well-formed screening log raised {[p for p in problems if 'planted-log' in p][:2]}")
+    finally:
+        log.unlink(missing_ok=True)
+        review.unlink(missing_ok=True)
+        if not existed and not any(folder.iterdir()):
+            folder.rmdir()
+        agents.write_bytes(original_agents)
+        if original_bibliography is None:
+            bibliography.unlink()
+        else:
+            bibliography.write_bytes(original_bibliography)
     return failures
 
 
@@ -3279,6 +3394,7 @@ ANCHORED_SCOPES = (
     (EXTENSION_SCOPE, "extension"),
     (RETRACTION_SCOPE, "retraction"),
     (NEAREST_SCOPE, "nearest review"),
+    (SCREENING_SCOPE, "screening"),
     (PROVENANCE_SCOPE, "provenance"),
     (QUESTION_SCOPE, "question"),
 )
@@ -3382,6 +3498,7 @@ def selftest() -> int:
         prove_unlisted_claim,
         prove_review_plants,
         prove_extension_plants,
+        prove_screening_plants,
         prove_question_plants,
         prove_shallow_read_advice,
         prove_standing_plants,

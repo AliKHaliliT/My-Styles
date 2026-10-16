@@ -10,6 +10,9 @@
 *.cmd text eol=crlf
 *.ps1 text eol=crlf
 
+# Raw exports a pass's searches returned are kept as the index returned them, so the prose law does not read them.
+util_resources/searches/** linguist-generated
+
 # Common binary formats; never diff or normalize.
 *.png binary
 *.jpg binary

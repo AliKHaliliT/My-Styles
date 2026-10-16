@@ -144,6 +144,8 @@ def strip_demo_inquiry(child: Path, today: str) -> None:
     shutil.rmtree(child / "arrows")
     shutil.rmtree(child / "docs/arrows")
     shutil.rmtree(child / "docs/reviews")
+    shutil.rmtree(child / "docs/screening", ignore_errors=True)
+    shutil.rmtree(child / "util_resources/searches", ignore_errors=True)
     for claim in (child / "docs/claims").glob("*.md"):
         claim.unlink()
     (child / "docs/claims/0001-a-rehearsed-conjecture.md").write_text(
@@ -155,7 +157,7 @@ def strip_demo_inquiry(child: Path, today: str) -> None:
     agents = child / "AGENTS.md"
     kept = [
         line for line in agents.read_text(encoding="utf-8").split("\n")
-        if not line.startswith(("| [arrows/coinwise/README.md]", "| [docs/arrows/]", "| [docs/reviews/]"))
+        if not line.startswith(("| [arrows/coinwise/README.md]", "| [docs/arrows/]", "| [docs/reviews/]", "| [docs/screening/]"))
     ]
     kept = [
         "- Work on an arrow: use that arrow's own commands, stated in its README." if line.startswith("- Work on an arrow:") else line

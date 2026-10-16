@@ -25,9 +25,11 @@ jobs:
       # whole tree once more. The audit scripts carry the vocabulary list, so the grep skips them.
       - name: Em dash budget, two per file
         run: |
+          # A file declared linguist-generated is a machine's output kept as written, outside the prose law.
+          git ls-files -z | git check-attr --stdin -z linguist-generated | tr '\0' '\n' | awk 'NR % 3 == 1 { f = $0 } NR % 3 == 0 && ($0 == "set" || $0 == "true") { print f }' > generated.tmp
           git grep -PIno "\x{2014}" -- . > em-dashes.tmp || true
-          awk -F: '{count[$1]++} END {bad = 0; for (f in count) if (count[f] > 2) { printf "%s carries %d em dashes; the budget is two per file\n", f, count[f]; bad = 1 }; exit bad}' em-dashes.tmp
-          rm em-dashes.tmp
+          awk -F: 'NR == FNR { generated[$0] = 1; next } !($1 in generated) { count[$1]++ } END {bad = 0; for (f in count) if (count[f] > 2) { printf "%s carries %d em dashes; the budget is two per file\n", f, count[f]; bad = 1 }; exit bad}' generated.tmp em-dashes.tmp
+          rm em-dashes.tmp generated.tmp
       - name: Prose heuristics, advisory
         continue-on-error: true
         run: |
@@ -39,7 +41,7 @@ jobs:
         continue-on-error: true
         run: |
           lists=$(git ls-files '*.codespellignore' | paste -sd, -)
-          if ! pipx run codespell==2.4.3 --skip ".git,node_modules,.hypothesis,__pycache__,dist,package-lock.json,*.svg,*.png,*.ico,*.woff,*.woff2,*.map,treasury,decisions,claims,reviews,inherited,mockServiceWorker.js,audit_docs.py,audit-docs.mjs,audit_inquiry.py" ${lists:+--ignore-words "$lists"} .; then
+          if ! pipx run codespell==2.4.3 --skip ".git,node_modules,.hypothesis,__pycache__,dist,package-lock.json,*.svg,*.png,*.ico,*.woff,*.woff2,*.map,treasury,decisions,claims,reviews,screening,searches,inherited,mockServiceWorker.js,audit_docs.py,audit-docs.mjs,audit_inquiry.py" ${lists:+--ignore-words "$lists"} .; then
             echo "Misspellings in living prose or code; correct each, or name a real term of a seat's domain in that seat's .codespellignore."
             exit 1
           fi
