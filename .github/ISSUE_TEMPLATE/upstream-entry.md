@@ -26,4 +26,4 @@ Pin: <the template commit the entry was written against>
 <!-- Before filing. The project's owner files this entry; an agent proposes it and never files it. The entry
      names nothing that identifies the project: no project name, no person, no host, no path or address, no
      URL, no email, and no fact about its domain beyond what the entry needs. It quotes the template's bytes
-     and never the project's own code, data or prose. -->
+     and never the project's own code, data or prose, and it attaches nothing, no log, screenshot or file. -->
