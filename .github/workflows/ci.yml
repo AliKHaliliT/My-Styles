@@ -33,7 +33,7 @@ jobs:
       - name: Prose heuristics, advisory
         continue-on-error: true
         run: |
-          if git grep -inE "paradigm shift|game.changer|ever-evolving|cutting.edge|\bdelve|\btapestry\b|\bsupercharge|\btransformative\b|\bmultifaceted\b|\bmeticulous\b|\bparamount\b|\bembark\b|it.s worth noting|at the end of the day|in today.s world|let.s dive|going forward|a testament to|marks a pivotal|plays a vital role|experts agree|studies show|widely regarded as" -- . ":(exclude)*.github*" ":(exclude)*docs/CONVENTIONS.md" ":(exclude)*docs/decisions/*" ":(exclude)*docs/claims/*" ":(exclude)treasury" ":(exclude)*scripts/audit_docs.py" ":(exclude)*scripts/audit_inquiry.py" ":(exclude)*scripts/audit-docs.mjs" ":(exclude)*scripts/audit-docs-selftest.mjs"; then
+          if git grep -inE "paradigm shift|game.changer|ever-evolving|cutting.edge|\bdelve|\btapestry\b|\bsupercharge|\btransformative\b|\bmultifaceted\b|\bmeticulous\b|\bparamount\b|\bembark\b|it.s worth noting|at the end of the day|in today.s world|let.s dive|going forward|a testament to|marks a pivotal|plays a vital role|experts agree|studies show|widely regarded as|\bTODO\b|\bFIXME\b|\bTBD\b|as an ai\b|as a language model|i hope this helps|certainly!" -- . ":(exclude)*.github*" ":(exclude)*docs/CONVENTIONS.md" ":(exclude)*docs/decisions/*" ":(exclude)*docs/claims/*" ":(exclude)treasury" ":(exclude)*scripts/audit_docs.py" ":(exclude)*scripts/audit_inquiry.py" ":(exclude)*scripts/audit-docs.mjs" ":(exclude)*scripts/audit-docs-selftest.mjs" ":(exclude)*eslint.config.js"; then
             echo "Inflated vocabulary or weasel attribution in living prose; the verdict is review's."
             exit 1
           fi
@@ -82,7 +82,7 @@ jobs:
       - name: Lint and type-check the family's own tooling
         run: |
           python -m pip install ruff mypy
-          ruff check --isolated --preview --extend-select C901,PLR0915,PLR1702 --config "lint.mccabe.max-complexity=10" --config "lint.pylint.max-nested-blocks=5" --config "lint.pylint.max-statements=50" scripts Quiver/scripts
+          ruff check --isolated --preview --extend-select C901,PLR0915,PLR1702,FIX --config "lint.mccabe.max-complexity=10" --config "lint.pylint.max-nested-blocks=5" --config "lint.pylint.max-statements=50" scripts Quiver/scripts
           mypy --strict scripts/audit_family.py scripts/audit_treasury.py scripts/rehearse_adoption.py Quiver/scripts/audit_inquiry.py
 
   # The audits are proven where they run. A child is built from each template, shaped the way

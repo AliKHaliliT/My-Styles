@@ -4,6 +4,7 @@ What must stay true about this product, one row per claim, each bound to the hol
 
 | Claim | Held by | Rung |
 | --- | --- | --- |
+| A marker that defers work, or a model's leftover, in living prose is named on every run. | `scripts/audit_inquiry.py` "VOCABULARY" | advised |
 | Every evidence pin in a claim names a commit in this history. | `scripts/audit_inquiry.py` "check_pins" | impossible |
 | Evidence that moved past its pin or its last verification is named on every run. | `scripts/audit_inquiry.py` "evidence paths moved past" | advised |
 | Every manifest names a style the stale-pin scan has paths for. | `scripts/audit_inquiry.py` "check_manifest_style" | impossible |

@@ -127,11 +127,12 @@ const EM_DASH = Buffer.from("\u2014", "utf-8");
 const EM_DASH_SCOPE = "records held to the em dash budget of two per file";
 // The vocabulary the prose law bans, advised and never gated, because an honest domain term
 // reads the same as a tell; the workflow's list, moved here so a tree with no remote hears it.
-const VOCABULARY = /paradigm shift|game.changer|ever-evolving|cutting.edge|\bdelve|\btapestry\b|\bsupercharge|\btransformative\b|\bmultifaceted\b|\bmeticulous\b|\bparamount\b|\bembark\b|it.s worth noting|at the end of the day|in today.s world|let.s dive|going forward|a testament to|marks a pivotal|plays a vital role|experts agree|studies show|widely regarded as/i;
+const VOCABULARY = /paradigm shift|game.changer|ever-evolving|cutting.edge|\bdelve|\btapestry\b|\bsupercharge|\btransformative\b|\bmultifaceted\b|\bmeticulous\b|\bparamount\b|\bembark\b|it.s worth noting|at the end of the day|in today.s world|let.s dive|going forward|a testament to|marks a pivotal|plays a vital role|experts agree|studies show|widely regarded as|\bTODO\b|\bFIXME\b|\bTBD\b|as an ai\b|as a language model|i hope this helps|certainly!/i;
 // What the two advisories skip: the workflows, the rulebook that lists the tells, and this
 // script, which carries the list; a record is skipped by its depth under docs/.
-const VOCABULARY_SKIP = [".github/", "docs/CONVENTIONS.md", "scripts/audit-docs.mjs", "scripts/audit-docs-selftest.mjs"];
-// The audits are skipped as quoting ground, because they carry the banned-word list the vocabulary advisory reads.
+const VOCABULARY_SKIP = [".github/", "docs/CONVENTIONS.md", "scripts/audit-docs.mjs", "scripts/audit-docs-selftest.mjs", "eslint.config.js"];
+// The audits are skipped as quoting ground, because they carry the banned-word list the vocabulary advisory reads,
+// and so is the lint configuration, which names the markers it refuses.
 const CODESPELL_SKIP = ".git,node_modules,.hypothesis,__pycache__,dist,package-lock.json,*.svg,*.png,*.ico,*.woff,*.woff2,*.map,decisions,claims,reviews,inherited,mockServiceWorker.js,audit_docs.py,audit-docs.mjs,audit_inquiry.py";
 // The project's own terms, one word per line, beside the check and never recopied at re-alignment.
 const IGNORE_FILE = ".codespellignore";

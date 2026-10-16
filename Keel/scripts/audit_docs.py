@@ -141,7 +141,8 @@ VOCABULARY = re.compile(
     r"paradigm shift|game.changer|ever-evolving|cutting.edge|\bdelve|\btapestry\b|\bsupercharge|\btransformative\b"
     r"|\bmultifaceted\b|\bmeticulous\b|\bparamount\b|\bembark\b|it.s worth noting|at the end of the day"
     r"|in today.s world|let.s dive|going forward|a testament to|marks a pivotal|plays a vital role|experts agree"
-    r"|studies show|widely regarded as",
+    r"|studies show|widely regarded as"
+    r"|\bTODO\b|\bFIXME\b|\bTBD\b|as an ai\b|as a language model|i hope this helps|certainly!",
     re.IGNORECASE,
 )
 # What the two advisories skip: the workflows, the rulebook that lists the tells, and this

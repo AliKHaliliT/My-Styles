@@ -13,7 +13,9 @@ target-version = "py314"
 # The D codes check docstring presence only, never format, because the docstring rhythm is
 # the house's own; the shape rules live in the README's Conventions section. PGH keeps every
 # ignore honest: a suppression names the exact code it silences, never a blanket.
-select = ["E", "F", "B", "UP", "Q", "PGH", "PERF", "C4", "S", "RET504", "D101", "D102", "D103", "D107", "C901", "PLR0915", "PLR1702", "T20"]
+select = ["E", "F", "B", "UP", "Q", "PGH", "PERF", "C4", "S", "RET504", "D101", "D102", "D103", "D107", "C901", "PLR0915", "PLR1702", "T20", "FIX"]
+# FIX refuses a comment that defers work with a marker, the kinds the rulebook's Prose section
+# names, because debt lives in STATE.md with a date and never in the tree.
 # Line length is left to the reader, and a function call in an argument default is how
 # FastAPI's Depends() is meant to be written.
 # The credential heuristics read any suggestive string as a possible secret, so they

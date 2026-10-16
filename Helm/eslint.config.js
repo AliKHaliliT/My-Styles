@@ -80,6 +80,9 @@ export default tseslint.config(
       // at the boundary, and the scripts, which are .mjs and lint under their own block, keep
       // console because their output is their purpose.
       "no-console": "error",
+      // A comment that defers work with a marker is debt carried in the tree instead of in
+      // STATE.md, so the four markers the rulebook's Prose section names are refused anywhere.
+      "no-warning-comments": ["error", { terms: ["todo", "fixme", "xxx", "hack"], location: "anywhere" }],
       // The environment is read only through shared/config, and all HTTP goes through
       // shared/api's request; both rules are checked here, with the two homes excepted below.
       "no-restricted-syntax": [

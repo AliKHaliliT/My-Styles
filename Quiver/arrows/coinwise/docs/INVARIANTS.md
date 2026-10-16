@@ -4,6 +4,7 @@ What must stay true about this product, one row per claim, each bound to the hol
 
 | Claim | Held by | Rung |
 | --- | --- | --- |
+| No comment in the tree defers work with a marker. | `pyproject.toml` "FIX" | impossible |
 | Dependencies point one way, from the facade through the services to the domain, never back. | `pyproject.toml` "The Dependency Rule points one way" | impossible |
 | The two strategies agree on every amount that is not a tie. | `tests/src/coinwise/domain/rounding/test_strategies.py` "test_property_the_strategies_agree_on_every_amount_that_is_not_a_tie" | generated cases |
 | Half even lands every tie on an even cent. | `tests/src/coinwise/domain/rounding/test_strategies.py` "test_property_half_even_lands_every_tie_on_an_even_cent" | generated cases |

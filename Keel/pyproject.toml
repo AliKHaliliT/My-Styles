@@ -74,7 +74,9 @@ target-version = "py314"
 # The D codes check docstring presence only, never format, because the docstring rhythm is
 # the house's own; the shape rules live in the README's Conventions section. PGH keeps every
 # ignore honest: a suppression names the exact code it silences, never a blanket.
-select = ["E", "F", "B", "UP", "Q", "PGH", "PERF", "C4", "S", "RET504", "D101", "D102", "D103", "D107", "C901", "PLR0915", "PLR1702", "T20"]
+select = ["E", "F", "B", "UP", "Q", "PGH", "PERF", "C4", "S", "RET504", "D101", "D102", "D103", "D107", "C901", "PLR0915", "PLR1702", "T20", "FIX"]
+# FIX refuses a comment that defers work with a marker, the kinds the rulebook's Prose section
+# names, because debt lives in STATE.md with a date and never in the tree.
 # The credential heuristics read any suggestive string as a possible secret, so they
 # cannot decide their own question and may not gate. They leave the gating selection and
 # run as advice instead, through `ruff check --select S105,S106 .`; decision 0025 carries
