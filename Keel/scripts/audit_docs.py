@@ -161,6 +161,9 @@ HOLDER = re.compile(r'^`([^`]+)`(?: "([^"]+)")?$')
 # The audits are skipped as quoting ground, because they carry the banned-word list the vocabulary advisory reads.
 CODESPELL_SKIP = ".git,node_modules,.hypothesis,__pycache__,dist,package-lock.json,*.svg,*.png,*.ico,*.woff,*.woff2,*.map,decisions,claims,reviews,inherited,mockServiceWorker.js,audit_docs.py,audit-docs.mjs,audit_inquiry.py"
 IGNORE_FILE = ".codespellignore"
+# The dictionaries codespell reads: its two defaults and the British spellings read as misspellings of the
+# American ones, because one variety holds across a tree.
+CODESPELL_BUILTIN = "clear,rare,en-GB_to_en-US"
 # A prose paragraph that names this many references or more is an enumeration wearing prose, a
 # list or a table with its rows run together; measured over the family and over a project built
 # from it, everything at this count was a schema stated as prose or a set of bindings, and
@@ -602,7 +605,7 @@ def advise_spelling(advice: list[str]) -> None:
     # The tool is a development dependency of the seat, and the arguments are this script's own constants
     # and the project's own list of terms, which lives beside the check and is never recopied.
     own_terms = ["--ignore-words", IGNORE_FILE] if (ROOT / IGNORE_FILE).is_file() else []
-    done = subprocess.run([tool, "--skip", CODESPELL_SKIP, *own_terms, "."], cwd=ROOT, capture_output=True, text=True, check=False)  # noqa: S603
+    done = subprocess.run([tool, "--builtin", CODESPELL_BUILTIN, "--skip", CODESPELL_SKIP, *own_terms, "."], cwd=ROOT, capture_output=True, text=True, check=False)  # noqa: S603
     tracked = set(tracked_files()) - declared_generated()
     advice.extend(
         f"{line.strip()}; correct it, or name a real term of the domain in {IGNORE_FILE}, one word per line"

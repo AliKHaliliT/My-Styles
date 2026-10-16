@@ -4,6 +4,7 @@ What must stay true about this product, one row per claim, each bound to the hol
 
 | Claim | Held by | Rung |
 | --- | --- | --- |
+| A word spelled in the other variety in living prose is named on every run where codespell is installed. | `scripts/audit-docs.mjs` "en-GB_to_en-US" | advised |
 | No tracked text file carries an invisible character, a generated file apart. | `scripts/audit-docs.mjs` "checkInvisible" | impossible |
 | No comment in the tree defers work with a marker. | `eslint.config.js` "no-warning-comments" | impossible |
 | Imports point downward only, from app through pages, features, and entities to shared, never back up. | `eslint.config.js` "Imports point downward only" | impossible |

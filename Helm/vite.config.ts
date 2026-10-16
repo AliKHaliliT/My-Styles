@@ -28,7 +28,7 @@ export default defineConfig({
     setupFiles: ["./tests/setup.ts"],
     css: false,
     // The suite runs in a shuffled order under a seed the run prints, so a test that leans on
-    // its neighbour fails on the day it is written; replay a run with --sequence.seed=<printed>.
+    // its neighbor fails on the day it is written; replay a run with --sequence.seed=<printed>.
     sequence: { shuffle: true },
     env: {
       VITE_API_MODE: "mock",

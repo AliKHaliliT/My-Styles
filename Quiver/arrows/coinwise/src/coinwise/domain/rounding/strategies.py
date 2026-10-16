@@ -49,7 +49,7 @@ def round_half_even(amount: Decimal) -> Decimal:
     -------
     Decimal
         The amount quantized to two decimal places, with a half cent
-        rounded to the neighbour whose final digit is even.
+        rounded to the neighbor whose final digit is even.
 
 
     Raises

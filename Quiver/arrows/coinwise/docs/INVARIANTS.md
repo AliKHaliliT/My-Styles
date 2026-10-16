@@ -4,6 +4,7 @@ What must stay true about this product, one row per claim, each bound to the hol
 
 | Claim | Held by | Rung |
 | --- | --- | --- |
+| A word spelled in the other variety in living prose is named on every run where codespell is installed. | `scripts/audit_docs.py` "en-GB_to_en-US" | advised |
 | No tracked text file carries an invisible character, a generated file apart. | `scripts/audit_docs.py` "check_invisible" | impossible |
 | No comment in the tree defers work with a marker. | `pyproject.toml` "FIX" | impossible |
 | Dependencies point one way, from the facade through the services to the domain, never back. | `pyproject.toml` "The Dependency Rule points one way" | impossible |

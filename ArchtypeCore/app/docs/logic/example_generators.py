@@ -8,7 +8,7 @@ def generate_example_from_exception(exc: BaseException | type[BaseException]) ->
 
     """
 
-    Generates a dictionary example from an exception instance or a recognised class.
+    Generates a dictionary example from an exception instance or a recognized class.
 
     This utility dynamically extracts all public attributes of an exception
     that do not begin with an underscore and are JSON-serializable, making

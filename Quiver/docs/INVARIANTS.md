@@ -4,6 +4,7 @@ What must stay true about this product, one row per claim, each bound to the hol
 
 | Claim | Held by | Rung |
 | --- | --- | --- |
+| A word spelled in the other variety in living prose is named on every run where codespell is installed. | `scripts/audit_inquiry.py` "en-GB_to_en-US" | advised |
 | No tracked text file carries an invisible character, a generated file apart. | `scripts/audit_inquiry.py` "check_invisible" | impossible |
 | A marker that defers work, or a model's leftover, in living prose is named on every run. | `scripts/audit_inquiry.py` "VOCABULARY" | advised |
 | Every evidence pin in a claim names a commit in this history. | `scripts/audit_inquiry.py` "check_pins" | impossible |

@@ -229,6 +229,9 @@ HOLDER = re.compile(r'^`([^`]+)`(?: "([^"]+)")?$')
 # The audits are skipped as quoting ground, because they carry the banned-word list the vocabulary advisory reads.
 CODESPELL_SKIP = ".git,node_modules,.hypothesis,__pycache__,dist,package-lock.json,*.svg,*.png,*.ico,*.woff,*.woff2,*.map,decisions,claims,reviews,inherited,mockServiceWorker.js,arrows,audit_docs.py,audit-docs.mjs,audit_inquiry.py"
 IGNORE_FILE = ".codespellignore"
+# The dictionaries codespell reads: its two defaults and the British spellings read as misspellings of the
+# American ones, because one variety holds across a tree.
+CODESPELL_BUILTIN = "clear,rare,en-GB_to_en-US"
 # A prose paragraph that names this many references or more is an enumeration wearing prose, a
 # list or a table with its rows run together; measured over the family and over a project built
 # from it, everything at this count was a schema stated as prose or a set of bindings, and
@@ -542,7 +545,7 @@ def advise_spelling(advice: list[str], root: Path) -> None:
     # The tool is a development dependency of the arrows, and the arguments are this script's own constants
     # and the project's own list of terms, which lives beside the check and is never recopied.
     own_terms = ["--ignore-words", IGNORE_FILE] if (root / IGNORE_FILE).is_file() else []
-    done = subprocess.run([tool, "--skip", CODESPELL_SKIP, *own_terms, "."], cwd=root, capture_output=True, text=True, check=False)
+    done = subprocess.run([tool, "--builtin", CODESPELL_BUILTIN, "--skip", CODESPELL_SKIP, *own_terms, "."], cwd=root, capture_output=True, text=True, check=False)
     tracked = set(tracked_files()) - declared_generated()
     advice.extend(
         f"{line.strip()}; correct it, or name a real term of the domain in {IGNORE_FILE}, one word per line"
@@ -1843,7 +1846,7 @@ def check_recorded(problems: list[str], rel: str, recorded: str, root: Path) -> 
     named = [t for t in PATH_TOKEN.findall(recorded) if claims_to_be_path(t, root)]
     if not named and "nothing preserved" not in recorded:
         problems.append(
-            f"{rel}: recorded evidence names nothing preserved; name the artefact by path or say nothing preserved"
+            f"{rel}: recorded evidence names nothing preserved; name the artifact by path or say nothing preserved"
         )
     for token in named:
         if not (root / repo_relative(token)).exists():
@@ -1982,9 +1985,9 @@ PLANTS = [
      "the cap is 72"),
     ("docs/claims/0092-planted-recorded-missing.md",
      ("# 0092. Planted\n\nStatus: Supported\nDate: 2026-01-01\n\n## Claim\n\nx.\n\n## Evidence\n\n"
-      "Recorded: one paid run, preserved as `docs/ghost-artefact.json`.\n\nrun at arrows/planted at 0123456789ab.\n\n"
+      "Recorded: one paid run, preserved as `docs/ghost-artifact.json`.\n\nrun at arrows/planted at 0123456789ab.\n\n"
       "## Threats\n\n- None named.\n"),
-     "recorded evidence names `docs/ghost-artefact.json`, which does not exist"),
+     "recorded evidence names `docs/ghost-artifact.json`, which does not exist"),
     ("docs/claims/0091-planted-recorded-bare.md",
      ("# 0091. Planted\n\nStatus: Supported\nDate: 2026-01-01\n\n## Claim\n\nx.\n\n## Evidence\n\n"
       "Recorded: one paid run.\n\nrun at arrows/planted at 0123456789ab.\n\n## Threats\n\n- None named.\n"),

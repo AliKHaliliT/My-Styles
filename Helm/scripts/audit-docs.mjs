@@ -136,6 +136,9 @@ const VOCABULARY_SKIP = [".github/", "docs/CONVENTIONS.md", "scripts/audit-docs.
 const CODESPELL_SKIP = ".git,node_modules,.hypothesis,__pycache__,dist,package-lock.json,*.svg,*.png,*.ico,*.woff,*.woff2,*.map,decisions,claims,reviews,inherited,mockServiceWorker.js,audit_docs.py,audit-docs.mjs,audit_inquiry.py";
 // The project's own terms, one word per line, beside the check and never recopied at re-alignment.
 const IGNORE_FILE = ".codespellignore";
+// The dictionaries codespell reads: its two defaults and the British spellings read as misspellings of the
+// American ones, because one variety holds across a tree.
+const CODESPELL_BUILTIN = "clear,rare,en-GB_to_en-US";
 // A prose paragraph that names this many references or more is an enumeration wearing prose, a
 // list or a table with its rows run together; measured over the family and over a project built
 // from it, everything at this count was a schema stated as prose or a set of bindings, and
@@ -869,7 +872,7 @@ function spelledPath(line) {
 function adviseSpelling() {
   if (!codespellPresent()) return;
   const ownTerms = existsSync(join(ROOT, IGNORE_FILE)) ? ["--ignore-words", IGNORE_FILE] : [];
-  const done = spawnSync("codespell", ["--skip", CODESPELL_SKIP, ...ownTerms, "."], { cwd: ROOT, encoding: "utf-8" });
+  const done = spawnSync("codespell", ["--builtin", CODESPELL_BUILTIN, "--skip", CODESPELL_SKIP, ...ownTerms, "."], { cwd: ROOT, encoding: "utf-8" });
   const tracked = new Set(trackedFiles());
   for (const rel of declaredGenerated()) tracked.delete(rel);
   for (const line of `${done.stdout}`.split("\n")) {
