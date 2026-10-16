@@ -14,5 +14,7 @@ What must stay true about this product, one row per claim, each bound to the hol
 | An arrow's suite never checks a claim, and the audit never reaches into an arrow. | review | review |
 | Read evidence a pass took from less than the whole work is named on every run while a Supported claim rests on it. | `scripts/audit_inquiry.py` "advise_shallow_reads" | advised |
 | A Supported claim resting on a work below the declared evidence floor is named on every run. | `scripts/audit_inquiry.py` "advise_standing" | advised |
+| A Supported claim resting on a work whose entry says retracted is named on every run, floor or none. | `scripts/audit_inquiry.py` "retracted since it was entered" | advised |
+| A pass added from the retraction rule's arrival answers for retraction on its Checks line. | `scripts/audit_inquiry.py` "check_review_retraction" | impossible |
 | A preprint unchecked for a published version for a season is named on every run. | `scripts/audit_inquiry.py` "advise_unchecked_preprints" | advised |
 | An upstream entry carries no address, URL, email or absolute path. | `scripts/audit_inquiry.py` "check_upstream_entry" | impossible |

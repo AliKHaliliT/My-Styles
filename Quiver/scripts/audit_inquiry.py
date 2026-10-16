@@ -79,6 +79,9 @@ SEEDS_SCOPE = "review passes held to a seeds line in Boundary from the rule's ar
 # indexed after that day and dated before it does not fall between two passes that meet exactly.
 SINCE = re.compile(r"\bfrom (\d{4}-\d{2}-\d{2})\b")
 EXTENSION_SCOPE = "review passes held to an extension date before the day of the pass they extend from the rule's arrival on"
+# The Checks line answers for retraction, none or the key, because a retracted work under a claim is the one
+# failure the standing advisory cannot see until the entry says so.
+RETRACTION_SCOPE = "review passes held to a Checks line that answers for retraction from the rule's arrival on"
 # Who ran a stage that ran, the owner or the agent, roles and never names, so a reader knows which
 # stages a person judged and which a person has only read about.
 PROVENANCE = ("by the owner", "by the agent")
@@ -95,7 +98,7 @@ WITHDRAWN = "Withdrawn"
 QUESTION_NUMBER = re.compile(r"\bquestion (\d+)\b", re.IGNORECASE)
 # A pass written from this rule's arrival on names the question it serves by number in its Slice.
 QUESTION_SCOPE = "review passes held to a question named by number in Slice from the rule's arrival on"
-ARRIVAL_SCOPES = {"depth": DEPTH_SCOPE, "flow": FLOW_SCOPE, "provenance": PROVENANCE_SCOPE, "question": QUESTION_SCOPE, "seeds": SEEDS_SCOPE, "extension": EXTENSION_SCOPE}
+ARRIVAL_SCOPES = {"depth": DEPTH_SCOPE, "flow": FLOW_SCOPE, "provenance": PROVENANCE_SCOPE, "question": QUESTION_SCOPE, "seeds": SEEDS_SCOPE, "extension": EXTENSION_SCOPE, "retraction": RETRACTION_SCOPE}
 STATE_DATE = re.compile(r"\((\d{4}-\d{2}-\d{2})\)")
 # The upstream file a project built from this template carries: one Open section, entries dated by
 # heading with a kind, a pin, and four labeled parts, expiring on the same horizon as STATE.
@@ -120,10 +123,14 @@ CODE_SPAN = re.compile(r"```.*?```|`[^`\n]*`", re.DOTALL)
 BIB_ENTRY = re.compile(r"^- \*\*([a-z][a-z0-9]*[0-9]{4}[a-z]?|[a-z][a-z0-9]*-[0-9]{4})\*\*:")
 # The standing of a source, the sentence that closes its entry: reviewed, a preprint with the day it was last
 # checked for a published version, or grey literature by the tier of its outlet's control.
-STANDING = re.compile(r"Source: (reviewed|preprint, checked (\d{4}-\d{2}-\d{2})|grey, (?:first|second|third) tier)\.\s*$")
+STANDING = re.compile(
+    r"Source: (reviewed|preprint, checked (\d{4}-\d{2}-\d{2})|grey, (?:first|second|third) tier|retracted, noticed (\d{4}-\d{2}-\d{2}))\.\s*$"
+)
 FLOOR_LINE = re.compile(r"^Evidence floor: (.+?)\s*$", re.MULTILINE)
 # A preprint ranks with the first grey tier: unreviewed, but issued by an outlet that controls what it holds.
-STANDING_RANK = {"reviewed": 4, "preprint": 3, "grey, first tier": 3, "grey, second tier": 2, "grey, third tier": 1}
+# A retracted work ranks below every floor, so a Supported claim resting on one is advised floor or none.
+STANDING_RANK = {"reviewed": 4, "preprint": 3, "grey, first tier": 3, "grey, second tier": 2, "grey, third tier": 1, "retracted": 0}
+LEGAL_FLOORS = tuple(standing for standing in STANDING_RANK if standing != "retracted")
 PIN = re.compile(r"arrows/([a-z0-9-]+) at ([0-9a-f]{7,40})\b")
 # A manifest's verification: a claim number and the commit at which its figures reproduced.
 VERIFIED = re.compile(r"\b(\d{4}) at ([0-9a-f]{7,40})\b")
@@ -1243,7 +1250,7 @@ def section_body(text: str, heading: str) -> str:
 
 
 def check_reviews(problems: list[str], root: Path) -> None:
-    """Every review pass carries its shape, names its boundary's completeness, runs or collapses each stage in writing, names the pass it extends, and, from each rule's arrival on, names a depth beside every key, counts its funnel, counts its seeds, says who ran each stage, names by number the question it serves and, where it extends a pass, starts from a date before the day that pass ran.
+    """Every review pass carries its shape, names its boundary's completeness, runs or collapses each stage in writing, names the pass it extends, and, from each rule's arrival on, names a depth beside every key, counts its funnel, counts its seeds, says who ran each stage, names by number the question it serves, answers for retraction on its Checks line and, where it extends a pass, starts from a date before the day that pass ran.
 
     Whether the boundary was well chosen or the reading was good stays with review; what is held
     here is that a pass claiming exhaustion ran the completeness review, that the checks never
@@ -1274,7 +1281,7 @@ def check_reviews(problems: list[str], root: Path) -> None:
 
 
 def check_review_from_arrival(problems: list[str], rel: str, path: Path, text: str, bound: dict[str, bool], asked: list[int]) -> None:
-    """The shapes that bind a pass from their own arrival: the depth beside each key, the funnel line, the seeds line, who ran each stage, the question served, and the date an extension starts from."""
+    """The shapes that bind a pass from their own arrival: the depth beside each key, the funnel line, the seeds line, who ran each stage, the question served, the date an extension starts from, and the Checks line's answer for retraction."""
     if bound["depth"]:
         check_review_depths(problems, rel, section_body(text, "## Found"))
     if bound["flow"]:
@@ -1283,6 +1290,8 @@ def check_review_from_arrival(problems: list[str], rel: str, path: Path, text: s
         check_review_seeds(problems, rel, section_body(text, "## Boundary"), section_body(text, "## Found"))
     if bound["extension"]:
         check_review_extension(problems, rel, path, section_body(text, "## Slice"))
+    if bound["retraction"]:
+        check_review_retraction(problems, rel, section_body(text, "## Stages"))
     if bound["provenance"]:
         check_review_provenance(problems, rel, section_body(text, "## Stages"))
     if bound["question"]:
@@ -1302,6 +1311,16 @@ def check_review_provenance(problems: list[str], rel: str, stages_text: str) -> 
     for name, mode, tail in STAGE_LINE.findall(stages_text):
         if mode == "ran" and not tail.strip().startswith(PROVENANCE):
             problems.append(f"{rel}: stage {name} ran without saying who ran it; a stage line reads ran by the owner or ran by the agent")
+
+
+def check_review_retraction(problems: list[str], rel: str, stages_text: str) -> None:
+    """The Checks line answers for retraction, none retracted or the key the publisher withdrew."""
+    for name, mode, tail in STAGE_LINE.findall(stages_text):
+        if name == "Checks" and mode == "ran" and "retract" not in tail:
+            problems.append(
+                f"{rel}: the Checks line answers for retraction, none retracted or the key and the day its publisher withdrew it,"
+                " because a retracted work under a claim is the one failure the standing advisory cannot see until the entry says so"
+            )
 
 
 def check_review_flow(problems: list[str], rel: str, boundary_text: str, found_text: str) -> None:
@@ -1445,8 +1464,14 @@ def standings(root: Path) -> tuple[dict[str, tuple[str, date | None]], str | Non
     found: dict[str, tuple[str, date | None]] = {}
     for key, entry in bibliography_entries(text):
         match = STANDING.search(entry)
-        if match:
-            found[key] = ("preprint", parse_date(match.group(2))) if match.group(2) else (match.group(1), None)
+        if match is None:
+            continue
+        if match.group(3):
+            found[key] = ("retracted", parse_date(match.group(3)))
+        elif match.group(2):
+            found[key] = ("preprint", parse_date(match.group(2)))
+        else:
+            found[key] = (match.group(1), None)
     floor = FLOOR_LINE.search(text)
     return found, (floor.group(1) if floor else None)
 
@@ -1462,13 +1487,13 @@ def check_bibliography(problems: list[str], root: Path) -> None:
         if match is None:
             problems.append(
                 f"docs/BIBLIOGRAPHY.md: [{key}] closes with no standing; an entry ends with Source: reviewed.,"
-                " Source: preprint, checked YYYY-MM-DD., or Source: grey, first tier. (second, third)"
+                " Source: preprint, checked YYYY-MM-DD., Source: grey, first tier. (second, third), or Source: retracted, noticed YYYY-MM-DD."
             )
-        elif match.group(2) and parse_date(match.group(2)) is None:
-            problems.append(f"docs/BIBLIOGRAPHY.md: [{key}] names a checked day that is not a date")
+        elif (match.group(2) or match.group(3)) and parse_date(match.group(2) or match.group(3)) is None:
+            problems.append(f"docs/BIBLIOGRAPHY.md: [{key}] names a day that is not a date")
     for floor in FLOOR_LINE.findall(text):
-        if floor not in STANDING_RANK:
-            problems.append(f"docs/BIBLIOGRAPHY.md: the evidence floor {floor!r} is not one of {', '.join(STANDING_RANK)}")
+        if floor not in LEGAL_FLOORS:
+            problems.append(f"docs/BIBLIOGRAPHY.md: the evidence floor {floor!r} is not one of {', '.join(LEGAL_FLOORS)}")
 
 
 def advise_unchecked_preprints(advice: list[str], root: Path) -> None:
@@ -1484,9 +1509,11 @@ def advise_unchecked_preprints(advice: list[str], root: Path) -> None:
 
 
 def advise_standing(advice: list[str], root: Path) -> None:
-    """A Supported claim whose Evidence cites a work standing below the declared floor is advised until its Threats cite the key."""
+    """A Supported claim whose Evidence cites a work standing below the declared floor, or a work retracted since it was entered, is advised until its Threats cite the key."""
     found, floor = standings(root)
-    if floor is None or floor not in STANDING_RANK or not (root / "docs/claims").exists():
+    if floor is None or floor not in LEGAL_FLOORS:
+        floor = None
+    if not (root / "docs/claims").exists():
         return
     for path in sorted((root / "docs/claims").glob("*.md")):
         text = path.read_text(encoding="utf-8")
@@ -1494,8 +1521,15 @@ def advise_standing(advice: list[str], root: Path) -> None:
             continue
         threats = set(CITE_KEY.findall(prose_only(section_body(text, "## Threats"))))
         for key in dict.fromkeys(CITE_KEY.findall(prose_only(section_body(text, "## Evidence")))):
-            standing = found.get(key, (floor, None))[0]
-            if STANDING_RANK[standing] < STANDING_RANK[floor] and key not in threats:
+            standing = found.get(key, ("reviewed", None))[0]
+            if key in threats:
+                continue
+            if standing == "retracted":
+                advice.append(
+                    f"docs/claims/{path.name}: Evidence cites [{key}], retracted since it was entered;"
+                    " supersede the claim or name the retraction among its threats"
+                )
+            elif floor and STANDING_RANK[standing] < STANDING_RANK[floor]:
                 advice.append(
                     f"docs/claims/{path.name}: Evidence cites [{key}], standing {standing}, below the floor {floor};"
                     " pair it with a source at the floor or name the standing among the claim's threats"
@@ -1916,7 +1950,7 @@ REVIEW_TEMPLATE = (
     "## Method\n\nA scoping read of a known corpus.\n\n## Stages\n\n"
     "- Scouting: collapsed, the slice was already scouted by the question.\n"
     "- Enumeration: ran by the agent, over the cited works.\n"
-    "- Checks: ran by the agent, every key resolves.\n"
+    "- Checks: ran by the agent, every key resolves, none retracted.\n"
     "- Completeness review: collapsed, no completeness is claimed.\n"
     "- Fold: collapsed, the ledger did not move.\n"
     "- Resolution: collapsed, no two sources conflict.\n\n"
@@ -1925,7 +1959,8 @@ REVIEW_TEMPLATE = (
 REVIEW_PLANTS = [
     ("docs/reviews/2026-01-01-planted-no-boundary.md", REVIEW_TEMPLATE.replace("## Boundary", "## Bounds"), "section '## Boundary' missing"),
     ("docs/reviews/2026-01-01-planted-exhausted.md", REVIEW_TEMPLATE.replace("Completeness: judgment", "Completeness: exhausted"), "ran the completeness review"),
-    ("docs/reviews/2026-01-01-planted-checks-collapsed.md", REVIEW_TEMPLATE.replace("- Checks: ran by the agent, every key resolves.", "- Checks: collapsed, no time this pass."), "the checks never collapse"),
+    ("docs/reviews/2026-01-01-planted-checks-collapsed.md", REVIEW_TEMPLATE.replace("- Checks: ran by the agent, every key resolves, none retracted.", "- Checks: collapsed, no time this pass."), "the checks never collapse"),
+    ("docs/reviews/2026-01-01-planted-silent-checks.md", REVIEW_TEMPLATE.replace(", none retracted.", "."), "answers for retraction"),
     ("docs/reviews/2026-01-01-planted-nobody-ran.md", REVIEW_TEMPLATE.replace("- Enumeration: ran by the agent, over the cited works.", "- Enumeration: ran, over the cited works."), "without saying who ran it"),
     ("docs/reviews/2026-01-01-planted-no-prior.md", REVIEW_TEMPLATE.replace("First pass over the planted slice of question 1.", "Extends an earlier pass of question 1."), "names the prior pass it extends or says First pass"),
     ("docs/reviews/2026-01-01-planted-no-fold.md", REVIEW_TEMPLATE.replace("- Fold: collapsed, the ledger did not move.\n", ""), "stage Fold has no line"),
@@ -2292,6 +2327,15 @@ def prove_standing_plants() -> int:
         failures += expect_standing_advice(claim.name, "below the floor", True, "a claim resting on a work below the floor was not advised")
         claim.write_text(SHALLOW_CLAIM.format(num=claim.name[:4], threats="- Standing. A blog [planted9999]."), encoding="utf-8")
         failures += expect_standing_advice(claim.name, "below the floor", False, "a claim whose threats name the key was still advised")
+        bibliography.write_text(STANDING_BIBLIOGRAPHY.format(floor="retracted", standing="reviewed"), encoding="utf-8")
+        failures += expect_finding(run(ROOT)[0], "is not one of", "a retracted floor")
+        bibliography.write_text(STANDING_BIBLIOGRAPHY.format(floor="reviewed", standing="retracted, noticed 2026-01-01"), encoding="utf-8")
+        claim.write_text(SHALLOW_CLAIM.format(num=claim.name[:4], threats="- None named."), encoding="utf-8")
+        failures += expect_standing_advice(claim.name, "retracted since it was entered", True, "a claim resting on a retracted work was not advised")
+        bibliography.write_text(STANDING_BIBLIOGRAPHY.format(floor="reviewed", standing="retracted, noticed 2026-01-01").replace("Evidence floor: reviewed\n\n", ""), encoding="utf-8")
+        failures += expect_standing_advice(claim.name, "retracted since it was entered", True, "a claim resting on a retracted work was not advised without a floor")
+        claim.write_text(SHALLOW_CLAIM.format(num=claim.name[:4], threats="- Retraction. Withdrawn [planted9999]."), encoding="utf-8")
+        failures += expect_standing_advice(claim.name, "retracted since it was entered", False, "a claim whose threats name the retracted key was still advised")
         bibliography.write_text(STANDING_BIBLIOGRAPHY.format(floor="reviewed", standing="preprint, checked 2020-01-01"), encoding="utf-8")
         failures += expect_standing_advice("planted9999", "past the", True, "a preprint checked years ago was not advised")
         today = datetime.now(UTC).date().isoformat()
@@ -3213,6 +3257,7 @@ ANCHORED_SCOPES = (
     (FLOW_SCOPE, "funnel"),
     (SEEDS_SCOPE, "seeds"),
     (EXTENSION_SCOPE, "extension"),
+    (RETRACTION_SCOPE, "retraction"),
     (PROVENANCE_SCOPE, "provenance"),
     (QUESTION_SCOPE, "question"),
 )
