@@ -391,13 +391,20 @@ if (existsSync(statePath)) {
   }
 }
 
+/** The documentation index table alone, because registration means a row there. */
+function indexRows(agents) {
+  if (!agents.includes("## Documentation index")) return "";
+  return agents.split("## Documentation index")[1].split("\n## ")[0];
+}
+
 const docsDir = resolve(ROOT, "docs");
 if (existsSync(docsDir)) {
   const agents = existsSync(resolve(ROOT, "AGENTS.md")) ? readFileSync(resolve(ROOT, "AGENTS.md"), "utf-8") : "";
+  const rows = indexRows(agents);
   for (const entry of readdirSync(docsDir)) {
     const full = join(docsDir, entry);
     if (!statSync(full).isFile() || !entry.endsWith(".md")) continue;
-    if (!agents.includes(entry)) {
+    if (!rows.includes(`(docs/${entry})`)) {
       problems.push(`docs/${entry}: not registered in the AGENTS.md index`);
     }
     if (entry.replace(/-/g, "").replace(/\.md$/, "") !== entry.replace(/-/g, "").replace(/\.md$/, "").toUpperCase()) {
@@ -449,7 +456,7 @@ if (existsSync(docsDir)) {
       continue;
     }
     const folder = path.split("/").slice(0, 2).join("/");
-    if (!agents.includes(`(${folder}/)`)) {
+    if (!indexRows(agents).includes(`(${folder}/)`)) {
       problems.push(`${path}: ${folder}/ has no row in the AGENTS.md index; a subfolder of docs/ is a registered record folder or it does not exist`);
     }
     if (folder !== "docs/inherited" && !DATED_RECORD_NAME.test(path.split("/").pop())) {

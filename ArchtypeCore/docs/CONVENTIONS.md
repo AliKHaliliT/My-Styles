@@ -18,7 +18,12 @@ Every project carries this fixed spine:
 
 | Document | Species | Role |
 | --- | --- | --- |
-| `AGENTS.md` | Living | Vendor-neutral agent entry point: the operating manual and the single documentation index. |
+| `AGENTS.md` | Living | Vendor-neutral agent entry point: the commands and the single documentation index. |
+| `docs/RULES.md` | Living, frozen | The hard rules of the tree, read whole before any work. |
+| `docs/CONDUCT.md` | Living, frozen | The hard rules of conduct, read whole before any work. |
+| `docs/GATE.md` | Living, frozen | The delivery gate a change is weighed against before it is delivered. |
+| `docs/ADOPTION.md` | Living, frozen | How a repository adopts this style and how a child re-aligns. |
+| `docs/REPORTING.md` | Living, frozen | The upstream report, what a project sends its template and how an entry is resolved. |
 | `STATE.md` | Living | Current project state: what is in flight, queued, deferred, or blocked. |
 | `CHANGELOG.md` | Records | Curated per-release summary for consumers; present only where consumers upgrade through releases (the trigger lives in BASELINE.md). |
 | `docs/ARCHITECTURE.md` | Living | The map of the system as it is today. |

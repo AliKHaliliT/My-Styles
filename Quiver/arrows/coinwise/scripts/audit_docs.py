@@ -857,10 +857,24 @@ def check_documents(problems: list[str]) -> None:
     check_state(problems, today)
 
 
+def index_rows(agents: str) -> str:
+    """The documentation index table alone, because registration means a row there."""
+    if "## Documentation index" not in agents:
+        return ""
+    return agents.split("## Documentation index", 1)[1].split("\n## ", 1)[0]
+
+
+def with_index_row(agents: bytes, row: bytes) -> bytes:
+    """The guide with a row planted inside its index table, before the decisions row."""
+    anchor = b"| [docs/decisions/](docs/decisions/)"
+    return agents.replace(anchor, row + anchor, 1)
+
+
 def check_top_level_docs(problems: list[str], docs: Path, agents: str) -> None:
-    """Every flat document under docs/ is registered, UPPERCASE, and within budget where it is bounded."""
+    """Every flat document under docs/ is registered by a row in the index, UPPERCASE, and within budget where it is bounded."""
+    rows = index_rows(agents)
     for f in sorted(docs.glob("*.md")):
-        if f.name not in agents:
+        if f"(docs/{f.name})" not in rows:
             problems.append(f"docs/{f.name}: not registered in the AGENTS.md index")
         if not f.stem.replace("-", "").isupper():
             problems.append(f"docs/{f.name}: organic documents are UPPERCASE markdown")
@@ -915,7 +929,7 @@ def check_below_top_level(problems: list[str], agents: str) -> None:
                 problems.append(f"{path}: docs/ holds markdown documents only; assets live where the baseline sends them")
             continue
         folder = "/".join(path.split("/")[:2])
-        if f"({folder}/)" not in agents:
+        if f"({folder}/)" not in index_rows(agents):
             problems.append(f"{path}: {folder}/ has no row in the AGENTS.md index; a subfolder of docs/ is a registered record folder or it does not exist")
         if folder != "docs/inherited" and not DATED_RECORD_NAME.match(path.rsplit("/", 1)[-1]):
             problems.append(
@@ -1887,11 +1901,15 @@ def upstream_variants() -> list[tuple[str, str | None]]:
 
 
 def prove_upstream_plants() -> int:
-    """A legal UPSTREAM.md passes and each rule of its schema fires; the path is borrowed and given back."""
+    """A legal UPSTREAM.md passes and each rule of its schema fires; the path and its index row are borrowed and given back."""
     failures = 0
     upstream = ROOT / "docs/UPSTREAM.md"
     original = upstream.read_bytes() if upstream.exists() else None
+    agents_path = ROOT / "AGENTS.md"
+    original_agents = agents_path.read_bytes()
     try:
+        if "(docs/UPSTREAM.md)" not in index_rows(original_agents.decode("utf-8")):
+            agents_path.write_bytes(with_index_row(original_agents, b"| [docs/UPSTREAM.md](docs/UPSTREAM.md) | Planted: what this project has for its style. |\n"))
         for text, needle in upstream_variants():
             upstream.write_text(text, encoding="utf-8")
             hits = [p for p in run()[0] if "UPSTREAM" in p]
@@ -1901,6 +1919,7 @@ def prove_upstream_plants() -> int:
                 failures += expect(hits, needle, "an UPSTREAM.md plant")
     finally:
         restore(upstream, original)
+        agents_path.write_bytes(original_agents)
     return failures
 
 

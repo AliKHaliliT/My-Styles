@@ -39,21 +39,27 @@ ROOT = Path(__file__).resolve().parent.parent
 BLOCKS = [
     (
         "the delivery gate",
-        ["ArchtypeCore/AGENTS.md", "Keel/AGENTS.md", "Helm/AGENTS.md"],
-        "## The delivery gate",
-        "## The upstream report",
+        ["ArchtypeCore/docs/GATE.md", "Keel/docs/GATE.md", "Helm/docs/GATE.md"],
+        None,
+        None,
     ),
     (
         "the upstream report",
-        ["ArchtypeCore/AGENTS.md", "Keel/AGENTS.md", "Helm/AGENTS.md", "Quiver/AGENTS.md"],
-        "## The upstream report",
-        "## Adopting this style",
+        ["ArchtypeCore/docs/REPORTING.md", "Keel/docs/REPORTING.md", "Helm/docs/REPORTING.md", "Quiver/docs/REPORTING.md"],
+        None,
+        None,
     ),
     (
-        "the adoption section",
-        ["ArchtypeCore/AGENTS.md", "Keel/AGENTS.md", "Helm/AGENTS.md", "Quiver/AGENTS.md"],
-        "## Adopting this style",
-        "## Documentation index",
+        "the adoption document",
+        ["ArchtypeCore/docs/ADOPTION.md", "Keel/docs/ADOPTION.md", "Helm/docs/ADOPTION.md", "Quiver/docs/ADOPTION.md"],
+        None,
+        None,
+    ),
+    (
+        "the rules of conduct",
+        ["ArchtypeCore/docs/CONDUCT.md", "Keel/docs/CONDUCT.md", "Helm/docs/CONDUCT.md", "Quiver/docs/CONDUCT.md"],
+        None,
+        None,
     ),
     (
         "the rulebook's shared core",
@@ -82,32 +88,56 @@ BLOCKS = [
         "## Prose",
         None,
     ),
-    (
-        "the em dash rule",
-        ["ArchtypeCore/AGENTS.md", "Keel/AGENTS.md", "Helm/AGENTS.md", "Quiver/AGENTS.md"],
-        "- An em dash is legal",
-        "- Commit history speaks",
-    ),
-    (
-        "the prose hard rule",
-        ["ArchtypeCore/AGENTS.md", "Keel/AGENTS.md", "Helm/AGENTS.md", "Quiver/AGENTS.md"],
-        "- All prose must read",
-        "- Every tracked byte is public prose",
-    ),
 ]
 
 # What each arrow carries verbatim from its style: (name, original, copy, start
-# anchor, end anchor), None standing for the file's edge. The guide's tail stops
-# before the documentation index, because the index lists the arrow's own
-# documents. The original is canonical; a divergence is fixed by rewriting the
-# copy, never the original.
+# anchor, end anchor), None standing for the file's edge. The guide's shared tail
+# begins after the arrow's own commands and runs to the file's end, the index
+# having moved above it, and the rule, gate, adoption and reporting documents
+# travel whole. The original is canonical; a divergence is fixed by rewriting
+# the copy, never the original.
 CARRIES = [
     (
         "agent guide shared tail",
         "Keel/AGENTS.md",
         "Quiver/arrows/coinwise/AGENTS.md",
         "The checks report at two levels",
-        "## Documentation index",
+        None,
+    ),
+    (
+        "rules of the tree",
+        "Keel/docs/RULES.md",
+        "Quiver/arrows/coinwise/docs/RULES.md",
+        None,
+        None,
+    ),
+    (
+        "rules of conduct",
+        "Keel/docs/CONDUCT.md",
+        "Quiver/arrows/coinwise/docs/CONDUCT.md",
+        None,
+        None,
+    ),
+    (
+        "delivery gate",
+        "Keel/docs/GATE.md",
+        "Quiver/arrows/coinwise/docs/GATE.md",
+        None,
+        None,
+    ),
+    (
+        "adoption document",
+        "Keel/docs/ADOPTION.md",
+        "Quiver/arrows/coinwise/docs/ADOPTION.md",
+        None,
+        None,
+    ),
+    (
+        "upstream report",
+        "Keel/docs/REPORTING.md",
+        "Quiver/arrows/coinwise/docs/REPORTING.md",
+        None,
+        None,
     ),
     (
         "rulebook",

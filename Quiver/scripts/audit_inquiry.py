@@ -2755,7 +2755,7 @@ def prove_inherited_record() -> int:
     row = b"| [docs/inherited/](docs/inherited/) | Planted: the style's records, carried whole. |\n"
     try:
         if "(docs/inherited/)" not in index_rows(original_agents.decode("utf-8")):
-            agents_path.write_bytes(original_agents.rstrip(b"\n") + b"\n\n" + row)
+            agents_path.write_bytes(original_agents.replace(b"| [docs/decisions/](docs/decisions/)", row + b"| [docs/decisions/](docs/decisions/)", 1))
         # The disposition check reads this plant as a record gained by a re-alignment, which its
         # own proof plants a citing record for; here the plant proves the folder's legality alone.
         inherited_problems = [p for p in run(ROOT)[0] if "cited by no record" not in p]
@@ -2847,7 +2847,7 @@ def prove_upstream_plants() -> int:
     ]
     try:
         if "(docs/UPSTREAM.md)" not in index_rows(original_agents.decode("utf-8")):
-            agents_path.write_bytes(original_agents.rstrip(b"\n") + b"\n\n" + upstream_row)
+            agents_path.write_bytes(original_agents.replace(b"| [docs/decisions/](docs/decisions/)", upstream_row + b"| [docs/decisions/](docs/decisions/)", 1))
         for upstream_text, upstream_expect in upstream_plants:
             upstream.write_text(upstream_text, encoding="utf-8")
             upstream_problems, _ = run(ROOT)

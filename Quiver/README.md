@@ -30,13 +30,19 @@ The demo asks a small, genuinely empirical question: when many monetary amounts 
 
 ```text
 Quiver/
-  AGENTS.md              The operating manual, the gate, and the documentation index.
+  AGENTS.md              The entry point, its commands, and the documentation index.
   STATE.md               What is in flight, queued, deferred, or blocked.
   docs/
     QUESTIONS.md         The aim, the numbered questions, and their open conjectures.
     ARCHITECTURE.md      The map of the inquiry.
     BIBLIOGRAPHY.md      Every consulted work, cited by key.
     CONVENTIONS.md       The frozen documentation rulebook.
+    RULES.md             The hard rules of the tree.
+    CONDUCT.md           The hard rules of conduct.
+    GATE.md              The delivery gate.
+    PASSES.md            Running a review pass.
+    ADOPTION.md          Adopting this style and re-aligning.
+    REPORTING.md         The upstream report.
     INVARIANTS.md        What must stay true about the inquiry layer, each claim with its holder and rung.
     BASELINE.md          The repository baseline.
     decisions/           Immutable decision records.

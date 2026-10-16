@@ -16,7 +16,13 @@ Nearly every documentation failure is a species violation. Never mix the two spe
 
 | Document | Species | Role |
 | --- | --- | --- |
-| `AGENTS.md` | Living | Vendor-neutral agent entry point: the operating manual and the single documentation index. |
+| `AGENTS.md` | Living | Vendor-neutral agent entry point: the commands and the single documentation index. |
+| `docs/RULES.md` | Living, frozen | The hard rules of the tree, read whole before any work. |
+| `docs/CONDUCT.md` | Living, frozen | The hard rules of conduct, read whole before any work. |
+| `docs/GATE.md` | Living, frozen | The delivery gate a change is weighed against before it is delivered. |
+| `docs/PASSES.md` | Living, frozen | Running a review pass and adopting an inquiry that has drafts. |
+| `docs/ADOPTION.md` | Living, frozen | How a repository adopts this style and how a child re-aligns. |
+| `docs/REPORTING.md` | Living, frozen | The upstream report, what a project sends its template and how an entry is resolved. |
 | `STATE.md` | Living | Current project state: what is in flight, queued, deferred, or blocked. |
 | `docs/QUESTIONS.md` | Living | The aim of the inquiry and its numbered questions, each with its decomposition into the conjectures and claims that serve it. |
 | `docs/ARCHITECTURE.md` | Living | The map of the inquiry as it is today: the arrows and how evidence flows from them into claims. |

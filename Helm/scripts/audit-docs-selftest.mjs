@@ -299,10 +299,28 @@ function proveStatePlants() {
 const UPSTREAM_HEAD = "# Upstream\n\nAligned to Planted at 0123456789ab.\n\nEvery entry is a lead, not a verdict.\n\n## Open\n\n";
 const UPSTREAM_PARTS = "**What it is.** x.\n\n**How the work surfaced it.** x.\n\n**Why it is believed better.** x.\n\n**Records checked.** None.\n";
 
+/** The legal plants need their row in the index table, borrowed and given back; a project that carries the file already has one. */
+function withUpstreamRow(prove) {
+  const agents = join(ROOT, "AGENTS.md");
+  const original = readFileSync(agents);
+  const text = original.toString("utf-8");
+  const anchor = "| [docs/decisions/](docs/decisions/)";
+  if (!text.includes("(docs/UPSTREAM.md)")) {
+    writeFileSync(agents, text.replace(anchor, `| [docs/UPSTREAM.md](docs/UPSTREAM.md) | Planted: what this project has for its style. |\n${anchor}`));
+  }
+  try {
+    prove();
+  } finally {
+    writeFileSync(agents, original);
+  }
+}
+
 function proveUpstreamPlants() {
   const entry = `### ${TODAY} Planted entry\n\nKind: defect\nPin: 0123456789ab\n\n`;
-  proveReplaced("a legal UPSTREAM.md", "docs/UPSTREAM.md", `${UPSTREAM_HEAD}Nothing open.\n`, [], true);
-  proveReplaced("a legal UPSTREAM.md entry", "docs/UPSTREAM.md", UPSTREAM_HEAD + entry + UPSTREAM_PARTS, [], true);
+  withUpstreamRow(() => {
+    proveReplaced("a legal UPSTREAM.md", "docs/UPSTREAM.md", `${UPSTREAM_HEAD}Nothing open.\n`, [], true);
+    proveReplaced("a legal UPSTREAM.md entry", "docs/UPSTREAM.md", UPSTREAM_HEAD + entry + UPSTREAM_PARTS, [], true);
+  });
   const variants = [
     ["# Upstream\n\nEvery entry is a lead, not a verdict.\n\n## Open\n\nNothing open.\n", "no Aligned line"],
     ["# Upstream\n\nAligned to Planted at 0123456789ab.\n\nNo section.\n", "no ## Open section"],
