@@ -187,17 +187,17 @@ function proveTrackedPlants() {
   );
 }
 
-/** A tracked file over the budget and carrying an invisible character that the attributes file declares linguist-generated raises nothing, and the file and the declaration both leave. */
+/** A tracked file over the budget, carrying an invisible character and a banned word, that the attributes file declares linguist-generated raises nothing and is advised nothing, and the file and the declaration both leave. */
 function proveDeclaredDashes() {
   const attributes = join(ROOT, ".gitattributes");
   const original = existsSync(attributes) ? readFileSync(attributes) : null;
   const rel = "docs/PLANTED-DECLARED.md";
   writeFileSync(attributes, Buffer.concat([original ?? Buffer.alloc(0), Buffer.from(`\n${rel} linguist-generated\n`)]));
-  plant(rel, "\u2014 \u2014 \u2014 \u200b\n");
+  plant(rel, "\u2014 \u2014 \u2014 \u200b\nWe delve into it here.\n");
   git("add", "-N", "--", rel);
   try {
-    const noise = findings().filter((line) => line.includes(rel) && line.includes("carries"));
-    if (noise.length > 0) wrong(`a declared file over the budget was counted: ${noise.join("; ")}`);
+    const noise = audit().filter((line) => line.includes(rel) && (line.includes("carries") || line.includes("inflated vocabulary")));
+    if (noise.length > 0) wrong(`a declared file over the budget was counted or advised: ${noise.join("; ")}`);
   } finally {
     git("rm", "--cached", "-q", "--", rel);
     unplant(rel);

@@ -579,10 +579,11 @@ def advise_splices(advice: list[str]) -> None:
 
 
 def advise_vocabulary(advice: list[str]) -> None:
-    """The prose law's banned vocabulary in living prose and code, advised because an honest term reads like a tell."""
+    """The prose law's banned vocabulary in living prose and code, advised because an honest term reads like a tell; a declared generated file is a machine's words and is left alone."""
+    generated = declared_generated()
     for rel in tracked_files():
         path = ROOT / rel
-        if rel.startswith(VOCABULARY_SKIP) or (rel.startswith("docs/") and rel.count("/") >= 2) or not path.is_file():
+        if rel in generated or rel.startswith(VOCABULARY_SKIP) or (rel.startswith("docs/") and rel.count("/") >= 2) or not path.is_file():
             continue
         data = path.read_bytes()
         if b"\0" in data:
@@ -1797,19 +1798,21 @@ def prove_tracked_plants() -> int:
 
 
 def prove_declared_dashes() -> int:
-    """A tracked file over the budget and carrying an invisible character that the attributes file declares linguist-generated raises nothing, and the file and the declaration both leave."""
+    """A tracked file over the budget, carrying an invisible character and a banned word, that the attributes file declares linguist-generated raises nothing and is advised nothing, and the file and the declaration both leave."""
     attributes = ROOT / ".gitattributes"
     original = attributes.read_bytes() if attributes.exists() else None
     rel = "docs/PLANTED-DECLARED.md"
     target = ROOT / rel
     attributes.write_bytes((original or b"") + f"\n{rel} linguist-generated\n".encode())
-    target.write_text("\u2014 \u2014 \u2014 \u200b\n", encoding="utf-8")
+    target.write_text("\u2014 \u2014 \u2014 \u200b\nWe delve into it here.\n", encoding="utf-8")
     git("add", "-N", "--", rel)
     try:
-        noise = [p for p in run()[0] if rel in p and "carries" in p]
+        outcome = run()
+        noise = [p for p in outcome[0] if rel in p and "carries" in p]
+        noise += [a for a in outcome[1] if rel in a and "inflated vocabulary" in a]
         if not noise:
             return 0
-        return wrong(f"a declared file over the budget was counted: {noise}")
+        return wrong(f"a declared file over the budget was counted or advised: {noise}")
     finally:
         git("rm", "--cached", "-q", "--", rel)
         remove_planted(target, ROOT)

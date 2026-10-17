@@ -776,17 +776,18 @@ function checkRecordLinks() {
 }
 checkRecordLinks();
 
-// Whether a tracked file is read for the vocabulary: not a workflow, the rulebook, this script, a record, or a binary.
-function readForVocabulary(rel) {
-  if (VOCABULARY_SKIP.some((skip) => rel.startsWith(skip))) return false;
+// Whether a tracked file is read for the vocabulary: not a workflow, the rulebook, this script, a record, a declared generated file, or a binary.
+function readForVocabulary(rel, declared) {
+  if (declared.has(rel) || VOCABULARY_SKIP.some((skip) => rel.startsWith(skip))) return false;
   if (rel.startsWith("docs/") && rel.split("/").length > 2) return false;
   const path = join(ROOT, rel);
   return existsSync(path) && !statSync(path).isDirectory();
 }
 
-// The prose law's banned vocabulary in living prose and code, advised because an honest term reads like a tell.
+// The prose law's banned vocabulary in living prose and code, advised because an honest term reads like a tell; a declared generated file is a machine's words and is left alone.
 function adviseVocabulary() {
-  for (const rel of trackedFiles().filter(readForVocabulary)) {
+  const declared = new Set(declaredGenerated());
+  for (const rel of trackedFiles().filter((rel) => readForVocabulary(rel, declared))) {
     const bytes = readFileSync(join(ROOT, rel));
     if (bytes.includes(0)) continue;
     bytes.toString("utf-8").split("\n").forEach((line, index) => {
