@@ -48,10 +48,11 @@ HORIZON_DAYS = 90
 NOW_HORIZON_DAYS = 30
 # Now is for in-flight work only; past this many entries the section is accreting, not tracking.
 NOW_CAP = 5
-# Bounded documents fail past this; AGENTS.md, docs/ARCHITECTURE.md, README.md, the rulebook with its parts, and the
-# invariants ledger grow with the system instead, a manual, a map, the law it is held to, and its claims.
-BUDGET_LINES = 150
-FREE_GROWING = {"AGENTS.md", "docs/ARCHITECTURE.md", "README.md", "docs/CONVENTIONS.md", "docs/LIVING.md", "docs/RECORDS.md", "docs/PROSE.md", "docs/INVARIANTS.md"}
+# A bounded document fails past this many words of prose, counted outside its tables and fenced blocks, because that
+# is what a reader takes in whole; a register, the state file, the invariants ledger and a child's upstream file, grows
+# by rows and is not measured, and README.md answers to the baseline's schema instead.
+BUDGET_WORDS = 2000
+UNBUDGETED = {"README.md", "STATE.md", "docs/INVARIANTS.md", "docs/UPSTREAM.md"}
 
 BACKTICK = re.compile(r"`([^`\n]+)`")
 LINK = re.compile(r"\[[^\]]*\]\(([^)\s]+)\)")
@@ -668,13 +669,27 @@ def missing_module(token: str) -> bool:
     return False
 
 
+def prose_words(text: str) -> int:
+    """The words of a document outside its tables and fenced blocks, the measure its budget is held to."""
+    words = 0
+    fenced = False
+    for line in text.split("\n"):
+        if line.startswith("```"):
+            fenced = not fenced
+            continue
+        if fenced or line.startswith("|"):
+            continue
+        words += len(line.split())
+    return words
+
+
 def check_budget(problems: list[str], rel: str, text: str) -> None:
-    """A bounded document stays within the line budget; the free-growing ones are not measured."""
-    if rel in FREE_GROWING:
+    """A bounded document stays within the word budget; a register and the README are not measured."""
+    if rel in UNBUDGETED:
         return
-    lines = text.count("\n") + 1
-    if lines > BUDGET_LINES:
-        problems.append(f"{rel}: {lines} lines against the {BUDGET_LINES}-line budget; split by fission")
+    words = prose_words(text)
+    if words > BUDGET_WORDS:
+        problems.append(f"{rel}: {words} words of prose against the {BUDGET_WORDS}-word budget; split by fission")
 
 
 def check_backticked_claims(problems: list[str], rel: str, text: str, declared: str) -> None:
@@ -882,10 +897,8 @@ def check_top_level_docs(problems: list[str], docs: Path, agents: str) -> None:
             problems.append(f"docs/{f.name}: not registered in the AGENTS.md index")
         if not f.stem.replace("-", "").isupper():
             problems.append(f"docs/{f.name}: organic documents are UPPERCASE markdown")
-        if f.name not in ("ARCHITECTURE.md", "CONVENTIONS.md", "LIVING.md", "RECORDS.md", "PROSE.md", "BASELINE.md", "UPSTREAM.md", "INVARIANTS.md"):
-            lines = f.read_text(encoding="utf-8").count("\n") + 1
-            if lines > BUDGET_LINES:
-                problems.append(f"docs/{f.name}: {lines} lines against the {BUDGET_LINES}-line budget; split by fission")
+        if f"docs/{f.name}" not in LIVING:
+            check_budget(problems, f"docs/{f.name}", f.read_text(encoding="utf-8"))
         if f"docs/{f.name}" not in LIVING:
             check_record_citations(problems, f"docs/{f.name}", f, f.read_text(encoding="utf-8"))
 
@@ -1605,7 +1618,7 @@ def run() -> tuple[list[str], list[str], list[Path]]:
 FILE_PLANTS = [
     ("docs/lowercase-planted.md", "# Planted\n", "organic documents are UPPERCASE markdown"),
     ("docs/PLANTED.md", "# Planted\n", "docs/PLANTED.md: not registered in the AGENTS.md index"),
-    ("docs/PLANTED.md", "# Planted\n" + "line\n" * 150, f"docs/PLANTED.md: 152 lines against the {BUDGET_LINES}-line budget"),
+    ("docs/PLANTED.md", "# Planted\n\n" + "word " * 2001 + "\n", f"docs/PLANTED.md: 2003 words of prose against the {BUDGET_WORDS}-word budget"),
     ("docs/decisions/bad-name-planted.md", "# Bad\n", "records are named NNNN-short-kebab-title.md"),
     (
         "docs/decisions/0093-planted-with-a-title-so-long-that-it-runs-past-the-seventy-two-character-cap.md",
@@ -1626,7 +1639,7 @@ APPEND_PLANTS = [
         "\n```text\nplanted/\n└── ghost_planted_file.py\n```\n",
         "the tree names ghost_planted_file.py, which exists nowhere in this repository",
     ),
-    ("docs/BASELINE.md", "line\n" * 160, f"lines against the {BUDGET_LINES}-line budget; split by fission"),
+    ("docs/BASELINE.md", "word " * 2001 + "\n", f"words of prose against the {BUDGET_WORDS}-word budget; split by fission"),
 ]
 
 # Plants the tracked-tree checks can see; each is intent-to-added for one run.

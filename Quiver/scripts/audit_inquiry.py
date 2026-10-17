@@ -41,10 +41,11 @@ LIVING = [
     "docs/BASELINE.md",
     "docs/INVARIANTS.md",
 ]
-# The rulebook and its parts grow with the law they state, as the manual, the map, and the invariants ledger grow with the
-# system, and the questions file with the claims its sections index.
-FREE_GROWING = {"AGENTS.md", "README.md", "docs/ARCHITECTURE.md", "docs/BIBLIOGRAPHY.md", "docs/UPSTREAM.md", "docs/CONVENTIONS.md", "docs/LIVING.md", "docs/RECORDS.md", "docs/REVIEWS.md", "docs/SOURCES.md", "docs/PROSE.md", "docs/INVARIANTS.md", "docs/QUESTIONS.md"}
-BUDGET_LINES = 150
+# A bounded document fails past this many words of prose, counted outside its tables and fenced blocks, because that
+# is what a reader takes in whole; a register, the state file, the questions file, the bibliography, the invariants
+# ledger and a child's upstream file, grows by rows and is not measured, and README.md answers to the baseline's schema.
+UNBUDGETED = {"README.md", "STATE.md", "docs/QUESTIONS.md", "docs/BIBLIOGRAPHY.md", "docs/INVARIANTS.md", "docs/UPSTREAM.md"}
+BUDGET_WORDS = 2000
 HORIZON_DAYS = 90
 # In-flight work that has not moved in this long is either finished or stalled, and Now is
 # for neither; the shorter horizon is what makes the sweep mechanical where it can be.
@@ -618,6 +619,20 @@ def check_living(problems: list[str], root: Path) -> None:
     check_docs_below_top(problems, root, rows)
 
 
+def prose_words(text: str) -> int:
+    """The words of a document outside its tables and fenced blocks, the measure its budget is held to."""
+    words = 0
+    fenced = False
+    for line in text.split("\n"):
+        if line.startswith("```"):
+            fenced = not fenced
+            continue
+        if fenced or line.startswith("|"):
+            continue
+        words += len(line.split())
+    return words
+
+
 def check_living_documents(problems: list[str], root: Path, rows: str) -> None:
     """Every living document exists, stays within its budget where bounded, and has its row in the index."""
     for rel in living_documents(root):
@@ -625,9 +640,9 @@ def check_living_documents(problems: list[str], root: Path, rows: str) -> None:
         if not path.exists():
             problems.append(f"{rel}: missing living document")
             continue
-        lines = path.read_text(encoding="utf-8").split("\n")
-        if rel not in FREE_GROWING and len(lines) > BUDGET_LINES:
-            problems.append(f"{rel}: {len(lines)} lines, budget is {BUDGET_LINES}")
+        words = prose_words(path.read_text(encoding="utf-8"))
+        if rel not in UNBUDGETED and words > BUDGET_WORDS:
+            problems.append(f"{rel}: {words} words of prose, budget is {BUDGET_WORDS}")
         # The manifests are registered as a folder, one row covering the set.
         registered = f"({rel})" in rows or (rel.startswith("docs/arrows/") and "(docs/arrows/)" in rows)
         if rel not in ("AGENTS.md", "README.md") and not registered:
@@ -2003,7 +2018,7 @@ PLANTS = [
     ("docs/PLANTED.md", "# Planted\n\n[gone](ghost/none.md)\n", "links to ghost/none.md, which does not resolve"),
     ("docs/PLANTED.md", "# Planted\n\nNames `docs/ghost-none.md` in passing.\n",
      "names `docs/ghost-none.md`, which does not exist"),
-    ("docs/PLANTED.md", "# Planted\n" + "line\n" * 151, "budget is 150"),
+    ("docs/PLANTED.md", "# Planted\n\n" + "word " * 2001 + "\n", "budget is 2000"),
 ]
 
 def moved_evidence_pin() -> tuple[str, str] | None:

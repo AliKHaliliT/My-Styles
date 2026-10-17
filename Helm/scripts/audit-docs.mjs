@@ -40,9 +40,24 @@ const HORIZON_DAYS = 90;
 const NOW_HORIZON_DAYS = 30;
 /** Now is for in-flight work only; past this many entries the section is accreting, not tracking. */
 const NOW_CAP = 5;
-/** Bounded documents fail past this; the manual, the map, the README, the rulebook with its parts, and the invariants ledger grow with the system. */
-const BUDGET_LINES = 150;
-const FREE_GROWING = new Set(["AGENTS.md", "docs/ARCHITECTURE.md", "README.md", "docs/CONVENTIONS.md", "docs/LIVING.md", "docs/RECORDS.md", "docs/PROSE.md", "docs/INVARIANTS.md"]);
+/** A bounded document fails past this many words of prose, counted outside its tables and fenced blocks, because that is what a reader takes in whole; a register, the state file, the invariants ledger and a child's upstream file, grows by rows and is not measured, and README.md answers to the baseline's schema instead. */
+const BUDGET_WORDS = 2000;
+const UNBUDGETED = new Set(["README.md", "STATE.md", "docs/INVARIANTS.md", "docs/UPSTREAM.md"]);
+
+/** The words of a document outside its tables and fenced blocks, the measure its budget is held to. */
+function proseWords(text) {
+  let words = 0;
+  let fenced = false;
+  for (const line of text.split("\n")) {
+    if (line.startsWith("```")) {
+      fenced = !fenced;
+      continue;
+    }
+    if (fenced || line.startsWith("|")) continue;
+    words += line.split(/\s+/).filter(Boolean).length;
+  }
+  return words;
+}
 
 const BACKTICK = /`([^`\n]+)`/g;
 const LINK = /\[[^\]]*\]\(([^)\s]+)\)/g;
@@ -286,10 +301,10 @@ for (const rel of LIVING) {
   if (!existsSync(doc)) continue;
   const text = readFileSync(doc, "utf-8");
 
-  if (!FREE_GROWING.has(rel)) {
-    const lines = text.split("\n").length;
-    if (lines > BUDGET_LINES) {
-      problems.push(`${rel}: ${lines} lines against the ${BUDGET_LINES}-line budget; split by fission`);
+  if (!UNBUDGETED.has(rel)) {
+    const words = proseWords(text);
+    if (words > BUDGET_WORDS) {
+      problems.push(`${rel}: ${words} words of prose against the ${BUDGET_WORDS}-word budget; split by fission`);
     }
   }
 
@@ -413,10 +428,10 @@ if (existsSync(docsDir)) {
     if (entry.replace(/-/g, "").replace(/\.md$/, "") !== entry.replace(/-/g, "").replace(/\.md$/, "").toUpperCase()) {
       problems.push(`docs/${entry}: organic documents are UPPERCASE markdown`);
     }
-    if (!["ARCHITECTURE.md", "CONVENTIONS.md", "LIVING.md", "RECORDS.md", "PROSE.md", "BASELINE.md", "UPSTREAM.md", "INVARIANTS.md"].includes(entry)) {
-      const lines = readFileSync(full, "utf-8").split("\n").length;
-      if (lines > BUDGET_LINES) {
-        problems.push(`docs/${entry}: ${lines} lines against the ${BUDGET_LINES}-line budget; split by fission`);
+    if (!LIVING.includes(`docs/${entry}`) && !UNBUDGETED.has(`docs/${entry}`)) {
+      const words = proseWords(readFileSync(full, "utf-8"));
+      if (words > BUDGET_WORDS) {
+        problems.push(`docs/${entry}: ${words} words of prose against the ${BUDGET_WORDS}-word budget; split by fission`);
       }
     }
     if (!LIVING.includes(`docs/${entry}`)) {

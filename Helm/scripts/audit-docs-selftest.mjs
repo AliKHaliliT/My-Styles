@@ -18,7 +18,7 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const AUDIT = join(ROOT, "scripts", "audit-docs.mjs");
-const BUDGET_LINES = 150;
+const BUDGET_WORDS = 2000;
 const HORIZON_DAYS = 90;
 const NOW_CAP = 5;
 const NAME_CAP = 72;
@@ -144,7 +144,7 @@ function proveFilePlants() {
     "an untracked plant",
     [
       ["docs/lowercase-planted.md", "# Planted\n"],
-      ["docs/PLANTED.md", `# Planted\n${"line\n".repeat(150)}`],
+      ["docs/PLANTED.md", `# Planted\n\n${"word ".repeat(2001)}\n`],
       ["docs/decisions/bad-name-planted.md", "# Bad\n"],
       ["docs/decisions/0093-planted-with-a-title-so-long-that-it-runs-past-the-seventy-two-character-cap.md", `# 0093. Planted\n\n${record}`],
       [`docs/decisions/${twin}-planted-twin-a.md`, `# ${twin}. Planted twin\n\n${record}`],
@@ -153,7 +153,7 @@ function proveFilePlants() {
     [
       "docs/lowercase-planted.md: organic documents are UPPERCASE markdown",
       "docs/PLANTED.md: not registered in the AGENTS.md index",
-      `docs/PLANTED.md: 152 lines against the ${BUDGET_LINES}-line budget`,
+      `docs/PLANTED.md: 2003 words of prose against the ${BUDGET_WORDS}-word budget`,
       "docs/decisions/bad-name-planted.md: records are named NNNN-short-kebab-title.md",
       `the cap is ${NAME_CAP}`,
       `share the number ${twin}`,
@@ -221,7 +221,7 @@ function proveAppendedPlants() {
     [
       ["AGENTS.md", "\nNames `docs/GHOST-PLANTED.md` and `.github/workflows/GHOST-PLANTED.yml` and links [nowhere](docs/NOWHERE-PLANTED.md) in passing.\n"],
       ["docs/ARCHITECTURE.md", "\n```text\nplanted/\n└── ghost_planted_file.ts\n```\n"],
-      ["docs/BASELINE.md", "line\n".repeat(160)],
+      ["docs/BASELINE.md", `${"word ".repeat(2001)}\n`],
       ["README.md", `\nRequires Node ${claimed}+ here.\n`],
     ],
     [
@@ -230,7 +230,7 @@ function proveAppendedPlants() {
       "links to docs/NOWHERE-PLANTED.md, which does not resolve",
       "the tree names ghost_planted_file.ts, which exists nowhere in this repository",
       `docs/BASELINE.md: `,
-      `lines against the ${BUDGET_LINES}-line budget; split by fission`,
+      `words of prose against the ${BUDGET_WORDS}-word budget; split by fission`,
       ...(engines ? [`claims Node ${claimed}+ while engines declares ${engines}`] : []),
     ],
   );
