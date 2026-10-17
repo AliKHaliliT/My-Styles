@@ -33,12 +33,17 @@ LIVING = [
     "docs/ARCHITECTURE.md",
     "docs/BIBLIOGRAPHY.md",
     "docs/CONVENTIONS.md",
+    "docs/LIVING.md",
+    "docs/RECORDS.md",
+    "docs/REVIEWS.md",
+    "docs/SOURCES.md",
+    "docs/PROSE.md",
     "docs/BASELINE.md",
     "docs/INVARIANTS.md",
 ]
-# The rulebook grows with the law it states, as the manual, the map, and the invariants ledger grow with the system,
-# and the questions file with the claims its sections index.
-FREE_GROWING = {"AGENTS.md", "README.md", "docs/ARCHITECTURE.md", "docs/BIBLIOGRAPHY.md", "docs/UPSTREAM.md", "docs/CONVENTIONS.md", "docs/INVARIANTS.md", "docs/QUESTIONS.md"}
+# The rulebook and its parts grow with the law they state, as the manual, the map, and the invariants ledger grow with the
+# system, and the questions file with the claims its sections index.
+FREE_GROWING = {"AGENTS.md", "README.md", "docs/ARCHITECTURE.md", "docs/BIBLIOGRAPHY.md", "docs/UPSTREAM.md", "docs/CONVENTIONS.md", "docs/LIVING.md", "docs/RECORDS.md", "docs/REVIEWS.md", "docs/SOURCES.md", "docs/PROSE.md", "docs/INVARIANTS.md", "docs/QUESTIONS.md"}
 BUDGET_LINES = 150
 HORIZON_DAYS = 90
 # In-flight work that has not moved in this long is either finished or stalled, and Now is
@@ -215,10 +220,10 @@ VOCABULARY = re.compile(
     r"|\bTODO\b|\bFIXME\b|\bTBD\b|as an ai\b|as a language model|i hope this helps|certainly!",
     re.IGNORECASE,
 )
-# What the two advisories skip: the workflows, the rulebook that lists the tells, and this
+# What the two advisories skip: the workflows, the prose law that lists the tells, and this
 # script, which carries the list, and the arrows, whose own audits read them; a record is skipped
 # by its depth under docs/.
-VOCABULARY_SKIP = ("arrows/", ".github/", "docs/CONVENTIONS.md", "scripts/audit_inquiry.py")
+VOCABULARY_SKIP = ("arrows/", ".github/", "docs/PROSE.md", "scripts/audit_inquiry.py")
 # The invariants ledger's header row, the words a rung may be, and the shape of a holder: a tracked
 # path in backticks with an optional quoted needle the file must contain, or the word review, which
 # pairs only with the review rung. Every review row is advised on every run, so a claim nothing

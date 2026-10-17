@@ -37,6 +37,11 @@ Quiver/
     ARCHITECTURE.md      The map of the inquiry.
     BIBLIOGRAPHY.md      Every consulted work, cited by key.
     CONVENTIONS.md       The frozen documentation rulebook.
+    LIVING.md            The rulebook's rules for living documents.
+    RECORDS.md           The rulebook's rules for records.
+    REVIEWS.md           The rulebook's rules for review records and logs.
+    SOURCES.md           The rulebook's rules for the bibliography.
+    PROSE.md             The prose law.
     RULES.md             The hard rules of the tree.
     CONDUCT.md           The hard rules of conduct.
     GATE.md              The delivery gate.
@@ -83,7 +88,7 @@ pytest && ruff check . && lint-imports && mypy src tests && python scripts/audit
 
 ## Conventions
 
-The project's conventions live in one place, the rulebook at [docs/CONVENTIONS.md](docs/CONVENTIONS.md). It holds the documentation system (a vendor-neutral [AGENTS.md](AGENTS.md) as the agent entry point and the single index of every document, [STATE.md](STATE.md) as the living project state, [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) as the current map, and immutable records under [docs/decisions/](docs/decisions/) and [docs/claims/](docs/claims/) as the reasoning and the knowledge behind every settled choice), the claim rules with their pins and figures, and the prose law in its Prose section. That file is normative and must not be modified; the rationale behind the system itself is recorded in the style's founding decision record, 0001.
+The project's conventions live in the rulebook, [docs/CONVENTIONS.md](docs/CONVENTIONS.md) and the documents it names. It holds the documentation system (a vendor-neutral [AGENTS.md](AGENTS.md) as the agent entry point and the single index of every document, [STATE.md](STATE.md) as the living project state, [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) as the current map, and immutable records under [docs/decisions/](docs/decisions/) and [docs/claims/](docs/claims/) as the reasoning and the knowledge behind every settled choice), the claim rules with their pins and figures, the pass rules and the prose law in the documents it names. Those files are normative and must not be modified; the rationale behind the system itself is recorded in the style's founding decision record, 0001.
 
 The rulebook is owned at the style level. A project built from this template never changes it locally, and an improvement discovered while refactoring against the template is not kept as a private advantage; the project's `UPSTREAM.md` carries it back to the template as [AGENTS.md](AGENTS.md) describes, where it is verified and, if it holds, adopted for every project that follows the style.
 

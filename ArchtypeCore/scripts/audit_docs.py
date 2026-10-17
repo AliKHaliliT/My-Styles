@@ -36,6 +36,9 @@ LIVING = [
     "docs/BASELINE.md",
     "docs/CONVENTIONS.md",
     "docs/INVARIANTS.md",
+    "docs/LIVING.md",
+    "docs/PROSE.md",
+    "docs/RECORDS.md",
 ]
 
 # An entry older than this is expired and must be re-verified before anything relies on it.
@@ -45,10 +48,10 @@ HORIZON_DAYS = 90
 NOW_HORIZON_DAYS = 30
 # Now is for in-flight work only; past this many entries the section is accreting, not tracking.
 NOW_CAP = 5
-# Bounded documents fail past this; AGENTS.md, docs/ARCHITECTURE.md, README.md, the rulebook, and the
+# Bounded documents fail past this; AGENTS.md, docs/ARCHITECTURE.md, README.md, the rulebook with its parts, and the
 # invariants ledger grow with the system instead, a manual, a map, the law it is held to, and its claims.
 BUDGET_LINES = 150
-FREE_GROWING = {"AGENTS.md", "docs/ARCHITECTURE.md", "README.md", "docs/CONVENTIONS.md", "docs/INVARIANTS.md"}
+FREE_GROWING = {"AGENTS.md", "docs/ARCHITECTURE.md", "README.md", "docs/CONVENTIONS.md", "docs/LIVING.md", "docs/RECORDS.md", "docs/PROSE.md", "docs/INVARIANTS.md"}
 
 BACKTICK = re.compile(r"`([^`\n]+)`")
 LINK = re.compile(r"\[[^\]]*\]\(([^)\s]+)\)")
@@ -148,9 +151,9 @@ VOCABULARY = re.compile(
     r"|\bTODO\b|\bFIXME\b|\bTBD\b|as an ai\b|as a language model|i hope this helps|certainly!",
     re.IGNORECASE,
 )
-# What the two advisories skip: the workflows, the rulebook that lists the tells, and this
+# What the two advisories skip: the workflows, the prose law that lists the tells, and this
 # script, which carries the list; a record is skipped by its depth under docs/.
-VOCABULARY_SKIP = (".github/", "docs/CONVENTIONS.md", "scripts/audit_docs.py")
+VOCABULARY_SKIP = (".github/", "docs/PROSE.md", "scripts/audit_docs.py")
 # The invariants ledger's header row, the words a rung may be, and the shape of a holder: a tracked
 # path in backticks with an optional quoted needle the file must contain, or the word review, which
 # pairs only with the review rung. Every review row is advised on every run, so a claim nothing
@@ -879,7 +882,7 @@ def check_top_level_docs(problems: list[str], docs: Path, agents: str) -> None:
             problems.append(f"docs/{f.name}: not registered in the AGENTS.md index")
         if not f.stem.replace("-", "").isupper():
             problems.append(f"docs/{f.name}: organic documents are UPPERCASE markdown")
-        if f.name not in ("ARCHITECTURE.md", "CONVENTIONS.md", "BASELINE.md", "UPSTREAM.md", "INVARIANTS.md"):
+        if f.name not in ("ARCHITECTURE.md", "CONVENTIONS.md", "LIVING.md", "RECORDS.md", "PROSE.md", "BASELINE.md", "UPSTREAM.md", "INVARIANTS.md"):
             lines = f.read_text(encoding="utf-8").count("\n") + 1
             if lines > BUDGET_LINES:
                 problems.append(f"docs/{f.name}: {lines} lines against the {BUDGET_LINES}-line budget; split by fission")

@@ -26,6 +26,9 @@ const LIVING = [
   "docs/BASELINE.md",
   "docs/CONVENTIONS.md",
   "docs/INVARIANTS.md",
+  "docs/LIVING.md",
+  "docs/PROSE.md",
+  "docs/RECORDS.md",
 ];
 
 /** An entry older than this is expired and must be re-verified before anything relies on it. */
@@ -37,9 +40,9 @@ const HORIZON_DAYS = 90;
 const NOW_HORIZON_DAYS = 30;
 /** Now is for in-flight work only; past this many entries the section is accreting, not tracking. */
 const NOW_CAP = 5;
-/** Bounded documents fail past this; the manual, the map, the README, the rulebook, and the invariants ledger grow with the system. */
+/** Bounded documents fail past this; the manual, the map, the README, the rulebook with its parts, and the invariants ledger grow with the system. */
 const BUDGET_LINES = 150;
-const FREE_GROWING = new Set(["AGENTS.md", "docs/ARCHITECTURE.md", "README.md", "docs/CONVENTIONS.md", "docs/INVARIANTS.md"]);
+const FREE_GROWING = new Set(["AGENTS.md", "docs/ARCHITECTURE.md", "README.md", "docs/CONVENTIONS.md", "docs/LIVING.md", "docs/RECORDS.md", "docs/PROSE.md", "docs/INVARIANTS.md"]);
 
 const BACKTICK = /`([^`\n]+)`/g;
 const LINK = /\[[^\]]*\]\(([^)\s]+)\)/g;
@@ -128,9 +131,9 @@ const EM_DASH_SCOPE = "records held to the em dash budget of two per file";
 // The vocabulary the prose law bans, advised and never gated, because an honest domain term
 // reads the same as a tell; the workflow's list, moved here so a tree with no remote hears it.
 const VOCABULARY = /paradigm shift|game.changer|ever-evolving|cutting.edge|\bdelve|\btapestry\b|\bsupercharge|\btransformative\b|\bmultifaceted\b|\bmeticulous\b|\bparamount\b|\bembark\b|it.s worth noting|at the end of the day|in today.s world|let.s dive|going forward|a testament to|marks a pivotal|plays a vital role|experts agree|studies show|widely regarded as|\bTODO\b|\bFIXME\b|\bTBD\b|as an ai\b|as a language model|i hope this helps|certainly!/i;
-// What the two advisories skip: the workflows, the rulebook that lists the tells, and this
+// What the two advisories skip: the workflows, the prose law that lists the tells, and this
 // script, which carries the list; a record is skipped by its depth under docs/.
-const VOCABULARY_SKIP = [".github/", "docs/CONVENTIONS.md", "scripts/audit-docs.mjs", "scripts/audit-docs-selftest.mjs", "eslint.config.js"];
+const VOCABULARY_SKIP = [".github/", "docs/PROSE.md", "scripts/audit-docs.mjs", "scripts/audit-docs-selftest.mjs", "eslint.config.js"];
 // The audits are skipped as quoting ground, because they carry the banned-word list the vocabulary advisory reads,
 // and so is the lint configuration, which names the markers it refuses.
 const CODESPELL_SKIP = ".git,node_modules,.hypothesis,__pycache__,dist,package-lock.json,*.svg,*.png,*.ico,*.woff,*.woff2,*.map,decisions,claims,reviews,inherited,mockServiceWorker.js,audit_docs.py,audit-docs.mjs,audit_inquiry.py";
@@ -410,7 +413,7 @@ if (existsSync(docsDir)) {
     if (entry.replace(/-/g, "").replace(/\.md$/, "") !== entry.replace(/-/g, "").replace(/\.md$/, "").toUpperCase()) {
       problems.push(`docs/${entry}: organic documents are UPPERCASE markdown`);
     }
-    if (!["ARCHITECTURE.md", "CONVENTIONS.md", "BASELINE.md", "UPSTREAM.md", "INVARIANTS.md"].includes(entry)) {
+    if (!["ARCHITECTURE.md", "CONVENTIONS.md", "LIVING.md", "RECORDS.md", "PROSE.md", "BASELINE.md", "UPSTREAM.md", "INVARIANTS.md"].includes(entry)) {
       const lines = readFileSync(full, "utf-8").split("\n").length;
       if (lines > BUDGET_LINES) {
         problems.push(`docs/${entry}: ${lines} lines against the ${BUDGET_LINES}-line budget; split by fission`);

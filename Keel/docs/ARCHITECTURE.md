@@ -17,6 +17,9 @@ my_package/
 │   ├── ARCHITECTURE.md         # This file; the annotated map of the template
 │   ├── BASELINE.md             # The repository baseline (always-present files and their rules)
 │   ├── CONVENTIONS.md          # The documentation rulebook (frozen; do not edit)
+│   ├── LIVING.md               # The rulebook's rules for living documents (frozen; do not edit)
+│   ├── RECORDS.md              # The rulebook's rules for records (frozen; do not edit)
+│   ├── PROSE.md                # The prose law (frozen; do not edit)
 │   ├── INVARIANTS.md           # What must stay true about the product, each claim with its holder and rung
 │   └── decisions/              # Immutable decision records; the project's "why" log
 │
