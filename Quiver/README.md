@@ -48,11 +48,14 @@ Quiver/
     decisions/           Immutable decision records.
     claims/              Immutable claim records, the inquiry's knowledge.
     reviews/             Immutable records of each pass over the literature.
+    screening/           Immutable screening logs, one per reader of a pass.
     arrows/              One living manifest per arrow.
   arrows/
     coinwise/            A Keel-style library arrow, whole and under Keel's law.
   scripts/
     audit_inquiry.py     The mechanical half of the rules, with a selftest.
+  util_resources/
+    searches/            The raw exports a pass's searches returned, declared generated.
 ```
 
 ## Key Features

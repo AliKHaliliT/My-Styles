@@ -46,6 +46,11 @@ reaches into an arrow, and an arrow's suite never checks a claim.
 
 Reading enters the same chain as running. A pass over one slice of one question, named by number in its record, follows the steps `docs/METHOD.md` writes down, is bounded before it begins and leaves one dated record in the `reviews/` folder under `docs/`, naming what it searched and the seeds it tested its strings against, the stages it ran or collapsed, the keys it found with the depth each was read at, the ledger entries it moved, and what it left to a person, which `STATE.md` queues; the bibliography, the claims, and the decomposition hold what it found, so no synthesis document sits beside them to rot. The next pass over the slice extends the last from before the date it stopped, by the lag of the index it searches.
 
+A pass that screened leaves its logs in the `screening/` folder under
+`docs/`, one per reader, and may keep the raw exports its searches
+returned under `util_resources/searches/`, declared generated so the
+prose law does not read them; the record names both.
+
 ## Exemplars
 
 The map says where things live; these files say how they read. An artifact of a kind listed here is cut from its exemplar and rewritten, never written fresh from the rule, because the rule names what must exist and only these bytes carry the dialect. The demo's named incompleteness bounds what the exemplars cover, not how closely they are followed.

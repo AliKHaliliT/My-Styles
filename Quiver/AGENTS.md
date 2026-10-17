@@ -27,6 +27,7 @@ This is the single index of the project's technical documentation. A document th
 | [docs/claims/](docs/claims/) | Immutable claim records holding what the inquiry holds true, on what evidence, at which pin. |
 | [docs/arrows/](docs/arrows/) | One living manifest per arrow: its style, the question it serves, and the claims resting on it. |
 | [docs/reviews/](docs/reviews/) | One immutable record per pass over the literature: the slice, the boundary searched, the stages run or collapsed, what was found and what it changed. |
+| [docs/screening/](docs/screening/) | One immutable log per reader of a pass that screened: every record, its decision and its reason, so the funnel's contents survive. |
 | [arrows/coinwise/README.md](arrows/coinwise/README.md) | The demo arrow: what it measures, its commands, and its named incompleteness. |
 
 There are no assistant-specific instruction files. Every assistant reads this file directly. If a tool genuinely cannot read AGENTS.md, give it a one-line shim that imports or points to this file and nothing more.

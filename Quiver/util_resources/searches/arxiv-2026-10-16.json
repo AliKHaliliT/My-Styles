@@ -1,0 +1,848 @@
+{
+ "index": "arXiv",
+ "day": "2026-10-16",
+ "syntax": "search_query with field prefixes and booleans, first three hundred",
+ "runs": [
+  {
+   "query": "(all:\"controlled rounding\" OR all:\"rounded percentages\" OR all:\"rounding percentages\" OR all:\"rounding proportions\" OR all:\"cash rounding\" OR all:\"currency rounding\" OR all:\"rounding differences\" OR all:\"distributive rounding\" OR all:\"table rounding\" OR all:\"apportionment method\" OR all:\"apportionment methods\" OR all:\"largest remainder\")",
+   "count": 46,
+   "items": [
+    {
+     "id": "http://arxiv.org/abs/2311.06969v1",
+     "title": "Proportional Consistency of Apportionment Methods",
+     "published": "2023-11-12T21:37:09Z",
+     "summary": "We analyze a little-known property of apportionment methods that captures how allocations scale with the size of the house: specifically, if, for a fixed population distribution, the house size and allocation can be scaled down within the set of integers, then the apportionment should be correspondingly scaled down. Balinski and Young (2001) include this property among the minimal requirements for a \"reasonable\" apportionment method. We argue that this property is better understood as a consistency requirement since quota-based apportionments that are \"less proportional\" meet this requirement while others that are \"more proportional\" do not. We also show that the family of quotatone methods based on stationary divisors (including the quota method) do not satisfy this property.",
+     "authors": [
+      "Michael A. Jones",
+      "David McCune",
+      "Jennifer M. Wilson"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/1611.08691v2",
+     "title": "Multiwinner Approval Rules as Apportionment Methods",
+     "published": "2016-11-26T09:47:07Z",
+     "summary": "We establish a link between multiwinner elections and apportionment problems by showing how approval-based multiwinner election rules can be interpreted as methods of apportionment. We consider several multiwinner rules and observe that they induce apportionment methods that are well-established in the literature on proportional representation. For instance, we show that Proportional Approval Voting induces the D'Hondt method and that Monroe's rule induces the largest reminder method. We also consider properties of apportionment methods and exhibit multiwinner rules that induce apportionment methods satisfying these properties.",
+     "authors": [
+      "Markus Brill",
+      "Jean-François Laslier",
+      "Piotr Skowron"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/1510.07528v1",
+     "title": "Apportionment methods",
+     "published": "2015-10-23T08:31:40Z",
+     "summary": "Most democratic countries use election methods to transform election results into whole numbers which usually give the number of seats in a legislative body the parties obtained. Which election method does this best can be specified by measuring the error between the allocated result and the ideal proportion. We show how to find an election method which is best suited to a given error function. We also discuss several properties of election methods that have been labelled paradoxa. In particular we explain the highly publicised ``Alabama'' Paradox for the Hare/Hamilton method and show that other popular election methods come with their very own paradoxa.",
+     "authors": [
+      "Horst F. Niemeyer",
+      "Alice C. Niemeyer"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/2601.15855v1",
+     "title": "How to Tamper with a Parliament: Strategic Campaigns in Apportionment Elections",
+     "published": "2026-01-22T11:02:34Z",
+     "summary": "In parliamentary elections, parties compete for a limited, typically fixed number of seats. Most parliaments are assembled using apportionment methods that distribute the seats based on the parties' vote counts. Common apportionment methods include divisor sequence methods (like D'Hondt or Sainte-Laguë), the largest-remainder method, and first-past-the-post. In many countries, an electoral threshold is implemented to prevent very small parties from entering the parliament. Further, several countries have apportionment systems that incorporate multiple districts. We study how computationally hard it is to change the election outcome (i.e., to increase or limit the influence of a distinguished party) by convincing a limited number of voters to change their vote. We refer to these bribery-style attacks as \\emph{strategic campaigns} and study the corresponding problems in terms of their computational (both classical and parameterized) complexity. We also run extensive experiments on real-world election data and study the effectiveness of optimal campaigns, in particular as opposed to using heuristic bribing strategies and with respect to the influence of the threshold and the influence of the number of districts. For apportionment elections with threshold, finally, we propose -- as an alternative to the standard top-choice mode -- the second-chance mode where voters of parties below the threshold receive a second chance to vote for another party, and we establish computational complexity results also in this setting.",
+     "authors": [
+      "Robert Bredereck",
+      "Piotr Faliszewski",
+      "Michał Furdyna",
+      "Andrzej Kaczmarczyk",
+      "Joanna Kaczmarek",
+      "Martin Lackner",
+      "Christian Laußmann",
+      "Jörg Rothe",
+      "Tessa Seeger"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/2605.06556v2",
+     "title": "Probability of Quota Violations in Divisor Apportionment Methods with Nonzero Allocations",
+     "published": "2026-05-07T16:49:50Z",
+     "summary": "Apportionment assigns indivisible items among groups. By the Balinski-Young theorem, no method can satisfy both house monotonicity and the quota rule. This paper investigates quota violations caused by nonzero allocation constraints, and derives exact probability formulas for their frequency. Such violations occur in systems like the U.S. House of Representatives, where each state is guaranteed at least one seat. We analyze the three-state case, introduce the $τ$ statistic to parametrize population distributions, and prove an Asymptotic Quota Stabilization theorem: for fixed $τ$, quota behavior stabilizes as populations grow, yielding probability results for quota violations determined by the set of ultimately violatory $τ$ values. Applying this framework to the five classical divisor methods, we derive exact probability formulas. Additionally, we show that as the number of seats $M \\to \\infty$, these probabilities converge to method-specific constants. These results provide a precise, quantitative foundation for evaluating the fairness and frequency of quota violations in constrained apportionment systems.",
+     "authors": [
+      "Tyler C. Wunder",
+      "Joseph Cutrone"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/2606.19968v1",
+     "title": "Beyond Lower Quota: Avoiding Overrepresentation in Multi-Winner Voting",
+     "published": "2026-06-18T09:10:19Z",
+     "summary": "Recently, in the social choice literature, much attention has been given to the question of avoiding underrepresentation in approval-based multi-winner voting. In this paper, we explore the largely overlooked complementary question of avoiding overrepresentation. This has not been explored systematically, despite being a desirable property with concrete applications. Intuitively, overrepresentation happens when a group determines a disproportionately large part of the committee, thereby exceeding the group's quota. We formulate a strong and appealing axiom for avoiding overrepresentation, called justifiable upper quota (JUQ). We introduce a generalization of Thiele rules, composite Thiele rules, and characterize the unique rule in this class satisfying our axiom. This rule, Adams-AV, which naturally extends Adams' apportionment method, has not been studied before. Additionally, we introduce a polynomial-time rule that satisfies JUQ. Furthermore, we introduce justified near quota, an axiom that balances avoiding under- and overrepresentation. It characterizes the unique Thiele rule extending the Sainte-Laguë apportionment method. Finally, we analyze the compatibility of our axioms with established proportionality notions such as EJR+.",
+     "authors": [
+      "Anton Baychkov",
+      "Martin Lackner",
+      "Jan Maly",
+      "Oliviero Nardi",
+      "Jannik Peters"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/1609.05370v2",
+     "title": "The Maximin Support Method: An Extension of the D'Hondt Method to Approval-Based Multiwinner Elections",
+     "published": "2016-09-17T17:45:18Z",
+     "summary": "We propose the maximin support method, a novel extension of the D'Hondt apportionment method to approval-based multiwinner elections. The maximin support method is based on maximizing the support of the least supported elected candidate. It can be computed efficiently and satisfies (adjusted versions of) the main properties of the original D'Hondt method: house monotonicity, population monotonicity, and proportional representation. We also establish a close relationship between the maximin support method and Phragmén's voting rules.",
+     "authors": [
+      "Luis Sánchez-Fernández",
+      "Norberto Fernández",
+      "Jesús A. Fisteus",
+      "Markus Brill"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/2201.11787v2",
+     "title": "A New Perspective on Impartial and Unbiased Apportionment",
+     "published": "2022-01-27T19:55:08Z",
+     "summary": "How to fairly apportion congressional seats to states has been debated for centuries. We present an alternative perspective on apportionment, centered not on states but \"families\" of state, sets of states with \"divisor-method\" quotas with the same integer part. We develop ``impartial\" and ``unbiased\" apportionment methods. Impartial methods apportion the same number of seats to families of states containing the same total population, whether a family consists of many small-population states or a few large-population states. Unbiased methods apportion seats so that if states are drawn repeatedly from the same distribution, the expected number of seats apportioned to each family equals the expected divisor-method quota for that family.",
+     "authors": [
+      "Ross Hyman",
+      "Nicolaus Tideman"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/2104.14347v2",
+     "title": "Picking Sequences and Monotonicity in Weighted Fair Division",
+     "published": "2021-04-29T13:52:09Z",
+     "summary": "We study the problem of fairly allocating indivisible items to agents with different entitlements, which captures, for example, the distribution of ministries among political parties in a coalition government. Our focus is on picking sequences derived from common apportionment methods, including five traditional divisor methods and the quota method. We paint a complete picture of these methods in relation to known envy-freeness and proportionality relaxations for indivisible items as well as monotonicity properties with respect to the resource, population, and weights. In addition, we provide characterizations of picking sequences satisfying each of the fairness notions, and show that the well-studied maximum Nash welfare solution fails resource- and population-monotonicity even in the unweighted setting. Our results serve as an argument in favor of using picking sequences in weighted fair division problems.",
+     "authors": [
+      "Mithun Chakraborty",
+      "Ulrike Schmidt-Kraepelin",
+      "Warut Suksompong"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/1907.03643v4",
+     "title": "A Mathematical Analysis of an Election System Proposed by Gottlob Frege",
+     "published": "2019-07-08T14:22:36Z",
+     "summary": "In 1998 a long-lost proposal for an election law by Gottlob Frege (1848--1925) was rediscovered in the Thüringer Universitäts- und Landesbibliothek in Jena, Germany. The method that Frege proposed for the election of representatives of a constituency features a remarkable concern for the representation of minorities. Its core idea is that votes cast for unelected candidates are carried over to the next election, while elected candidates incur a cost of winning. We prove that this sensitivity to past elections guarantees a proportional representation of political opinions in the long run. We find that through a slight modification of Frege's original method even stronger proportionality guarantees can be achieved. This modified version of Frege's method also provides a novel solution to the apportionment problem, which is distinct from all of the best-known apportionment methods, while still possessing noteworthy proportionality properties.",
+     "authors": [
+      "Paul Harrenstein",
+      "Marie-Louise Lackner",
+      "Martin Lackner"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/2405.18102v2",
+     "title": "Apportionment with Weighted Seats",
+     "published": "2024-05-28T12:08:54Z",
+     "summary": "Apportionment is the task of assigning resources to entities with different entitlements in a fair manner, and specifically a manner that is as proportional as possible. The best-known application is the assignment of parliamentary seats to political parties based on their share in the popular vote. Here we enrich the standard model of apportionment by associating each seat with a weight representing the (objective) value of that seat. A seat's weight reflects the fact that different seats might come with different roles, such as chair or treasurer. We define several apportionment methods and natural fairness requirements for this new setting, and we study the extent to which our methods satisfy these requirements. Our findings show that full fairness is harder to achieve than in the standard apportionment setting. Yet, for several natural relaxations of those requirements we can achieve stronger results than in the more expressive model of fair division with entitlements, where the values of objects are subjective.",
+     "authors": [
+      "Julian Chingoma",
+      "Ulle Endriss",
+      "Ronald de Haan",
+      "Adrian Haret",
+      "Jan Maly"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/2104.15058v1",
+     "title": "Perpetual Voting: The Axiomatic Lens",
+     "published": "2021-04-30T15:28:46Z",
+     "summary": "Perpetual voting was recently introduced as a framework for long-term collective decision making. In this framework, we consider a sequence of subsequent approval-based elections and try to achieve a fair overall outcome. To achieve fairness over time, perpetual voting rules take the history of previous decisions into account and identify voters that were dissatisfied with previous decisions. In this paper, we look at perpetual voting rules from an axiomatic perspective and study two main questions. First, we ask how simple such rules can be while still meeting basic desiderata. For two simple but natural classes, we fully characterize the axiomatic possibilities. Second, we ask how proportionality can be formalized in perpetual voting. We study proportionality on simple profiles that are equivalent to the apportionment setting and show that lower and upper quota axioms can be used to distinguish (and sometimes characterize) perpetual voting rules. Furthermore, we show a surprising connection between a perpetual rule called Perpetual Consensus and Frege's apportionment method.",
+     "authors": [
+      "Martin Lackner",
+      "Jan Maly"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/2202.11061v2",
+     "title": "In This Apportionment Lottery, the House Always Wins",
+     "published": "2022-02-22T17:46:11Z",
+     "summary": "Apportionment is the problem of distributing $h$ indivisible seats across states in proportion to the states' populations. In the context of the US House of Representatives, this problem has a rich history and is a prime example of interactions between mathematical analysis and political practice. Grimmett (2004) suggested to apportion seats in a randomized way such that each state receives exactly their proportional share $q_i$ of seats in expectation (ex ante proportionality) and receives either $\\lfloor q_i \\rfloor$ or $\\lceil q_i \\rceil$ many seats ex post (quota). However, there is a vast space of randomized apportionment methods satisfying these two axioms, and so we additionally consider prominent axioms from the apportionment literature. Our main result is a randomized method satisfying quota, ex ante proportionality and house monotonicity - a property that prevents paradoxes when the number of seats changes and which we require to hold ex post. This result is based on a generalization of dependent rounding on bipartite graphs, which we call cumulative rounding and which might be of independent interest, as we demonstrate via applications beyond apportionment.",
+     "authors": [
+      "Paul Gölz",
+      "Dominik Peters",
+      "Ariel D. Procaccia"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/1911.08365v2",
+     "title": "Approval-Based Apportionment",
+     "published": "2019-11-19T15:50:57Z",
+     "summary": "In the apportionment problem, a fixed number of seats must be distributed among parties in proportion to the number of voters supporting each party. We study a generalization of this setting, in which voters can support multiple parties by casting approval ballots. This approval-based apportionment setting generalizes traditional apportionment and is a natural restriction of approval-based multiwinner elections, where approval ballots range over individual candidates instead of parties. Using techniques from both apportionment and multiwinner elections, we identify rules that generalize the D'Hondt apportionment method and that satisfy strong axioms which are generalizations of properties commonly studied in the apportionment literature. In fact, the rules we discuss provide representation guarantees that are currently out of reach in the general setting of multiwinner elections: First, we show that core-stable committees are guaranteed to exist and can be found in polynomial time. Second, we demonstrate that extended justified representation is compatible with committee monotonicity (also known as house monotonicity).",
+     "authors": [
+      "Markus Brill",
+      "Paul Gölz",
+      "Dominik Peters",
+      "Ulrike Schmidt-Kraepelin",
+      "Kai Wilker"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/2405.03687v1",
+     "title": "Monotone Randomized Apportionment",
+     "published": "2024-05-06T17:59:02Z",
+     "summary": "Apportionment is the act of distributing the seats of a legislature among political parties (or states) in proportion to their vote shares (or populations). A famous impossibility by Balinski and Young (2001) shows that no apportionment method can be proportional up to one seat (quota) while also responding monotonically to changes in the votes (population monotonicity). Grimmett (2004) proposed to overcome this impossibility by randomizing the apportionment, which can achieve quota as well as perfect proportionality and monotonicity -- at least in terms of the expected number of seats awarded to each party. Still, the correlations between the seats awarded to different parties may exhibit bizarre non-monotonicities. When parties or voters care about joint events, such as whether a coalition of parties reaches a majority, these non-monotonicities can cause paradoxes, including incentives for strategic voting. In this paper, we propose monotonicity axioms ruling out these paradoxes, and study which of them can be satisfied jointly with Grimmett's axioms. Essentially, we require that, if a set of parties all receive more votes, the probability of those parties jointly receiving more seats should increase. Our work draws on a rich literature on unequal probability sampling in statistics (studied as dependent randomized rounding in computer science). Our main result shows that a sampling scheme due to Sampford (1967) satisfies Grimmett's axioms and a notion of higher-order correlation monotonicity.",
+     "authors": [
+      "José Correa",
+      "Paul Gölz",
+      "Ulrike Schmidt-Kraepelin",
+      "Jamie Tucker-Foltz",
+      "Victor Verdugo"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/2609.18710v1",
+     "title": "Ensuring proportionality: a logical model for compensatory seats added to multi-member constituencies",
+     "published": "2026-09-16T14:16:40Z",
+     "summary": "How many compensatory seats are needed to ensure (full) proportionality in two-tier electoral systems with multi-member constituencies? This question is answered by estimating the discrepancy between seats and votes rigorously, probabilistically and empirically. In 1919, Pólya showed that the Jefferson/D'Hondt method favours large parties. This seat surplus accumulates across constituencies. In some countries (e.g., Portugal, Poland, Spain and Turkey), this accumulation directly leads to quantifiable disproportionality in the final parliament. Elsewhere compensatory seats counteract this accumulated seat surplus. Using a logic-first approach, closed formulas for the required number of compensatory seats are derived given regional and national apportionment methods, the number of relevant parties $n$ and the size of the largest party $p$. If there are $c$ constituencies, it is derived logically that a two-tier system built on local D'Hondt apportionment in multi-member constituencies needs around $\\frac{c}{2}(n-\\frac{1}{p})$ compensatory seats to ensure proportionality. In words, that is half a compensatory seat per constituency times a number that increases with the number of parties and the size of the largest party. The validity of the derived formulas is analysed empirically using the extensive recent CLEA dataset. Many quantities do not depend much on the total parliament sizes, which means that the variance can be reduced by artificially varying the house sizes. Portugal, Poland, Spain and Turkey all employ a one-tier D'Hondt system and the analysis shows that if they were to add compensatory seats to the system, reasonable numbers would be 40, 75, 75 and 120, assuming that no other properties of the systems change.",
+     "authors": [
+      "Frederik Ravn Klausen"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/2410.23869v1",
+     "title": "New Combinatorial Insights for Monotone Apportionment",
+     "published": "2024-10-31T12:21:26Z",
+     "summary": "The apportionment problem constitutes a fundamental problem in democratic societies: How to distribute a fixed number of seats among a set of states in proportion to the states' populations? This--seemingly simple--task has led to a rich literature and has become well known in the context of the US House of Representatives. In this paper, we connect the design of monotone apportionment methods to classic problems from discrete geometry and combinatorial optimization and explore the extent to which randomization can enhance proportionality. We first focus on the well-studied family of stationary divisor methods, which satisfy the strong population monotonicity property, and show that this family produces only a slightly superlinear number of different outputs as a function of the number of states. While our upper and lower bounds leave a small gap, we show that--surprisingly--closing this gap would solve a long-standing open problem from discrete geometry, known as the complexity of $k$-levels in line arrangements. The main downside of divisor methods is their violation of the quota axiom, i.e., every state should receive $\\lfloor q_i\\rfloor$ or $\\lceil q_i\\rceil$ seats, where $q_i$ is the proportional share of the state. As we show that randomizing over divisor methods can only partially overcome this issue, we propose a relaxed version of divisor methods in which the total number of seats may slightly deviate from the house size. By randomizing over them, we can simultaneously satisfy population monotonicity, quota, and ex-ante proportionality. Finally, we turn our attention to quota-compliant methods that are house-monotone, i.e., no state may lose a seat when the house size is increased. We provide a polyhedral characterization based on network flows, which implies a simple description of all ex-ante proportional randomized methods that are house-monotone and quota-compliant.",
+     "authors": [
+      "Javier Cembrano",
+      "José Correa",
+      "Ulrike Schmidt-Kraepelin",
+      "Alexandros Tsigonias-Dimitriadis",
+      "Victor Verdugo"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/2510.14752v1",
+     "title": "Online Proportional Apportionment",
+     "published": "2025-10-16T14:53:19Z",
+     "summary": "Traditionally, the problem of apportioning the seats of a legislative body has been viewed as a one-shot process with no dynamic considerations. While this approach is reasonable for some settings, dynamic aspects play an important role in many others. We initiate the study of apportionment problems in an online setting. Specifically, we introduce a framework for proportional apportionment with no information about the future. In this model, time is discrete and there are $n$ parties that receive a certain share of the votes at each time step. An online algorithm needs to irrevocably assign a prescribed number of seats at each time, ensuring that each party receives its fractional share rounded up or down, and that the cumulative number of seats allocated to each party remains close to its cumulative share up to that time. We study deterministic and randomized online apportionment methods. For deterministic methods, we construct a family of adversarial instances that yield a lower bound, linear in $n$, on the worst-case deviation between the seats allocated to a party and its cumulative share. We show that this bound is best possible and is matched by a natural greedy method. As a consequence, a method guaranteeing that the cumulative number of seats assigned to each party up to any step equals its cumulative share rounded up or down (global quota) exists if and only if $n\\leq 3$. Then, we turn to randomized allocations and show that, for $n\\leq 3$, we can randomize over methods satisfying global quota with the additional guarantee that each party receives, in expectation, its proportional share in every step. Our proof is constructive: Any method satisfying these properties can be obtained from a flow on a recursively constructed network. We showcase the applicability of our results to obtain approximate solutions in the context of online dependent rounding procedures.",
+     "authors": [
+      "Javier Cembrano",
+      "Jose Correa",
+      "Svenja M. Griesbach",
+      "Victor Verdugo"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/1410.6059v4",
+     "title": "Integer percentages as electoral falsification fingerprints",
+     "published": "2014-10-22T14:54:56Z",
+     "summary": "We hypothesize that if election results are manipulated or forged, then, due to the well-known human attraction to round numbers, the frequency of reported round percentages can be increased. To test this hypothesis, we analyzed raw data from seven federal elections held in the Russian Federation during the period from 2000 to 2012 and found that in all elections since 2004 the number of polling stations reporting turnout and/or leader's result expressed by an integer percentage (as opposed to a fractional value) was much higher than expected by pure chance. Monte Carlo simulations confirmed high statistical significance of the observed phenomenon, thereby suggesting its man-made nature. Geographical analysis showed that these anomalies were concentrated in a specific subset of Russian regions which strongly suggests its orchestrated origin. Unlike previously proposed statistical indicators of alleged electoral falsifications, our observations can hardly be explained differently but by a widespread election fraud.",
+     "authors": [
+      "Dmitry Kobak",
+      "Sergey Shpilkin",
+      "Maxim S. Pshenichnikov"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/2609.25624v1",
+     "title": "Accelerating the Mitigation of LLM Inference Nondeterminism Across GPU Architectures",
+     "published": "2026-09-22T03:32:40Z",
+     "summary": "Large language model (LLM) outputs are expected to be reproducible under greedy decoding, yet in practice the same model, prompt, and software stack produce different outputs on different GPUs. The root cause is floating-point non-associativity combined with hardware-dependent kernel selection. Inference frameworks select different matrix-multiplication kernels on each architecture, with different parallel reduction orders and unspecified tensor-core arithmetic, and the resulting rounding differences can flip output tokens. Existing solutions have imperfect cross-architecture reproducibility and incur a significant performance penalty. We present a solution employing a set of fixed-configuration fused-upcast GEMM kernels that load 16-bit weights from memory, upcast them to FP32 in registers, and accumulate with IEEE-754 arithmetic in a reduction order that is a pure function of the problem shape and is therefore independent of the device, its SM count, or kernel scheduling. By fixing the floating-point reduction order as a function of problem shape alone, every GPU runs the same operation sequence, so cross-architecture reproducibility of the linear layers reduces to correct IEEE-754 arithmetic rather than to rounding differences staying below a tie-flip threshold. We confirm our solution's linear-layer outputs are bitwise identical across NVIDIA Ampere, Ada, and Hopper GPUs, while running $1.17$ to $3.1\\times$ faster end-to-end than the state-of-the-art solution and cutting weight-memory traffic in half.",
+     "authors": [
+      "Liam Cooper",
+      "Shinnung Jeong",
+      "Hyeran Jeon",
+      "Jeffrey Young",
+      "Hyesoon Kim"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/cs/0604068v2",
+     "title": "Unbiased Matrix Rounding",
+     "published": "2006-04-18T15:08:37Z",
+     "summary": "We show several ways to round a real matrix to an integer one such that the rounding errors in all rows and columns as well as the whole matrix are less than one. This is a classical problem with applications in many fields, in particular, statistics. We improve earlier solutions of different authors in two ways. For rounding matrices of size $m \\times n$, we reduce the runtime from $O((m n)^2 Second, our roundings also have a rounding error of less than one in all initial intervals of rows and columns. Consequently, arbitrary intervals have an error of at most two. This is particularly useful in the statistics application of controlled rounding. The same result can be obtained via (dependent) randomized rounding. This has the additional advantage that the rounding is unbiased, that is, for all entries $y_{ij}$ of our rounding, we have $E(y_{ij}) = x_{ij}$, where $x_{ij}$ is the corresponding entry of the input matrix.",
+     "authors": [
+      "Benjamin Doerr",
+      "Tobias Friedrich",
+      "Christian Klein",
+      "Ralf Osbild"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/2604.01211v2",
+     "title": "Making Every Bit Count for $A$-Optimal State Estimation",
+     "published": "2026-04-01T17:51:34Z",
+     "summary": "We study the problem of controlling how a limited communication bandwidth budget is allocated across heterogeneously quantized sensor measurements. The performance criterion is the trace of the error covariance matrix of the linear minimum mean square error (LMMSE) state estimator, i.e., an $A$-optimal design criterion. Minimizing this criterion with a bit budget constraint yields a nonconvex optimization problem. We derive a formula that reduces each evaluation of the gradient to a single Cholesky factorization. This enables efficient optimization by both a projection-free Frank--Wolfe method (with a computable convergence certificate) and an interior point method with L-BFGS Hessian approximation over the problem's continuous relaxation. A largest remainder rounding procedure recovers integer bit allocations with a bound on the quality of the rounded solution. Numerical experiments in IEEE power grid test cases with up to 300 buses compare both solvers and demonstrate that the analytic gradient is the key computational enabler for both methods. Additionally, the heterogeneous bit allocation is compared to standard uniform bit allocation on the 500 bus IEEE power grid test case.",
+     "authors": [
+      "Cameron Khanpour",
+      "Daniel Turizo",
+      "Samuel Talkington"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/2610.18705v1",
+     "title": "Semi-Streaming Estimation of the Held--Karp Bound and Graph-Metric TSP Cost",
+     "published": "2026-10-13T16:53:28Z",
+     "summary": "The Held--Karp bound is a linear-programming lower bound for the metric traveling salesperson problem (TSP). We approximate this bound in the multi-pass insertion-only streaming model for metrics induced by connected positive-weight graphs. For an $n$-vertex, $m$-edge graph and $0<\\eps\\le1/2$, the algorithm returns a $(1+\\eps)$ upper approximation with high probability, using $\\wtO(\\eps^{-4})$ passes, $\\wtO(n\\eps^{-2})$ words, and $\\wtO(m\\eps^{-4})$ arithmetic operations per pass. We replace the changing edge-weight vector by a short history of multiplicative-weights (MWU) updates. After initialization, updates repeat until a column is removed. We store each repeated update once, with its repetition count. The record length depends on the number of columns, not updates; the argument applies to any fixed nonnegative matrix. For Held--Karp, tree-path queries recover edge weights from these records. Separate search and update thresholds allow fresh sparsifiers at successive search stages. Controlled rounding gives a bounded-precision implementation. The estimate yields a $(3/2+\\eps)$ graph-metric TSP value estimate and a $(7/5+\\eps)$ estimate when the input graph is unweighted. Conversely, in weighted graph streams, every one-pass $(1+η)$ upper approximation to Held--Karp, for fixed $0\\leη<1$, requires quadratic space. The algorithms estimate values; they do not construct tours within these bounds.",
+     "authors": [
+      "Sharareh Alipour"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/2506.09501v2",
+     "title": "Understanding and Mitigating Numerical Sources of Nondeterminism in LLM Inference",
+     "published": "2025-06-11T08:23:53Z",
+     "summary": "Large Language Models (LLMs) are now integral across various domains and have demonstrated impressive performance. Progress, however, rests on the premise that benchmark scores are both accurate and reproducible. We demonstrate that the reproducibility of LLM performance is fragile: changing system configuration, such as evaluation batch size, GPU count, and GPU version, can introduce significant differences in the generated responses. This issue is especially pronounced in reasoning models, where minor rounding differences in early tokens can cascade into divergent chains of thought, ultimately affecting accuracy. For instance, under bfloat16 precision with greedy decoding, a reasoning model like DeepSeek-R1-Distill-Qwen-7B can exhibit up to 9% variation in accuracy and 9,000 tokens difference in response length due to differences in GPU count, type, and evaluation batch size. We trace the root cause of this variability to the non-associative nature of floating-point arithmetic under limited numerical precision. This work presents the first systematic investigation into how numerical precision affects reproducibility in LLM inference. Through carefully controlled experiments across various hardware, software, and precision settings, we quantify when and how model outputs diverge. Our analysis reveals that floating-point precision - while critical for reproducibility - is often neglected in evaluation practices. Inspired by this, we develop a lightweight inference pipeline, dubbed LayerCast, that stores weights in 16-bit precision but performs all computations in FP32, balancing memory efficiency with numerical stability. Code is available at https://github.com/nanomaoli/llm_reproducibility.",
+     "authors": [
+      "Jiayi Yuan",
+      "Hao Li",
+      "Xinheng Ding",
+      "Wenya Xie",
+      "Yu-Jhe Li",
+      "Wentian Zhao",
+      "Kun Wan",
+      "Jing Shi",
+      "Xia Hu",
+      "Zirui Liu"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/1907.10590v2",
+     "title": "The method of Eneström and Phragmén for parliamentary elections by means of approval voting",
+     "published": "2019-07-23T08:59:31Z",
+     "summary": "We study a method for proportional representation that was proposed at the turn from the nineteenth to the twentieth century by Gustav Eneström and Edvard Phragmén. Like Phragmén's better-known iterative minimax method, it is assumed that the voters express themselves by means of approval voting. In contrast to the iterative minimax method, however, here one starts by fixing a quota, i.e. the number of votes that give the right to a seat. As a matter of fact, the method of Eneström and Phragmén can be seen as an extension of the method of largest remainders from closed lists to open lists, or also as an adaptation of the single transferable vote to approval rather than preferential voting. The properties of this method are studied and compared with those of other methods of the same kind.",
+     "authors": [
+      "Rosa Camps",
+      "Xavier Mora",
+      "Laia Saumell"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/2209.11651v1",
+     "title": "Local Distributed Rounding: Generalized to MIS, Matching, Set Cover, and Beyond",
+     "published": "2022-09-23T15:32:59Z",
+     "summary": "We develop a general deterministic distributed method for locally rounding fractional solutions of graph problems for which the analysis can be broken down into analyzing pairs of vertices. Roughly speaking, the method can transform fractional/probabilistic label assignments of the vertices into integral/deterministic label assignments for the vertices, while approximately preserving a potential function that is a linear combination of functions, each of which depends on at most two vertices (subject to some conditions usually satisfied in pairwise analyses). The method unifies and significantly generalizes prior work on deterministic local rounding techniques [Ghaffari, Kuhn FOCS'21; Harris FOCS'19; Fischer, Ghaffari, Kuhn FOCS'17; Fischer DISC'17] to obtain polylogarithmic-time deterministic distributed solutions for combinatorial graph problems. Our general rounding result enables us to locally and efficiently derandomize a range of distributed algorithms for local graph problems, including maximal independent set (MIS), maximum-weight independent set approximation, and minimum-cost set cover approximation. As a highlight, we in particular obtain a deterministic $O(\\log^2Δ\\cdot\\log n)$-round algorithm for computing an MIS in the LOCAL model and an almost as efficient $O(\\log^2Δ\\cdot\\log\\logΔ\\cdot\\log n)$-round deterministic MIS algorithm in the CONGEST model. As a result, the best known deterministic distributed time complexity of the four most widely studied distributed symmetry breaking problems (MIS, maximal matching, $(Δ+1)$-vertex coloring, and $(2Δ-1)$-edge coloring) is now $O(\\log^2Δ\\cdot\\log n)$. Our new MIS algorithm is also the first direct polylogarithmic-time deterministic distributed MIS algorithm, which is not based on network decomposition.",
+     "authors": [
+      "Salwa Faour",
+      "Mohsen Ghaffari",
+      "Christoph Grunau",
+      "Fabian Kuhn",
+      "Václav Rozhoň"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/1104.2137v2",
+     "title": "The probability of the Alabama paradox",
+     "published": "2011-04-12T08:38:04Z",
+     "summary": "Hamilton's method (also called method of largest remainder) is a natural and common method to distribute seats proportionally between states (or parties) in a parliament. In USA it has been abandoned due to some drawbacks, in particular the possibility of the Alabama paradox, but it is still in use in many other countries. In this paper we give, under certain assumptions, a closed formula for the asymptotic probability, as the number of seats tends to infinity, that the Alabama paradox occurs given the vector p_1,...,p_m of relative sizes of the states. From the theorem we deduce a number of consequences. For example it is shown that the expected number of states that will suffer from the Alabama paradox is asymptotically bounded above by 1/e. For random (uniformly distributed) relative sizes p_1,...,p_m the expected number of states to suffer from the Alabama paradox converges to slightly more than a third of this, or approximately 0.335/e=0.123, as m tends to infinity. We leave open the generalization of our formula to all possible (in particular rational) p_1,...,p_m.",
+     "authors": [
+      "Svante Janson",
+      "Svante Linusson"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/1909.03185v1",
+     "title": "Heterogeneous wealth distribution, round-trip trading and the emergence of volatility clustering in Speculation Game",
+     "published": "2019-09-07T04:17:45Z",
+     "summary": "This study is a detailed analysis of Speculation Game, a minimal agent-based model of financial markets, in which the round-trip trading and the dynamic wealth evolution with variable trading volumes are implemented. Instead of herding behavior, we find that the emergence of volatility clustering can be induced by the heterogeneous wealth distribution among traders. In particular, the spontaneous redistribution of market wealth through repetitions of round-trip trades can widen the wealth disparity and establish the Pareto distribution of the capital size. In the meantime, large fluctuations in price return are brought on by the intermittent placements of the relatively big orders from rich traders. Empirical data are used to support the scenario derived from the model.",
+     "authors": [
+      "Kei Katahira",
+      "Yu Chen"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/2507.15383v1",
+     "title": "The Australian Vote: Transferable Voting, Its Limitations and Strengths",
+     "published": "2025-07-21T08:40:19Z",
+     "summary": "The voting systems known as Alternative Vote (AV) and Single Transferable Vote (STV) are extensively used for elections in Australia, possibly more than in any other jurisdiction. Often proposed as superior alternatives to Plurality and other common systems, they are also criticised by theoreticians for their vulnerability to paradoxical outcomes. It is argued these 'transferable voting' systems in fact operate to balance competing desiderata that attempt to distil the common notions of 'majority rule' and 'voter choice'. Among positive characteristics of AV is that its outcome is always a majority runoff between two candidates with substantial voter support, and that a Condorcet winner who gains at least one-third of votes is always elected. It is shown that in situations where a Condorcet winner is not elected, there always exists a monotonic shift producing a Condorcet cycle without changing the election outcome. A detailed analysis of non-monotonicity paradoxes in three-way contests is provided, aided by a two-dimensional spatial model where each candidate has a one-in-four probability of gaining an absolute majority of primary votes while there is a similar one-in-four probability that no candidate wins a majority. On such a model it is shown non-monotonicities are latent in less than 3.5% of election scenarios (and conjectured to be less than 3%), and the close link between non-monotonicities and Condorcet cycles and instabilities is studied in more detail. Properties of multi-winner STV are also reviewed including a demonstration of the standard fact that STV becomes similar to a form of largest-remainder list voting in the special case where ballots are cast strictly by party allegiance. The argument that AV and STV exemplify the principle of voter choice while balancing absolute and relative concepts of majority-rule is made by reference to practice in Australian elections.",
+     "authors": [
+      "Anthony B. Morton"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/1807.09811v1",
+     "title": "Interval Simulation of Narmax Models Based on Computer Arithmetic",
+     "published": "2018-07-25T18:29:02Z",
+     "summary": "System identification is an important area of science, which aims to describe the characteristics of the system, representing them by mathematical models. Since many of these models can be seen as recursive functions, it is extremely important to control the errors in these functions, because small errors introduced in each computational step can grow exponentially due to the sensitivity to initial conditions present in this type of functions. One of the ways to control rounding and truncation errors is through interval arithmetic, since it is not possible to represent all numbers in the computer because of the finite representation in them. Thus, in arithmetic interval a number is represented by an interval in which the true number is within that interval. In this manuscript we developed an algorithm that performs the operations of interval arithmetic using basic functions. We have compared compared our results with the Matlab-toolbox Intlab. Numerical experiments have shown that our method is superior producing narrower intervals.",
+     "authors": [
+      "P. F. S. Guedes",
+      "M. L. C. Peixoto",
+      "O. A. R. O. Freitas",
+      "A. M. Barbosa",
+      "S. A. M. Martins",
+      "E. G. Nepomuceno"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/0810.0330v1",
+     "title": "Improved Seed Methods for Symmetric Positive Definite Linear Equations with Multiple Right-hand Sides",
+     "published": "2008-10-02T03:20:03Z",
+     "summary": "We consider symmetric positive definite systems of linear equations with multiple right-hand sides. The seed conjugate gradient method solves one right-hand side with the conjugate gradient method and simultaneously projects over the Krylov subspace thus developed for the other right-hand sides. Then the next system is solved and used to seed the remaining ones. Rounding error in the conjugate gradient method limits how much the seeding can improve convergence. We propose three changes to the seed conjugate gradient method: only the first right-hand side is used for seeding, this system is solved past convergence, and the roundoff error is controlled with some reorthogonalization. We will show that results are actually better with only one seeding, even in the case of related right-hand sides. Controlling rounding error gives the potential for rapid convergence for the second and subsequent right-hand sides.",
+     "authors": [
+      "Abdou M. Abdel-Rehim",
+      "Ronald B. Morgan",
+      "Walter Wilcox"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/2202.08544v2",
+     "title": "Efficient Classification of Locally Checkable Problems in Regular Trees",
+     "published": "2022-02-17T09:39:26Z",
+     "summary": "We give practical, efficient algorithms that automatically determine the asymptotic distributed round complexity of a given locally checkable graph problem in the $[Θ(\\log n), Θ(n)]$ region, in two settings. We present one algorithm for unrooted regular trees and another algorithm for rooted regular trees. The algorithms take the description of a locally checkable labeling problem as input, and the running time is polynomial in the size of the problem description. The algorithms decide if the problem is solvable in $O(\\log n)$ rounds. If not, it is known that the complexity has to be $Θ(n^{1/k})$ for some $k = 1, 2, \\dotsc$, and in this case the algorithms also output the right value of the exponent $k$. In rooted trees in the $O(\\log n)$ case we can then further determine the exact complexity class by using algorithms from prior work; for unrooted trees the more fine-grained classification in the $O(\\log n)$ region remains an open question.",
+     "authors": [
+      "Alkida Balliu",
+      "Sebastian Brandt",
+      "Yi-Jun Chang",
+      "Dennis Olivetti",
+      "Jan Studený",
+      "Jukka Suomela"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/2607.21555v1",
+     "title": "Enhancing Entanglement Purification with Shared Randomness",
+     "published": "2026-07-23T17:37:35Z",
+     "summary": "Entanglement purification protocols (EPPs) are essential for improving entanglement fidelity to support fault-tolerant distributed quantum information processing. Practical entanglement sources are often heterogeneous and source labels may be unavailable at the EPP layer. We show that classical shared randomness, together with buffer memories, can enhance entanglement purification when source labels are unavailable, without state characterization or EPP circuit optimization. The strategy is to accumulate multiple entanglement distribution rounds and then use shared randomness to shuffle all the stored entangled states before packaging them as inputs to the EPP. For any $n$ Werner sources and any fixed $n$-to-1 bilocal Clifford EPP, we prove that accumulating and shuffling improves the expected success probability and the success-weighted output Bell fidelity over the baseline without accumulating and shuffling, for every $n$, for every finite number of accumulation rounds and in the asymptotic limit, and the improvement increases monotonically with the number of accumulation rounds.",
+     "authors": [
+      "Allen Zang",
+      "Bikun Li",
+      "Xinan Chen",
+      "Eric Chitambar",
+      "Liang Jiang",
+      "Martin Suchara",
+      "Tian Zhong"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/2603.28637v2",
+     "title": "Sublogarithmic Distributed Vertex Coloring with Optimal Number of Colors",
+     "published": "2026-03-30T16:20:54Z",
+     "summary": "For any $Δ$, let $k_Δ$ be the maximum integer $k$ such that $(k+1)(k+2)\\le Δ$. We give a distributed \\LOCAL algorithm that, given an integer $k < k_Δ$, computes a valid $Δ-k$-coloring if one exists. The algorithm runs in $\\tilde{O}(\\log^4 \\log n)$ rounds, which is within a polynomial factor of the $Ω(\\log\\log n)$ lower bound, which already applies to the case $k=0$. It is also best possible in the sense that if $k \\ge k_Δ$, the problem requires $Ω(n/Δ)$ distributed rounds [Molloy, Reed, '14, Bamas, Esperet '19]. For $Δ$ at most polylogarithmic, the algorithm is an exponential improvement over the current state of the art of $O(\\log^{49/12} n)$ rounds. When $Δ\\ge (\\log n)^{50}$, our algorithm achieves an even faster runtime of $O(\\log^* n)$ rounds.",
+     "authors": [
+      "Maxime Flin",
+      "Magnús M. Halldórsson",
+      "Manuel Jakob",
+      "Yannic Maus"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/2608.02910v1",
+     "title": "Distributed Algorithms for Near-Equitable Coloring",
+     "published": "2026-08-03T21:51:26Z",
+     "summary": "For an $n$-vertex graph of maximum degree $Δ$ and diameter $D$, an equitable $(Δ+1)$-coloring is a vertex coloring where the frequency of each color (namely, the number of vertices it colors) are all equal to $σ=n/(Δ+1)$ (up to rounding). The Hajnal-Szemerédi Theorem guarantees the existence of such a coloring for every graph, and an $O(n^2Δ)$ time sequential algorithm is known for computing such a coloring. Here, we study near-equitable graph coloring in distributed networks. The main question of interest is how close one can remain to the desired palette size of $Δ+1$ while computing, in few distributed rounds, a coloring whose frequencies are close to $σ$. It appears that these two conflicting parameters exhibit a tradeoff, which we attempt to explore. We present a suite of fast randomized distributed algorithms representing varying points on this tradeoff, analyze their properties, and study their time complexity in the sequential, CONGEST and Congested Clique (CC) models.",
+     "authors": [
+      "Amit Nir",
+      "David Peleg"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/2112.01069v1",
+     "title": "Tactical cooperation of defectors in a multi-stage public goods game",
+     "published": "2021-12-02T09:20:19Z",
+     "summary": "The basic social dilemma is frequently captured by a public goods game where participants decide simultaneously whether to support a common pool or not and after the enhanced contributions are distributed uniformly among all competitors. What if the result of common efforts is {\\it not} distributed immediately, but it is reinvested and added to the pool for a next round? This extension may not only result in an enhanced benefit for group members but also opens new strategies for involved players because they may act in distinct rounds differently. In this work we focus on the simplest case when two rounds are considered, but the applied multiplication factors dedicated to a certain round can be different. We show that in structured populations the winning strategy may depend sensitively on the ratio of these factors and the last round has a special importance to reach a fully cooperative state. We also observe that it may pay for defectors to support the first round and after enjoy the extra benefit of accumulated contributions. Full cooperator strategy is only viable if the second round ensures a premium benefit of investments.",
+     "authors": [
+      "Attila Szolnoki",
+      "Xiaojie Chen"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/2606.23231v1",
+     "title": "Efficient Energy-Constrained Semi-Device-Independent QRNG with an Integrated Heterodyne Receiver",
+     "published": "2026-06-22T12:18:55Z",
+     "summary": "Semi-device-independent QRNG frameworks represent a particularly attractive approach, combining strong security guarantees with high randomness generation rates while relying only on reduced and practical physical assumptions. A recently proposed approach based on photon-number constraints is particularly suited to photonic implementations, where these assumptions can be easily assessed experimentally. Here, we experimentally demonstrate a quantum random number generator within this framework, enabling the direct computation of lower bounds on the certifiable Shannon entropy via semidefinite relaxation techniques. When combined with entropy accumulation methods, this approach enables finite-size randomness certification without assuming independent and identically distributed rounds. We realize the protocol using a four-state coherent-state constellation symmetrically distributed in phase space and measured by heterodyne detection, certifying 0.223 bit per measurement, which is the highest value reported to date for a continuous-variable semi-device-independent QRNG. The implementation combines a low-loss integrated photonic heterodyne receiver with a simple transmitter assembled from commercial components, providing a practical and high-speed architecture for semi-device-independent randomness generation.",
+     "authors": [
+      "Mattia Sabatini",
+      "Carles Roch i Carceller",
+      "Tommaso Bertapelle",
+      "Andrea Peri",
+      "Giulio Gualandi",
+      "Matías Rubén Bolaños",
+      "Yoann Piétri",
+      "Giacomo Corrielli",
+      "Paolo Villoresi",
+      "Giuseppe Vallone",
+      "Roberto Osellame",
+      "Armin Tavakoli",
+      "Marco Avesani"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/2602.15337v2",
+     "title": "FedPSA: Modeling Behavioral Staleness in Asynchronous Federated Learning",
+     "published": "2026-02-17T03:57:07Z",
+     "summary": "Asynchronous Federated Learning (AFL) has emerged as a significant research area in recent years. By not waiting for slower clients and executing the training process concurrently, it achieves faster training speed compared to traditional federated learning. However, due to the staleness introduced by the asynchronous process, its performance may degrade in some scenarios. Existing methods often use the round difference between the current model and the global model as the sole measure of staleness, which is coarse-grained and lacks observation of the model itself, thereby limiting the performance ceiling of asynchronous methods. In this paper, we propose FedPSA (Parameter Sensitivity-based Asynchronous Federated Learning), a more fine-grained AFL framework that leverages parameter sensitivity to measure model obsolescence and establishes a dynamic momentum queue to assess the current training phase in real time, thereby adjusting the tolerance for outdated information dynamically. Extensive experiments on multiple datasets and comparisons with various methods demonstrate the superior performance of FedPSA, achieving up to 6.37\\% improvement over baseline methods and 1.93\\% over the current state-of-the-art method.",
+     "authors": [
+      "Chaoyi Lu",
+      "Yiding Sun",
+      "Zhichuan Yang",
+      "Jinqian Chen",
+      "Dongfu Yin",
+      "Jihua Zhu"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/2205.03143v2",
+     "title": "How to Minimize the Weighted Sum AoI in Multi-Source Status Update Systems: OMA or NOMA?",
+     "published": "2022-05-06T11:18:43Z",
+     "summary": "In this paper, the minimization of the weighted sum average age of information (AoI) in a multi-source status update communication system is studied. Multiple independent sources send update packets to a common destination node in a time-slotted manner under the limit of maximum retransmission rounds. Different multiple access schemes, i.e., orthogonal multiple access (OMA) and non-orthogonal multiple access (NOMA) are exploited here over a block-fading multiple access channel (MAC). Constrained Markov decision process (CMDP) problems are formulated to describe the AoI minimization problems considering both transmission schemes. The Lagrangian method is utilised to convert CMDP problems to unconstraint Markov decision process (MDP) problems and corresponding algorithms to derive the power allocation policies are obtained. On the other hand, for the case of unknown environments, two online reinforcement learning approaches considering both multiple access schemes are proposed to achieve near-optimal age performance. Numerical simulations validate the improvement of the proposed policy in terms of weighted sum AoI compared to the fixed power transmission policy, and illustrate that NOMA is more favorable in case of larger packet size.",
+     "authors": [
+      "Jixuan Wang",
+      "Deli Qiao"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/2608.24102v3",
+     "title": "A Few Shared Random Bits Suffice for Constant-Round Almost Stable Matching",
+     "published": "2026-08-25T06:04:31Z",
+     "summary": "We show that almost stable matching can be solved in constant distributed rounds on general bipartite graphs $G=(V,E)$ using only a few shared random bits. Specifically, in the $\\congest$ model, we compute a matching whose expected number of blocking pairs is at most $\\varepsilon |E|$ in $O\\left(\\frac{\\log(1/\\varepsilon)}{\\varepsilon^4}\\right)$ rounds using $O\\left(\\log(1/\\varepsilon)\\right)$ shared random bits. Thus, for every constant $\\varepsilon>0$, the round complexity is $O(1)$, independent of the number of vertices and the maximum degree. Previous algorithms achieve constant round complexity only for bounded-degree or almost-regular graphs; on general graphs, their round complexity depends polylogarithmically on $n$. Our main technical idea is a degree-guarded freezing rule that allows widely varying degrees to be handled by a single global charging argument, avoiding the $Θ(\\log n)$ successive degree thresholds used in previous work. The shared random bits are used only to select a common random output iteration. As consequences, we obtain an $O\\left( \\frac{\\log(1/\\varepsilon)}{\\varepsilon^4} + \\frac{\\log n}{\\varepsilon} \\right)$-round $\\congest$ algorithm without pre-shared randomness, via a low-diameter decomposition, and an $O\\left(\\frac{\\log(1/\\varepsilon)}{\\varepsilon^4}\\right)$-round algorithm in the fully-scalable Massively Parallel Computation ($\\mpc$) model with linear total memory.",
+     "authors": [
+      "Yi-Jun Chang",
+      "Kushagra Chatterjee"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/2301.06457v2",
+     "title": "A Distributed Palette Sparsification Theorem",
+     "published": "2023-01-16T14:59:24Z",
+     "summary": "The celebrated palette sparsification result of [Assadi, Chen, and Khanna SODA'19] shows that to compute a $Δ+1$ coloring of the graph, where $Δ$ denotes the maximum degree, it suffices if each node limits its color choice to $O(\\log n)$ independently sampled colors in $\\{1, 2, \\dots, Δ+1\\}$. They showed that it is possible to color the resulting sparsified graph -- the spanning subgraph with edges between neighbors that sampled a common color, which are only $\\tilde{O}(n)$ edges -- and obtain a $Δ+1$ coloring for the original graph. However, to compute the actual coloring, that information must be gathered at a single location for centralized processing. We seek instead a local algorithm to compute such a coloring in the sparsified graph. The question is if this can be achieved in $\\operatorname{poly}(\\log n)$ distributed rounds with small messages. Our main result is an algorithm that computes a $Δ+1$-coloring after palette sparsification with $O(\\log^2 n)$ random colors per node and runs in $O(\\log^2 Δ+ \\log^3 \\log n)$ rounds on the sparsified graph, using $O(\\log n)$-bit messages. We show that this is close to the best possible: any distributed $Δ+1$-coloring algorithm that runs in the LOCAL model on the sparsified graph, given by palette sparsification, for any $\\operatorname{poly}(\\log n)$ colors per node, requires $Ω(\\log Δ/ \\log\\log n)$ rounds. This distributed palette sparsification result leads to the first $\\operatorname{poly}(\\log n)$-round algorithms for $Δ+1$-coloring in two previously studied distributed models: the Node Capacitated Clique, and the cluster graph model.",
+     "authors": [
+      "Maxime Flin",
+      "Mohsen Ghaffari",
+      "Magnús M. Halldórsson",
+      "Fabian Kuhn",
+      "Alexandre Nolin"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/1703.00900v2",
+     "title": "Improved Deterministic Distributed Matching via Rounding",
+     "published": "2017-03-02T18:55:52Z",
+     "summary": "We present improved deterministic distributed algorithms for a number of well-studied matching problems, which are simpler, faster, more accurate, and/or more general than their known counterparts. The common denominator of these results is a deterministic distributed rounding method for certain linear programs, which is the first such rounding method, to our knowledge. A sampling of our end results is as follows. -- An $O(\\log^2 Δ\\cdot \\log n)$-round deterministic distributed algorithm for computing a maximal matching, in $n$-node graphs with maximum degree $Δ$. This is the first improvement in about 20 years over the celebrated $O(\\log^4 n)$-round algorithm of Hańćkowiak, Karoński, and Panconesi [SODA'98, PODC'99]. -- A deterministic distributed algorithm for computing a $(2+\\varepsilon)$-approximation of maximum matching in $O(\\log^2 Δ\\cdot \\log \\frac{1}{\\varepsilon} + \\log^ * n)$ rounds. This is exponentially faster than the classic $O(Δ+\\log^* n)$-round $2$-approximation of Panconesi and Rizzi [DIST'01]. With some modifications, the algorithm can also find an $\\varepsilon$-maximal matching which leaves only an $\\varepsilon$-fraction of the edges on unmatched nodes. -- An $O(\\log^2 Δ\\cdot \\log \\frac{1}{\\varepsilon} + \\log^ * n)$-round deterministic distributed algorithm for computing a $(2+\\varepsilon)$-approximation of a maximum weighted matching, and also for the more general problem of maximum weighted $b$-matching. These improve over the $O(\\log^4 n \\cdot \\log_{1+\\varepsilon} W)$-round $(6+\\varepsilon)$-approximation algorithm of Panconesi and Sozio [DIST'10], where $W$ denotes the maximum normalized weight.",
+     "authors": [
+      "Manuela Fischer"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/2507.12038v4",
+     "title": "Distributed Algorithms for Potential Problems",
+     "published": "2025-07-16T08:53:58Z",
+     "summary": "In this work, we present a fast distributed algorithm for local potential problems: these are graph problems where the task is to find a locally optimal solution where no node can unilaterally improve the utility in its local neighborhood by changing its own label. A simple example of such a problem is the task of finding a locally optimal cut, i.e., a cut where for each node at least half of its incident edges are cut edges. The distributed round complexity of the locally optimal cut problem has been wide open; the problem is known to require $Ω(\\log n)$ rounds in the deterministic LOCAL model and $Ω(\\log \\log n)$ rounds in the randomized LOCAL model, but the only known upper bound is the trivial brute-force solution of $O(n)$ rounds. Locally optimal cut in constant-degree graphs is perhaps the simplest example of a locally checkable labeling problem for which there is still such a large gap between current upper and lower bounds. We show that in constant-degree graphs, all local potential problems, including locally optimal cut, can be solved in $\\log^{O(1)} n$ rounds, both in the deterministic and randomized LOCAL models. In particular, the deterministic round complexity of the locally optimal cut problem is now settled to $\\log^{Θ(1)} n$. Our algorithms also apply to the general case of graphs of maximum degree $Δ$. For the special case of locally optimal cut, we obtain a randomized algorithm that runs in $O(Δ^{2} \\log^{6} n)$ rounds, which can be derandomized at polylogarithmic cost with standard techniques. Furthermore, we show that a dependence in $Δ$ is necessary: we prove a lower bound of $Ω(\\min\\{Δ,\\sqrt{n}\\})$ rounds, even in the quantum-LOCAL model; in particular, there is no polylogarithmic-round algorithm for the general case.",
+     "authors": [
+      "Alkida Balliu",
+      "Thomas Boudier",
+      "Francesco d'Amore",
+      "Fabian Kuhn",
+      "Dennis Olivetti",
+      "Gustav Schmid",
+      "Jukka Suomela"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/2308.04251v2",
+     "title": "On the Node-Averaged Complexity of Locally Checkable Problems on Trees",
+     "published": "2023-08-08T13:35:38Z",
+     "summary": "Over the past decade, a long line of research has investigated the distributed complexity landscape of locally checkable labeling (LCL) problems on bounded-degree graphs, culminating in an almost-complete classification on general graphs and a complete classification on trees. The latter states that, on bounded-degree trees, any LCL problem has deterministic worst-case time complexity $O(1)$, $Θ(\\log^* n)$, $Θ(\\log n)$, or $Θ(n^{1/k})$ for some positive integer $k$, and all of those complexity classes are nonempty. Moreover, randomness helps only for (some) problems with deterministic worst-case complexity $Θ(\\log n)$, and if randomness helps (asymptotically), then it helps exponentially. In this work, we study how many distributed rounds are needed on average per node in order to solve an LCL problem on trees. We obtain a partial classification of the deterministic node-averaged complexity landscape for LCL problems. As our main result, we show that every problem with worst-case round complexity $O(\\log n)$ has deterministic node-averaged complexity $O(\\log^* n)$. Then we show how using randomization we can speed this up and show that every problem with worst case round complexity $O(\\log n)$ has randomized node-averaged complexity $O(1)$. We further establish bounds on the node-averaged complexity of problems with worst-case complexity $Θ(n^{1/k})$: we show that all these problems have node-averaged complexity $\\widetildeΩ(n^{1 / (2^k - 1)})$, and that this lower bound is tight for some problems. The lower bound holds even for the randomized case and the upper bound is a deterministic algorithm.",
+     "authors": [
+      "Alkida Balliu",
+      "Sebastian Brandt",
+      "Fabian Kuhn",
+      "Dennis Olivetti",
+      "Gustav Schmid"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/2208.08701v2",
+     "title": "Improved Distributed Algorithms for the Lovász Local Lemma and Edge Coloring",
+     "published": "2022-08-18T08:24:13Z",
+     "summary": "The Lovász Local Lemma is a classic result in probability theory that is often used to prove the existence of combinatorial objects via the probabilistic method. In its simplest form, it states that if we have $n$ `bad events', each of which occurs with probability at most $p$ and is independent of all but $d$ other events, then under certain criteria on $p$ and $d$, all of the bad events can be avoided with positive probability. While the original proof was existential, there has been much study on the algorithmic Lovász Local Lemma: that is, designing an algorithm which finds an assignment of the underlying random variables such that all the bad events are indeed avoided. Notably, the celebrated result of Moser and Tardos [JACM '10] also implied an efficient distributed algorithm for the problem, running in $O(\\log^2 n)$ rounds. For instances with low $d$, this was improved to $O(d^2+\\log^{O(1)}\\log n)$ by Fischer and Ghaffari [DISC '17], a result that has proven highly important in distributed complexity theory (Chang and Pettie [SICOMP '19]). We give an improved algorithm for the Lovász Local Lemma, providing a trade-off between the strength of the criterion relating $p$ and $d$, and the distributed round complexity. In particular, in the same regime as Fischer and Ghaffari's algorithm, we improve the round complexity to $O(\\frac{d}{\\log d}+\\log^{O(1)}\\log n)$. At the other end of the trade-off, we obtain a $\\log^{O(1)}\\log n$ round complexity for a substantially wider regime than previously known. As our main application, we also give the first $\\log^{O(1)}\\log n$-round distributed algorithm for the problem of $Δ+o(Δ)$-edge coloring a graph of maximum degree $Δ$. This is an almost exponential improvement over previous results: no prior $\\log^{o(1)} n$-round algorithm was known even for $2Δ-2$-edge coloring.",
+     "authors": [
+      "Peter Davies"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/2609.31796v1",
+     "title": "Same Probe, Different Numbers: Are Activation Probes Robust to Inference-Time Numerical Non-Determinism?",
+     "published": "2026-09-25T07:14:49Z",
+     "summary": "Activation probes are increasingly used to monitor LLMs in deployment. A probe is typically trained under one inference configuration, then used under whatever batch size and numerical precision the serving stack uses. Because common GPU kernels are not batch-invariant and floating-point formats round differently, the activations seen at deployment are not the ones the probe was trained on. We measure what that costs for Llama-3.1-8B, Qwen3-8B and Gemma-3-4B across batch sizes 4, 8 and 16 and float32, bfloat16 and float16, training 768 probes on one configuration, evaluating each on every other, and comparing verdicts example by example. Probes are stable, but aggregate accuracy is the wrong instrument for showing it: it understates how many verdicts change by a factor of two to nine. At the prompt, accuracy never moves by more than 0.47 percentage points across 1,392 transfers and only 0.076% of verdicts change; under float32 with only the batch size varied, none of 201,960 verdicts change. During decoding the flip rate rises to 2.8%, but rows whose realised tokens matched flip in only 0.12-0.15% of cases, while rows whose tokens diverged flip in 12.9%: the cause is the text, not the arithmetic. A bfloat16 batch-size change flips the first generated token for 2.1% of rows and leaves 25% on different tokens by token 20. Flips are symmetric, Cohen's kappa stays above 0.94, and AUROC moves by at most 0.05 points. Underneath, activations move about as much as the format's rounding: a bfloat16 batch-size change perturbs them by a median relative L2 of 1e-2, roughly 8x the float16 figure. Probes absorb this; the model's own next-token argmax does not. Robustness evaluations of activation monitors should report per-example agreement rather than aggregate accuracy, separate representational noise from input change, and state the serving configuration.",
+     "authors": [
+      "Alizishaan Khatri"
+     ]
+    }
+   ]
+  },
+  {
+   "query": "(abs:rounding AND (abs:invoice OR abs:VAT OR abs:ledger OR abs:monetary OR abs:currency OR abs:cents OR abs:payroll) AND (abs:total OR abs:sum OR abs:allocation))",
+   "count": 25,
+   "items": [
+    {
+     "id": "http://arxiv.org/abs/2511.05599v1",
+     "title": "0.001% and Counting: Revisiting the Price Rounding Tax",
+     "published": "2025-11-05T22:14:58Z",
+     "summary": "In 1991 and 2008, Israel abolished the equivalents of 1-cent and 5-cent coins, respectively, effectively eliminating low-denomination coins and introducing rounding in cash transactions. When totals were rounded up, shoppers incurred a small rounding tax. Using detailed data on price endings and basket sizes across supermarkets, drugstores, small groceries, and convenience stores, we estimate that the magnitude of the rounding tax borne by Israeli consumers averaged only between 0.001 percent and 0.002 percent of revenues in the fast-moving consumer goods markets. These findings have implications for the ongoing debate regarding the desirability and viability of abolishing the 1-cent and 5-cent coins in the US.",
+     "authors": [
+      "Doron Sayag",
+      "Avichai Snir",
+      "Daniel Levy"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/2302.09127v4",
+     "title": "Robust Pseudo-Markets for Reusable Public Resources",
+     "published": "2023-02-17T20:21:50Z",
+     "summary": "We study non-monetary mechanisms for the fair and efficient allocation of reusable public resources, i.e., resources used for varying durations. We consider settings where a limited resource is repeatedly shared among a set of agents, each of whom may request to use the resource over multiple consecutive rounds, receiving utility only if they get to use the resource for the full duration of their request. Such settings are of particular significance in scientific research where large-scale instruments such as electron microscopes, particle colliders, or telescopes are shared between multiple research groups; this model also subsumes and extends existing models of repeated non-monetary allocation where resources are required for a single round only. We study a simple pseudo-market mechanism where upfront we endow each agent with a budget of artificial credits, proportional to the fair share of the resource we want the agent to receive. The endowments thus define for each agent her ideal utility as that which she derives from her favorite allocation with no competition, but subject to getting at most her fair share of the resource across rounds. Next, on each round, and for each available resource item, our mechanism runs a first-price auction with a selective reserve, wherein each agent submits a desired duration and a per-round-bid, which must be at least the reserve price if requesting for multiple rounds; the bidder with the highest per-round-bid wins, and gets to use the item for the desired duration. We consider this problem in a Bayesian setting and show that under a carefully chosen reserve price, irrespective of how others bid, each agent has a simple strategy that guarantees she receives a $1/2$ fraction of her ideal utility in expectation. We also show this result is tight, i.e., no mechanism can guarantee that all agents get more than half of their ideal utility.",
+     "authors": [
+      "Siddhartha Banerjee",
+      "Giannis Fikioris",
+      "Éva Tardos"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/1504.05932v1",
+     "title": "Allocating Indivisible Items in Categorized Domains",
+     "published": "2015-04-22T19:27:28Z",
+     "summary": "We formulate a general class of allocation problems called categorized domain allocation problems (CDAPs), where indivisible items from multiple categories are allocated to agents without monetary transfer and each agent gets at least one item per category. We focus on basic CDAPs, where the number of items in each category is equal to the number of agents. We characterize serial dictatorships for basic CDAPs by a minimal set of three axiomatic properties: strategy-proofness, non-bossiness, and category-wise neutrality. Then, we propose a natural extension of serial dictatorships called categorial sequential allocation mechanisms (CSAMs), which allocate the items in multiple rounds: in each round, the active agent chooses an item from a designated category. We fully characterize the worst-case rank efficiency of CSAMs for optimistic and pessimistic agents, and provide a bound for strategic agents. We also conduct experiments to compare expected rank efficiency of various CSAMs w.r.t. random generated data.",
+     "authors": [
+      "Erika Mackin",
+      "Lirong Xia"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/2510.01536v1",
+     "title": "QScale: Probabilistic Chained Consensus for Moderate-Scale Systems",
+     "published": "2025-10-02T00:12:34Z",
+     "summary": "Existing distributed ledger protocols either incur a high communication complexity and are thus suited to systems with a small number of processes (e.g., PBFT), or rely on committee-sampling-based approaches that only work for a very large number of processes (e.g., Algorand). Neither of these lines of work is well-suited for moderate-scale distributed ledgers ranging from a few hundred to a thousand processes, which are common in production (e.g, Redbelly, Sui). The goal of this work is to design a distributed ledger with sub-linear communication complexity per process, sub-quadratic total communication complexity, and low latency for finalizing a block into the ledger, such that it can be used for moderate-scale systems. We propose QScale, a protocol in which every process incurs only $\\widetilde{O}(κ\\sqrt{n})$ communication complexity per-block in expectation, $\\widetilde{O}(nκ)$ total communication complexity per-block in expectation, and a best-case latency of $O(κ)$ rounds while ensuring safety and liveness with overwhelming probability, with $κ$ being a small security parameter.",
+     "authors": [
+      "Hasan Heydari",
+      "Alysson Bessani",
+      "Kartik Nayak"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/2510.10335v1",
+     "title": "Proportional and Pareto-Optimal Allocation of Chores with Subsidy",
+     "published": "2025-10-11T20:42:37Z",
+     "summary": "We consider the problem of allocating $m$ indivisible chores among $n$ agents with possibly different weights, aiming for a solution that is both fair and efficient. Specifically, we focus on the classic fairness notion of proportionality and efficiency notion of Pareto-optimality. Since proportional allocations may not always exist in this setting, we allow the use of subsidies (monetary compensation to agents) to ensure agents are proportionally-satisfied, and aim to minimize the total subsidy required. Wu and Zhou (WINE 2024) showed that when each chore has disutility at most 1, a total subsidy of at most $n/3 - 1/6$ is sufficient to guarantee proportionality. However, their approach is based on a complex technique, which does not guarantee economic efficiency - a key desideratum in fair division. In this work, we give a polynomial-time algorithm that achieves the same subsidy bound while also ensuring Pareto-optimality. Moreover, both our algorithm and its analysis are significantly simpler than those of Wu and Zhou (WINE 2024). Our approach first computes a proportionally-fair competitive equilibrium, and then applies a rounding procedure guided by minimum-pain-per-buck edges.",
+     "authors": [
+      "Jugal Garg",
+      "Eklavya Sharma",
+      "Xiaowei Wu"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/2109.08644v2",
+     "title": "Allocating Indivisible Goods to Strategic Agents: Pure Nash Equilibria and Fairness",
+     "published": "2021-09-17T16:57:20Z",
+     "summary": "We consider the problem of fairly allocating a set of indivisible goods to a set of strategic agents with additive valuation functions. We assume no monetary transfers and, therefore, a mechanism in our setting is an algorithm that takes as input the reported -- rather than the true -- values of the agents. Our main goal is to explore whether there exist mechanisms that have pure Nash equilibria for every instance and, at the same time, provide fairness guarantees for the allocations that correspond to these equilibria. We focus on two relaxations of envy-freeness, namely envy-freeness up to one good (EF1), and envy-freeness up to any good (EFX), and we positively answer the above question. In particular, we study two algorithms that are known to produce such allocations in the non-strategic setting: Round-Robin (EF1 allocations for any number of agents) and a cut-and-choose algorithm of Plaut and Roughgarden [SIAM Journal of Discrete Mathematics, 2020] (EFX allocations for two agents). For Round-Robin we show that all of its pure Nash equilibria induce allocations that are EF1 with respect to the underlying true values, while for the algorithm of Plaut and Roughgarden we show that the corresponding allocations not only are EFX but also satisfy maximin share fairness, something that is not true for this algorithm in the non-strategic setting! Further, we show that a weaker version of the latter result holds for any mechanism for two agents that always has pure Nash equilibria which all induce EFX allocations.",
+     "authors": [
+      "Georgios Amanatidis",
+      "Georgios Birmpas",
+      "Federico Fusco",
+      "Philip Lazos",
+      "Stefano Leonardi",
+      "Rebecca Reiffenhäuser"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/2301.13652v1",
+     "title": "Round-Robin Beyond Additive Agents: Existence and Fairness of Approximate Equilibria",
+     "published": "2023-01-31T14:09:22Z",
+     "summary": "Fair allocation of indivisible goods has attracted extensive attention over the last two decades, yielding numerous elegant algorithmic results and producing challenging open questions. The problem becomes much harder in the presence of strategic agents. Ideally, one would want to design truthful mechanisms that produce allocations with fairness guarantees. However, in the standard setting without monetary transfers, it is generally impossible to have truthful mechanisms that provide non-trivial fairness guarantees. Recently, Amanatidis et al. [2021] suggested the study of mechanisms that produce fair allocations in their equilibria. Specifically, when the agents have additive valuation functions, the simple Round-Robin algorithm always has pure Nash equilibria and the corresponding allocations are envy-free up to one good (EF1) with respect to the agents' true valuation functions. Following this agenda, we show that this outstanding property of the Round-Robin mechanism extends much beyond the above default assumption of additivity. In particular, we prove that for agents with cancelable valuation functions (a natural class that contains, e.g., additive and budget-additive functions), this simple mechanism always has equilibria and even its approximate equilibria correspond to approximately EF1 allocations with respect to the agents' true valuation functions. Further, we show that the approximate EF1 fairness of approximate equilibria surprisingly holds for the important class of submodular valuation functions as well, even though exact equilibria fail to exist!",
+     "authors": [
+      "Georgios Amanatidis",
+      "Georgios Birmpas",
+      "Philip Lazos",
+      "Stefano Leonardi",
+      "Rebecca Reiffenhäuser"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/2508.16285v1",
+     "title": "A Social Choice Analysis of Optimism's Retroactive Project Funding",
+     "published": "2025-08-22T10:49:45Z",
+     "summary": "The Optimism Retroactive Project Funding (RetroPGF) is a key initiative within the blockchain ecosystem that retroactively rewards projects deemed valuable to the Ethereum and Optimism communities. Managed by the Optimism Collective, a decentralized autonomous organization (DAO), RetroPGF represents a large-scale experiment in decentralized governance. Funding rewards are distributed in OP tokens, the native digital currency of the ecosystem. As of this writing, four funding rounds have been completed, collectively allocating over 100M dollars, with an additional 1.3B dollars reserved for future rounds. However, we identify significant shortcomings in the current allocation system, underscoring the need for improved governance mechanisms given the scale of funds involved. Leveraging computational social choice techniques and insights from multiagent systems, we propose improvements to the voting process by recommending the adoption of a utilitarian moving phantoms mechanism. This mechanism, originally introduced by Freeman et al. in 2019, is designed to enhance social welfare (using the L1 norm) while satisfying strategyproofness -- two key properties aligned with the application's governance requirements. Our analysis provides a formal framework for designing improved funding mechanisms for DAOs, contributing to the broader discourse on decentralized governance and public goods allocation.",
+     "authors": [
+      "Eyal Briman",
+      "Nimrod Talmon",
+      "Angela Kreitenweis",
+      "Muhammad Idrees"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/2209.09775v2",
+     "title": "FedToken: Tokenized Incentives for Data Contribution in Federated Learning",
+     "published": "2022-09-20T14:58:08Z",
+     "summary": "Incentives that compensate for the involved costs in the decentralized training of a Federated Learning (FL) model act as a key stimulus for clients' long-term participation. However, it is challenging to convince clients for quality participation in FL due to the absence of: (i) full information on the client's data quality and properties; (ii) the value of client's data contributions; and (iii) the trusted mechanism for monetary incentive offers. This often leads to poor efficiency in training and communication. While several works focus on strategic incentive designs and client selection to overcome this problem, there is a major knowledge gap in terms of an overall design tailored to the foreseen digital economy, including Web 3.0, while simultaneously meeting the learning objectives. To address this gap, we propose a contribution-based tokenized incentive scheme, namely \\texttt{FedToken}, backed by blockchain technology that ensures fair allocation of tokens amongst the clients that corresponds to the valuation of their data during model training. Leveraging the engineered Shapley-based scheme, we first approximate the contribution of local models during model aggregation, then strategically schedule clients lowering the communication rounds for convergence and anchor ways to allocate \\emph{affordable} tokens under a constrained monetary budget. Extensive simulations demonstrate the efficacy of our proposed method.",
+     "authors": [
+      "Shashi Raj Pandey",
+      "Lam Duc Nguyen",
+      "Petar Popovski"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/1707.00529v1",
+     "title": "An Investigation into Laboucheres Betting System to Improve Odds of Favorable Outcomes to Generate a Positive Externality Empirically",
+     "published": "2017-06-29T18:17:38Z",
+     "summary": "The Labouchere gambling system is hypothesized to increase the probability of winning a predetermined arbitrary profit in a gambling system such as a coin flip or a roulette game in which both payouts and odds are 1:1. However, use of the system increases the downside monetary risk in the event of a streak of multiple losses. To begin, a player creates an arbitrary series of consecutive integers with a sum equal to the desired profit from multiple rounds of betting. Using the system, a player will either win an amount equal to the sum of the elements of the initial series or lose all of their available capital. This sequence was simulated multiple times to determine the statistical characteristics of both the return and of the loss in an average round of betting. By running the simulations of millions of rounds of Labouchere, it was possible to discern the probable outcomes of running the system using the Labouchere gambling sequence and plotting the results on a graph to map the average return on the initial capital investment. The Labouchere system is very psychologically appealing to players because when applied over time it provides very consistent linear returns. However, there is eventually a critical moment at which the available capital for betting is exceeded and a player loses all of their available capital. It was found that as the number of bets increased, the outcome of applying the sequence approached zero.",
+     "authors": [
+      "Jake Billings",
+      "Sebastian Del Barco"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/2505.11431v2",
+     "title": "Robust Equilibria in Shared Resource Allocation via Strengthening Border's Theorem",
+     "published": "2025-05-16T16:51:13Z",
+     "summary": "We consider repeated allocation of a shared resource via a non-monetary mechanism, wherein a single item must be allocated to one of multiple agents in each round. We assume that each agent has i.i.d. values for the item across rounds, and additive utilities. Past work on this problem has proposed mechanisms where agents can get one of two kinds of guarantees: $(i)$ (approximate) Bayes-Nash equilibria via linkage-based mechanisms which need extensive knowledge of the value distributions, and $(ii)$ simple distribution-agnostic mechanisms with robust utility guarantees for each individual agent, which are worse than the Nash outcome, but hold irrespective of how others behave (including possibly collusive behavior). Recent work has hinted at barriers to achieving both simultaneously. Our work however establishes this is not the case, by proposing the first mechanism in which each agent has a natural strategy that is both a Bayes-Nash equilibrium and also comes with strong robust guarantees for individual agent utilities. Our mechanism comes out of a surprising connection between the online shared resource allocation problem and implementation theory, and uses a surprising strengthening of Border's theorem. In particular, we show that establishing robust equilibria in this setting reduces to showing that a particular subset of the Border polytope is non-empty. We establish this via a novel joint Schur-convexity argument. This strengthening of Border's criterion for obtaining a stronger conclusion is of independent technical interest, as it may prove useful in other settings.",
+     "authors": [
+      "David X. Lin",
+      "Siddhartha Banerjee",
+      "Giannis Fikioris",
+      "Éva Tardos"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/2511.09934v2",
+     "title": "Robust Resource Allocation via Competitive Subsidies",
+     "published": "2025-11-13T04:00:02Z",
+     "summary": "A canonical setting for non-monetary online resource allocation is one where agents compete over multiple rounds for a single item per round, with i.i.d. valuations and additive utilities across rounds. With $n$ symmetric agents, a natural benchmark for each agent is the utility realized by her favorite $1/n$-fraction of rounds; a line of work has demonstrated one can robustly guarantee each agent a constant fraction of this ideal utility, irrespective of how other agents behave. In particular, several mechanisms have been shown to be $1/2$-robust, and recent work established that repeated first-price auctions based on artificial credits have a robustness factor of $0.59$, which cannot be improved beyond $0.6$ using first-price and simple strategies. In contrast, even without strategic considerations, the best achievable factor is $1-1/e\\approx 0.63$. In this work, we break the $0.6$ first-price barrier to get a new $0.625$-robust mechanism, which almost closes the gap to the non-strategic robustness bound. Surprisingly, we do so via a simple auction, where in each round, bidders decide if they ask for the item, and we allocate uniformly at random among those who ask. The main new ingredient is the idea of competitive subsidies, wherein we charge the winning agent an amount in artificial credits that decreases when fewer agents are bidding (specifically, when $k$ agents bid, then the winner pays proportional to $k/(k+1)$, varying the payment by a factor of 2 depending on the competition). Moreover, we show how it can be modified to get an equilibrium strategy with a slightly weaker robust guarantee of $5/(3e) \\approx 0.61$ (and the optimal $1-1/e$ factor at equilibrium). Finally, we show that our mechanism gives the best possible bound under a wide class of auction-based mechanisms.",
+     "authors": [
+      "David X. Lin",
+      "Giannis Fikioris",
+      "Siddhartha Banerjee",
+      "Éva Tardos"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/1907.01766v2",
+     "title": "Algorithms for Competitive Division of Chores",
+     "published": "2019-07-03T06:55:04Z",
+     "summary": "We study the problem of allocating divisible bads (chores) among multiple agents with additive utilities when monetary transfers are not allowed. The competitive rule is known for its remarkable fairness and efficiency properties in the case of goods. This rule was extended to chores in prior work by Bogomolnaia, Moulin, Sandomirskiy, and Yanovskaya (2017). The rule produces Pareto optimal and envy-free allocations for both goods and chores. In the case of goods, the outcome of the competitive rule can be easily computed. Competitive allocations solve the Eisenberg-Gale convex program; hence the outcome is unique and can be approximately found by standard gradient methods. An exact algorithm that runs in polynomial time in the number of agents and goods was given by Orlin (2010). In the case of chores, the competitive rule does not solve any convex optimization problem; instead, competitive allocations correspond to local minima, local maxima, and saddle points of the Nash social welfare on the Pareto frontier of the set of feasible utilities. The Pareto frontier may contain many such points; consequently, the competitive rule's outcome is no longer unique. In this paper, we show that all the outcomes of the competitive rule for chores can be computed in strongly polynomial time if either the number of agents or the number of chores is fixed. The approach is based on a combination of three ideas: all consumption graphs of Pareto optimal allocations can be listed in polynomial time; for a given consumption graph, a candidate for a competitive utility profile can be constructed via an explicit formula; each candidate can be checked for competitiveness, and the allocation can be reconstructed using a maximum flow computation. Our algorithm gives an approximately-fair allocation of indivisible chores by the rounding technique of Barman and Krishnamurthy (2018).",
+     "authors": [
+      "Simina Brânzei",
+      "Fedor Sandomirskiy"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/2609.35417v1",
+     "title": "A citizen science behavioural dataset of an urban collective-risk dilemma on air pollution mitigation under resource inequality",
+     "published": "2026-09-28T15:29:58Z",
+     "summary": "This article describes a behavioural dataset from a collective-risk dilemma public experiment carried out in Barcelona, Spain, within the citizen science \\textit{xAire} air quality project. Participants played a ten-round game in groups of six, each deciding every round how many monetary units to contribute from a private endowment toward a shared target; groups that fell short forfeited all remaining capital. Three endowment treatments held the group total fixed: an equal condition and two unequal conditions in which low-endowment participants formed either the minority or the majority of the group. Data were collected at two public outdoor venues using a tablet-based interface under lab-in-the-field protocols. Participants were recruited on-site from a demographically heterogeneous pool of individuals passing through the venues, mostly local residents. The dataset comprises 462 participants across 77 six-player games, 4\\,620 contribution decisions in total. Each participant record links the full ten-round contribution trajectory to initial endowment, wealth treatment, venue, district of residence and its measured nitrogen-dioxide concentration, and socio-demographic and attitudinal survey items covering gender, age, education, economic and working status, air-quality perception, fairness norms, environmental-justice beliefs, residential mobility, and community participation. The release provides raw and cleaned participant tables, a variable codebook, the survey instrument, the district-pollution linkage, and the preprocessing code.",
+     "authors": [
+      "Marc Sadurní",
+      "Martín F. Díaz",
+      "Julián Vicens",
+      "Anna Cigarini",
+      "Isabelle Bonhoure",
+      "Miquel Montero",
+      "Josep Perelló"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/2502.08412v3",
+     "title": "Non-Monetary Mechanism Design without Priors: Achieving Efficiency via Adaptive Costly Audits",
+     "published": "2025-02-12T13:53:21Z",
+     "summary": "We study repeated resource allocation with strategic agents, where monetary transfers are disallowed and the planner has no prior information on agents' utility distributions. Inspired by the costly state verification literature, we assume the planner can request costly audits on the winning agent after allocation, revealing their true utility but without the ability to revoke the allocation. We design a mechanism achieving $T$-independent $\\mathcal O(K^2)$ regret in social welfare while requesting $\\mathcal O(K^3 \\log T)$ audits in expectation, where $K$ is the number of agents and $T$ is the number of rounds. We further show an $Ω(K)$ lower bound on the regret and an $Ω(1)$ lower bound on the number of audits required for low regret. We also generalize our mechanism and analysis to imperfect audit models. Algorithmically, we show that incentivizing truthful behavior relies on accurately estimating agents' truthful winning probability online. To achieve this, we impose future punishments via adaptive audits; we also introduce an incentive-aligned flagging component allowing agents to flag biased estimates, which we prove is in their best interest. Analytically, without distributional information, the revelation principle cannot dictate a truth-telling equilibrium. Instead, we characterize a Perfect Bayesian Equilibrium via a reduction to an auxiliary game with only benign strategies. The technical tools developed herein can be of independent interest for other robust mechanism design problems where the revelation principle is inapplicable.",
+     "authors": [
+      "Yan Dai",
+      "Moise Blanchard",
+      "Patrick Jaillet"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/2408.10066v2",
+     "title": "Near-Optimal Mechanisms for Resource Allocation Without Monetary Transfers",
+     "published": "2024-08-19T15:04:20Z",
+     "summary": "We study the problem in which a central planner sequentially allocates a single resource to multiple strategic agents using their utility reports at each round, but without using any monetary transfers. We consider general agent utility distributions and two standard settings: a finite horizon $T$ and an infinite horizon with $γ$ discounts. We provide general tools to characterize the convergence rate between the optimal mechanism for the central planner and the first-best allocation if true agent utilities were available. This heavily depends on the utility distributions, yielding rates anywhere between $1/\\sqrt T$ and $1/T$ for the finite-horizon setting, and rates faster than $\\sqrt{1-γ}$, including exponential rates for the infinite-horizon setting as agents are more patient $γ\\to 1$. On the algorithmic side, we design mechanisms based on the promised-utility framework to achieve these rates and leverage structure on the utility distributions. Intuitively, the more flexibility the central planner has to reward or penalize any agent while incurring little social welfare cost, the faster the convergence rate. In particular, discrete utility distributions typically yield the slower rates $1/\\sqrt T$ and $\\sqrt{1-γ}$, while smooth distributions with density typically yield faster rates $1/T$ (up to logarithmic factors) and $1-γ$.",
+     "authors": [
+      "Moïse Blanchard",
+      "Patrick Jaillet"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/2608.18061v1",
+     "title": "The concentration game: Bayesian updating, regret, and information",
+     "published": "2026-08-18T17:52:26Z",
+     "summary": "We give a two-player zero-sum repeated game between a learner and nature whose value identity generates Bayesian updating and an exact accounting of exponential-weights regret at once, and supplies the comparator-class variational form that a wide class of concentration phenomena share. The terminal payoff is the most a comparator can gain at fixed relative entropy from the prior, and the one-step constraint is an information budget on nature's move under the learner's mixed action. With the learner's move otherwise unrestricted, Gibbs/Bayes weights emerge as its unique Bellman equalizer -- the mixed action that makes the per-round loss independent of which direction nature moves -- with log-partition functions playing the role of value functions. The regret decomposes exactly into three parts: a per-round information loss reflecting the variation in observed outcomes, an additive retempering drift that accounts exactly for any change of measurement scale between rounds, and the information the comparator carries relative to the prior. The variance and bounded-range proxies that drive standard regret bounds are looser relaxations of this decomposition, which holds generally and governs them all. Both players' strategies are read off from the decomposition term by term, and repeated play yields an information-theoretic ledger of self-play in place of the usual quadratic-variation surrogate. The same comparator-class geometry accounts for the classical large-deviation bounds, and methods across bandits, posterior sampling, aggregation, and boosting are specializations of the one regret decomposition.",
+     "authors": [
+      "Akshay Balsubramani"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/2608.15416v1",
+     "title": "Design-Based Inference under Deep Domain Stratification: Language of Instruction and Private-Institution Choice in India's NSS 71st Round",
+     "published": "2026-08-15T21:22:08Z",
+     "summary": "Large household surveys support precise national estimates but can become statistically fragile after repeated disaggregation by geography, sector, sex, age, and outcome category. This paper develops an auditable design-based framework for deciding how far such disaggregation can be taken in a stratified multistage survey. The framework is built around a nested contribution ledger that reconstructs each domain total through the first stage probability proportional to size expansion, the certainty-plus-random hamlet-group selection, and the second-stage household expansion. Nonlinear domain parameters are expressed as ratios of these totals and analyzed by first-order linearization. The two independent National Sample Survey subsamples then provide a natural replication variance estimator. A granularity-stability profile combines the resulting relative standard error with replicate support and concentration diagnostics, so that a detailed estimate is accompanied by evidence about whether the design can sustain it. Finite population unbiasedness of the total estimator, asymptotic validity of the ratio linearization, and unbiasedness of the two-subsample variance estimator for linearized totals are established. The method is illustrated with the 71st-round Social Consumption: Education survey, focusing on home language versus medium of instruction and reported reasons for preferring private educational institutions in India and Himachal Pradesh. The application preserves the substantive analysis in the original project while replacing ad hoc calculation with a reproducible inferential workflow.",
+     "authors": [
+      "Aksaj Goel",
+      "Abhishek Bhattacharjee"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/2607.22935v1",
+     "title": "Discrepancy-Rounded Fair Bandits with Static and Time-Varying Exposure Floors",
+     "published": "2026-07-24T22:20:44Z",
+     "summary": "Minimum-exposure constraints arise in recommendation, content curation, and regulated allocation when each provider, arm, or group must receive guaranteed exposure inside a period rather than only in aggregate. We study stochastic bandits with exact exposure floors and show that the right object is a rounding problem: a fractional fair schedule is realized as integral pulls, and the exposure error is exactly a discrepancy vector. The main contribution is a blockwise model with time-varying floors. BDQ-UCB satisfies every block floor deterministically and has fair regret governed by the nonmandatory budget $R$, not the horizon $T$, with high-probability regret $O(\\sqrt{KR\\log(KT)})$. A MOSS residual variant attains $O(\\sqrt{KR})$, and a matching lower bound gives the minimax rate $Θ(\\sqrt{KR})$, even with positive mandatory exposure; a kl-UCB$^{++}$ residual rule adds instance-dependent optimality. The formulation becomes essential for overlapping group floors: per-arm rounding can violate a group constraint by $Ω(s)$ in the group size, whereas Beck--Fiala null-space rounding meets every group floor within the block budget with violation below the arm degree $t$, and composes with UCB at the same $R$-parametrized regret. For learned group plans, we close disjoint systems at $\\widetildeΘ(\\sqrt{KT})$, give a dual-ledger decomposition explaining why naive index rules fail under overlap, and prove a plan-sampling rule that is pathwise feasible under an initial cover-slack condition and attains a conditional $\\widetilde O(\\sqrt{KT})$ guarantee, leaving the condition-free overlap rate open. Experiments on synthetic floors, MovieLens-100k genre exposure, and deployment stress tests show exact feasibility without penalty tuning and regret competitive with tuned Lagrangian baselines.",
+     "authors": [
+      "Ibne Farabi Shihab",
+      "Joyanta Jyoti Mondal",
+      "Anuj Sharma"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/2609.40324v2",
+     "title": "Cogentic: Multi-Agent Orchestration for Automated Proof Discovery",
+     "published": "2026-09-30T17:55:22Z",
+     "summary": "We present Cogentic, a multi-agent harness for automated proof discovery on open research problems. While frontier language models can generate strong mathematical ideas in a single shot, single-shot generation is often insufficient for open problems that require exploring multiple competing conjectures, overcoming subtle technical obstructions, and retaining intermediate progress over a long horizon. Cogentic addresses these challenges through an iterative prove-verify loop in which an orchestrator allocates a population of independent provers across distinct proof directions, subjects their output to adversarial verification by several specialized components, and promotes confirmed intermediate results into a persistent verified ledger that later rounds build on. The harness is designed to be able to solve research-level math and theoretical computer science problems. Using either Gemini 3.1 Pro or an early version of Gemini 4 Argon as the base model, Cogentic produced novel results on open problems across online learning, auction theory, and mechanism design. Each result was independently verified by domain experts and is developed in full in companion papers. We list these results, and new ones as they are verified, at https://sites.google.com/view/cogentic .",
+     "authors": [
+      "Yang Cai",
+      "Vineet Gupta",
+      "Yanchen Jiang",
+      "Christopher Liaw",
+      "Aranyak Mehta",
+      "Grigoris Velegkas",
+      "Di Wang"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/2604.11025v2",
+     "title": "Test-time Scaling over Perception: Resolving the Grounding Paradox in Thinking with Images",
+     "published": "2026-04-13T05:49:04Z",
+     "summary": "Recent multimodal large language models (MLLMs) support Thinking with Images, invoking visual tools such as zooming and cropping to inspect image regions during inference. Yet these systems remain brittle in fine-grained reasoning: to acquire a decisive detail, a model must ground its attention on the correct region, but knowing which region is correct presupposes having already observed that detail. We identify this circular dependency as the grounding paradox, show that grounding errors are rarely self-corrected within a single trajectory---once a misleading region is inspected, all subsequent reasoning conditions on that observation and the error propagates to the final answer---and observe that because each trajectory constructs its own evidence, answer-level aggregation discards the very information that distinguishes trajectories. We propose Test-Time Scaling over Perception (TTSP), a closed-loop framework that treats perception as the unit of scalable inference and allocates compute along two axes: Entropy-Gated Perceptual Exploration samples diverse trajectories and uses critical-token entropy to withhold evidence the model cannot commit to, while Evidence-Guided Iterative Refinement distills validated observations into a correctable Evidence Ledger that steers later rounds to re-inspect unresolved regions. Across high-resolution and general multimodal benchmarks, TTSP consistently outperforms strong test-time scaling baselines, while improving grounding quality with favorable token efficiency.",
+     "authors": [
+      "Zheng Jiang",
+      "Yiming Chen",
+      "Nan He",
+      "Jiahui Chen",
+      "Chaoyang Li",
+      "Houde Qian",
+      "Lifeng Sun"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/2608.02267v2",
+     "title": "Self-Certification of Representation Adequacy: Sequential Certification at Minimum Task Loss",
+     "published": "2026-08-03T14:09:34Z",
+     "summary": "Agents that act on a compressed representation of their history face a structural risk: if the representation aliases histories with different optimal actions, no rule measurable with respect to the representation can avoid an irreducible per-round loss, and the agent may be unable to detect this from its own transcript. This paper develops a four-layer theory of self-certification of representation adequacy. The static layer defines decision-theoretic adequacy through a Bayes-risk grouping identity and prices a one-shot external verification by an exact total-variation threshold. The sequential layer poses certification as an optimal-stopping problem in the currency of task loss: we define an environment-wise certification complexity constant through a covering linear program, prove an information-task-loss lower bound for every delta-correct strategy, and give a Certification Track-and-Stop policy whose cost matches the bound asymptotically. A final boundary layer gives an explicit kernel-switching example and identifies the open theorem needed to cover policy switching or representation repair; it does not claim that the fixed-kernel guarantees extend to representation revision. The proofs of the two main theorems are given in full in the appendices.",
+     "authors": [
+      "Zijie Huang"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/2606.05017v5",
+     "title": "GoldenFloat: A Phi-Derived Static-Split Floating-Point Family from GF4 to GF1024 with a Lucas-Exact Integer Identity",
+     "published": "2026-06-03T15:41:16Z",
+     "summary": "We present a hardware-oriented description of GoldenFloat (GF), a static-split floating-point family generated by a single closed rule, and three concrete artefacts: (i) an open multi-width RTL generator covering GF4-GF256 with a continuous-integration differential sweep against a correctly-rounded reference; (ii) an integer-backed Lucas-exact accumulator path verified at 500-digit precision for n = 1, ..., 256; and (iii) a GF16 FPGA codec passing a 35-of-35 testbench at 323 MHz on Artix-7 (Xilinx XC7A35T). A format-conformance oracle (Corona) ships in the same repository and is used as the blackbox check in our continuous-integration audit. The rule and its scope. For each total width N >= 4, the exponent width is e = round((N-1)/phi^2) with fraction f = N-1-e and phi = (1+sqrt(5))/2. The rule reproduces the realised exponent widths of nine formats GF4, GF8, GF12, GF16, GF20, GF24, GF32, GF64, GF256 (9/9) and extends consistently to GF128, GF512, GF1024. The rule is positioned alongside posit (2022 Posit Standard), takum (Hunhold 2024, 2025), OCP-MX (Rouhani et al. 2023), and the IEEE P3109 multi-width float draft, all of which are width-spanning families under a parameterised rule. We make no per-rung accuracy or superiority claim against any of them. What is open. The breadth/toolchain-coherence framing is recorded as an open conjecture with a pre-registered falsification path: a matched-substrate FPGA experiment and a matched-budget software ablation. A falsification ledger (FL-002) records the open questions and the experiments that would settle them. An RTL-correctness erratum dated 2026-05-31 is reported in Section 5.5; the withdrawn TTSKY26b submission carried the defective multiplier portfolio, and the corrected generator is the regeneration baseline.",
+     "authors": [
+      "Dmitrii Vasilev"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/2609.25081v1",
+     "title": "ufakzeka-1: Building and Evaluating a 151M-Parameter Turkish Language Model from Scratch",
+     "published": "2026-09-18T20:33:02Z",
+     "summary": "We describe ufakzeka-1, a 151M-parameter (182M with embeddings) decoder-only Turkish language model pretrained from scratch on 13.5B tokens of openly licensed text and instruction-tuned for chat, at a total cost of about \\$286 in cloud GPU, API and notebook time. The contribution is not the model's capability, which is what a model this size can be expected to have, but the record of building and measuring it: a Turkish byte-level tokenizer at 1.77 tokens per word, a three-stage pretraining schedule, a post-training mixture of openly licensed and generated data, and an evaluation battery of release gates, a rule-checked sweep of 5,508 conversations, judged conversations and hand tests, all with prompts held out from the training data, enforced by decontamination inside the data build and by a checked-in invariant script we run before each build. We report three findings that we believe transfer to other small-model efforts: a safety gate that had been \"fixed\" with training data written from its own questions read 64/64 while the honest figure was 34/64; training-seed variance was as large as the spread across every recipe we tried, so single-seed comparisons at this scale are uninformative; and data rounds repaired only what was absent from the data, while identity tracking over long context and multi-turn arithmetic did not move across any data change we tried, which we read as limits of the model size rather than gaps in the data, a reading the next, larger model will test. Weights, the data recipe, the evaluation code and the spend ledger are released under Apache-2.0.",
+     "authors": [
+      "Sait Furkan Teke"
+     ]
+    },
+    {
+     "id": "http://arxiv.org/abs/2407.06288v1",
+     "title": "Bidding Games with Charging",
+     "published": "2024-07-08T18:03:27Z",
+     "summary": "Graph games lie at the algorithmic core of many automated design problems in computer science. These are games usually played between two players on a given graph, where the players keep moving a token along the edges according to pre-determined rules, and the winner is decided based on the infinite path traversed by the token from a given initial position. In bidding games, the players initially get some monetary budgets which they need to use to bid for the privilege of moving the token at each step. Each round of bidding affects the players' available budgets, which is the only form of update that the budgets experience. We introduce bidding games with charging where the players can additionally improve their budgets during the game by collecting vertex-dependent charges. Unlike traditional bidding games (where all charges are zero), bidding games with charging allow non-trivial recurrent behaviors. We show that the central property of traditional bidding games generalizes to bidding games with charging: For each vertex there exists a threshold ratio, which is the necessary and sufficient fraction of the total budget for winning the game from that vertex. While the thresholds of traditional bidding games correspond to unique fixed points of linear systems of equations, in games with charging, these fixed points are no longer unique. This significantly complicates the proof of existence and the algorithmic computation of thresholds for infinite-duration objectives. We also provide the lower complexity bounds for computing thresholds for Rabin and Streett objectives, which are the first known lower bounds in any form of bidding games (with or without charging), and we solve the following repair problem for safety and reachability games that have unsatisfiable objectives: Can we distribute a given amount of charge to the players in a way such that the objective can be satisfied?",
+     "authors": [
+      "Guy Avni",
+      "Ehsan Kafshdar Goharshady",
+      "Thomas A. Henzinger",
+      "Kaushik Mallik"
+     ]
+    }
+   ]
+  }
+ ]
+}
