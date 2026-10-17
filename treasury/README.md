@@ -111,6 +111,7 @@ check this folder; the question may already be settled.
 | [0048](decisions/0048-make-the-landing-page-say-what-the-family-is.md) | The family's landing page says what the family is and is not, its ideas, its styles and their demos, how a style is taken, how the family keeps itself honest, how feedback travels and why it exists, and the family audit holds the page to naming every seat folder and the treasury. |
 | [0049](decisions/0049-take-a-lab-s-review-technique-into-the-host.md) | A lab's literature-review technique became the host's method file, the spine a pass follows and departs from in writing, with the record lines the technique needs, and ten rules the modules had learned reached every seat; the modules' recipes, provenance log and student-shaped interaction rules were refused. |
 | [0050](decisions/0050-extend-the-generated-file-exemption-to-the-vocabulary-advisory.md) | A file declared generated stands outside the vocabulary advisory as it stands outside the em dash count and the spelling advisory, in every seat and the root step, since the host's first pass kept its search exports and the advisory read the index's abstracts as a person's prose. |
+| [0051](decisions/0051-let-a-branch-carry-up-to-five-prose-only-rules.md) | A rule is one commit with its own record, and a branch may carry up to five such commits when every one changes prose alone, gated whole and pushed once, since a series of ten short rules had paid the whole landing cycle ten times; a change to a check or code still travels alone. |
 
 ## Rules of the folder
 
