@@ -26,7 +26,8 @@ This is the single index of the project's technical documentation. A document th
 | [docs/REVIEWS.md](docs/REVIEWS.md) | The rulebook's rules for review records and screening logs. Frozen; do not edit. Read before running or recording a pass. |
 | [docs/SOURCES.md](docs/SOURCES.md) | The rulebook's rules for the bibliography and the standing of a source. Frozen; do not edit. Read before entering a work. |
 | [docs/PROSE.md](docs/PROSE.md) | The prose law, the rulebook's rules for every tracked byte of prose. Frozen; do not edit. Read before writing prose. |
-| [docs/METHOD.md](docs/METHOD.md) | The method of a pass over the literature: the steps inside the six stages, the forms a pass takes, and the demo's field bindings, marked. Frozen beyond the marked paragraphs. Read whole before running a pass. |
+| [docs/METHOD.md](docs/METHOD.md) | The method of a pass over the literature from the first seed to the screening, and the demo's field bindings, marked. Frozen beyond the marked paragraphs. Read whole before running a pass. |
+| [docs/FOLD.md](docs/FOLD.md) | The method of a pass from its checks to its record, and the forms a pass takes. Frozen; do not edit. Read whole before running a pass. |
 | [docs/BASELINE.md](docs/BASELINE.md) | The repository baseline: always-present files, never-tracked files, and their modification rules. |
 | [docs/decisions/](docs/decisions/) | Immutable decision records holding the project's "why". Read the relevant record before revisiting a settled topic; never edit an accepted record beyond its status line and a dead link's target. |
 | [docs/claims/](docs/claims/) | Immutable claim records holding what the inquiry holds true, on what evidence, at which pin. |

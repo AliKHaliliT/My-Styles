@@ -46,6 +46,8 @@ Quiver/
     CONDUCT.md           The hard rules of conduct.
     GATE.md              The delivery gate.
     PASSES.md            Running a review pass.
+    METHOD.md            The method of a pass, seed to screening.
+    FOLD.md              The method of a pass, checks to record.
     ADOPTION.md          Adopting this style and re-aligning.
     REPORTING.md         The upstream report.
     INVARIANTS.md        What must stay true about the inquiry layer, each claim with its holder and rung.

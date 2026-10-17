@@ -2,7 +2,7 @@
 
 This file is the rulebook for this project's technical documentation: which documents exist, what species each one is, how each species is written, and where a "why" belongs. It is normative and frozen; do not modify this file. If a rule ever has to change, the change is made deliberately, by the style's owner, inside the template itself in the My-Styles repository, and recorded as a new decision record superseding the style's record 0001. A project derived from this template never edits its copy and never diverges from it; a case for changing a rule travels upstream through the report described in AGENTS.md.
 
-The rulebook is read as seven documents: this core, the rules for living documents in [LIVING.md](LIVING.md), the rules for records in [RECORDS.md](RECORDS.md), the rules for review records and screening logs in [REVIEWS.md](REVIEWS.md), the rules for the bibliography in [SOURCES.md](SOURCES.md), the prose law in [PROSE.md](PROSE.md), and the method of a pass in [METHOD.md](METHOD.md); each is frozen as this file is.
+The rulebook is read as seven documents: this core, the rules for living documents in [LIVING.md](LIVING.md), the rules for records in [RECORDS.md](RECORDS.md), the rules for review records and screening logs in [REVIEWS.md](REVIEWS.md), the rules for the bibliography in [SOURCES.md](SOURCES.md), the prose law in [PROSE.md](PROSE.md), and the method of a pass in [METHOD.md](METHOD.md) and [FOLD.md](FOLD.md); each is frozen as this file is.
 
 ## The two species of documents
 
@@ -36,7 +36,8 @@ Nearly every documentation failure is a species violation. Never mix the two spe
 | `docs/REVIEWS.md` | Living, frozen | The rulebook's rules for review records and screening logs. |
 | `docs/SOURCES.md` | Living, frozen | The rulebook's rules for the bibliography and the standing of a source. |
 | `docs/PROSE.md` | Living, frozen | The prose law, the rulebook's rules for every tracked byte of prose. |
-| `docs/METHOD.md` | Living, frozen | The method of a pass over the literature: the steps inside the six stages, the forms a pass takes, and the demo's field bindings, which a project rewrites at adoption and re-adapts at re-alignment while the rest is recopied like this rulebook. |
+| `docs/METHOD.md` | Living, frozen | The method of a pass over the literature from the first seed to the screening, and the demo's field bindings, which a project rewrites at adoption and re-adapts at re-alignment while the rest is recopied like this rulebook. |
+| `docs/FOLD.md` | Living, frozen | The method of a pass from its checks to its record and the forms a pass takes, recopied like this rulebook. |
 | `docs/BASELINE.md` | Living | The repository baseline: always-present files, never-tracked files, and their modification rules. |
 | `docs/decisions/` | Records | The decision log of this project's own choices; the durable home of rationale. |
 | `docs/claims/` | Records | The claim ledger; the durable home of what the inquiry holds true, on what evidence. |
