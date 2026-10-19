@@ -872,17 +872,22 @@ def ignored(token: str, root: Path) -> bool:
     return done.returncode == 0
 
 
+def path_shaped(token: str) -> bool:
+    """Whether a backticked token has the shape of a path at all, whatever the tree knows of it."""
+    if "/" not in token or " " in token:
+        return False
+    if any(ch in token for ch in "<>*{}$|\\=\"'"):
+        return False
+    return "://" not in token and not token.startswith(("http", "-", "@"))
+
+
 def claims_to_be_path(token: str, root: Path) -> bool:
     """Whether a backticked token is claiming to be a repository path.
 
     Only tokens rooted in something the repository root knows are checked; an
     unknown first segment is prose, not a path (placeholders, media types).
     """
-    if "/" not in token or " " in token:
-        return False
-    if any(ch in token for ch in "<>*{}$|\\=\"'"):
-        return False
-    if "://" in token or token.startswith(("http", "-", "@")):
+    if not path_shaped(token):
         return False
     first = repo_relative(token).split("/")[0]
     return (root / first).exists()
@@ -1862,16 +1867,34 @@ def check_pins(problems: list[str], advice: list[str], root: Path) -> None:
                 )
 
 
+def tree_holds(token: str, root: Path) -> bool:
+    """Whether the index holds the path a token names, a file or anything under a directory.
+
+    The index and not the disk is asked, because a file that merely lies on this machine proves
+    nothing about the tree another checkout receives; a plant that adds to the index is seen.
+    """
+    done = subprocess.run(["git", "ls-files", "--", repo_relative(token)], cwd=root, capture_output=True, text=True, check=False)
+    return done.returncode == 0 and bool(done.stdout.strip())
+
+
+def recorded_paths(recorded: str, root: Path) -> list[str]:
+    """The tokens of a Recorded line that name a path, rooted in something the tree knows or withheld by the ignore file."""
+    return [t for t in PATH_TOKEN.findall(recorded) if claims_to_be_path(t, root) or (path_shaped(t) and ignored(t, root))]
+
+
 def check_recorded(problems: list[str], rel: str, recorded: str, root: Path) -> None:
-    """A recorded observation names what it preserved, by a path that exists, or says nothing preserved."""
-    named = [t for t in PATH_TOKEN.findall(recorded) if claims_to_be_path(t, root)]
+    """A recorded observation names what it preserved, by a path the tree holds or the ignore file withholds, or says nothing preserved.
+
+    A withheld artifact is no verdict either way; the not-run list names it, present or absent.
+    """
+    named = recorded_paths(recorded, root)
     if not named and "nothing preserved" not in recorded:
         problems.append(
             f"{rel}: recorded evidence names nothing preserved; name the artifact by path or say nothing preserved"
         )
     for token in named:
-        if not (root / repo_relative(token)).exists():
-            problems.append(f"{rel}: recorded evidence names `{token}`, which does not exist")
+        if not tree_holds(token, root) and not ignored(token, root):
+            problems.append(f"{rel}: recorded evidence names `{token}`, which the tree does not hold; track it, or name it in the ignore file to keep it outside")
 
 
 def movement_base(problems: list[str], root: Path, arrow: str, number: str, pin: str) -> tuple[str, str]:
@@ -1916,6 +1939,38 @@ CHECK_NEEDS = (
 )
 
 
+def recorded_lines(root: Path) -> list[tuple[str, str]]:
+    """Every Recorded line the audit holds, the first of each claim and each one in a pass record's Boundary, with its record."""
+    found: list[tuple[str, str]] = []
+    for path in sorted((root / "docs/claims").glob("*.md")):
+        match = RECORDED.search(path.read_text(encoding="utf-8"))
+        if match:
+            found.append((f"docs/claims/{path.name}", match.group(1)))
+    for path in sorted((root / "docs/reviews").glob("*.md")):
+        for recorded in RECORDED.findall(section_body(path.read_text(encoding="utf-8"), "## Boundary")):
+            found.append((f"docs/reviews/{path.name}", recorded))
+    return found
+
+
+def withheld_artifacts(root: Path) -> list[str]:
+    """One not-run line per recorded artifact the ignore file keeps outside the tree, saying whether it lies on this machine.
+
+    Such an artifact is never a verdict: a checkout without it has nothing to judge, and a checkout
+    with it holds a file the repository does not, so the line prints wherever the audit runs.
+    """
+    lines: list[str] = []
+    for rel, recorded in recorded_lines(root):
+        for token in recorded_paths(recorded, root):
+            if tree_holds(token, root) or not ignored(token, root):
+                continue
+            where = "present on this machine" if (root / repo_relative(token)).exists() else "absent from this machine"
+            lines.append(
+                f"check_recorded did not run on `{token}` for {rel}: the ignore file keeps it outside the tree,"
+                f" which no checkout can vouch for; {where}"
+            )
+    return lines
+
+
 def unrun_checks(root: Path) -> list[str]:
     """Every check the tree gave nothing to run, each named with what it needs."""
     unrun = [f"{name} did not run: {need} is absent from this tree" for name, need in CHECK_NEEDS if not (root / need).exists()]
@@ -1933,6 +1988,7 @@ def unrun_checks(root: Path) -> list[str]:
             "the workflow did not run: this repository names no remote, so its landed-branches step,"
             " the one check beyond the gate's commands it carries, ran nowhere"
         )
+    unrun.extend(withheld_artifacts(root))
     return unrun
 
 
@@ -2008,7 +2064,7 @@ PLANTS = [
      ("# 0092. Planted\n\nStatus: Supported\nDate: 2026-01-01\n\n## Claim\n\nx.\n\n## Evidence\n\n"
       "Recorded: one paid run, preserved as `docs/ghost-artifact.json`.\n\nrun at arrows/planted at 0123456789ab.\n\n"
       "## Threats\n\n- None named.\n"),
-     "recorded evidence names `docs/ghost-artifact.json`, which does not exist"),
+     "recorded evidence names `docs/ghost-artifact.json`, which the tree does not hold"),
     ("docs/claims/0091-planted-recorded-bare.md",
      ("# 0091. Planted\n\nStatus: Supported\nDate: 2026-01-01\n\n## Claim\n\nx.\n\n## Evidence\n\n"
       "Recorded: one paid run.\n\nrun at arrows/planted at 0123456789ab.\n\n## Threats\n\n- None named.\n"),
@@ -3502,6 +3558,53 @@ def prove_ignore_plant() -> int:
         ignore.write_bytes(original)
 
 
+def prove_withheld_artifact() -> int:
+    """A recorded artifact the ignore file keeps outside the tree is named as not run, present or absent, and never judged; one merely untracked is."""
+    ignore = ROOT / ".gitignore"
+    if not ignore.exists():
+        print("withheld plant skipped: no .gitignore in this tree")
+        return 0
+    claims = ROOT / "docs/claims"
+    number = free_number(claims, 930)
+    claim = claims / f"{number}-planted-withheld.md"
+    artifact = ROOT / "docs/planted-withheld.json"
+    original = ignore.read_bytes()
+    failures = 0
+    try:
+        claim.write_text(
+            ADVISORY_BODY.format(
+                num=number,
+                status="Supported",
+                evidence="Recorded: one paid run, preserved as `docs/planted-withheld.json` and `planted-withheld/run.json`.",
+            ),
+            encoding="utf-8",
+        )
+        artifact.write_text("{}\n", encoding="utf-8")
+        failures += expect_finding(run(ROOT)[0], "`docs/planted-withheld.json`, which the tree does not hold", "a recorded artifact never added")
+        ignore.write_bytes(original.rstrip(b"\n") + b"\n\n# Planted\ndocs/planted-withheld.json\nplanted-withheld/\n")
+        problems, unrun = run(ROOT)[0], unrun_checks(ROOT)
+        failures += expect_withheld(problems, unrun, claim.name, "`docs/planted-withheld.json`", "present on this machine")
+        failures += expect_withheld(problems, unrun, claim.name, "`planted-withheld/run.json`", "absent from this machine")
+        artifact.unlink()
+        problems, unrun = run(ROOT)[0], unrun_checks(ROOT)
+        failures += expect_withheld(problems, unrun, claim.name, "`docs/planted-withheld.json`", "absent from this machine")
+    finally:
+        ignore.write_bytes(original)
+        artifact.unlink(missing_ok=True)
+        claim.unlink(missing_ok=True)
+    return failures
+
+
+def expect_withheld(problems: list[str], unrun: list[str], name: str, token: str, where: str) -> int:
+    """Zero when the not-run list names the withheld token for the record with where it lies and no verdict names it."""
+    named = [line for line in unrun if token in line and name in line]
+    judged = [p for p in problems if token in p]
+    if named and all(where in line for line in named) and not judged:
+        return 0
+    print(f"WRONG: withheld {token} expected {where!r}: not run {named}, judged {judged}")
+    return 1
+
+
 def prove_unrun_report() -> int:
     """Hiding a check's need names the check as not run, and the file comes back."""
     state = ROOT / "STATE.md"
@@ -3584,6 +3687,7 @@ def selftest() -> int:
         prove_stale_branch,
         prove_no_remote_report,
         prove_unrun_report,
+        prove_withheld_artifact,
         prove_empty_tree,
     )
     failures = sum(proof() for proof in proofs)
