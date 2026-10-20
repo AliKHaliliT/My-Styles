@@ -13,7 +13,8 @@ from keel.facade.translators import (domain_to_facade_run_report,
 # The gate must reproduce on every run, so every property runs derandomized
 # with no example database; free-roaming randomness stays a local exploration
 # tool. A green property test claims no counterexample in its generated
-# cases, not a proof (decision 0035).
+# cases, not a proof (the style's decision 0035, Test stated invariants with
+# derandomized properties).
 TEXT = st.text(max_size=20)
 INSTANTS = st.datetimes(min_value=datetime(2026, 1, 1), max_value=datetime(2026, 12, 31))
 ACTIONS = st.one_of(

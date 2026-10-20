@@ -79,8 +79,9 @@ select = ["E", "F", "B", "UP", "Q", "PGH", "PERF", "C4", "S", "RET504", "D101", 
 # names, because debt lives in STATE.md with a date and never in the tree.
 # The credential heuristics read any suggestive string as a possible secret, so they
 # cannot decide their own question and may not gate. They leave the gating selection and
-# run as advice instead, through `ruff check --select S105,S106 .`; decision 0025 carries
-# the principle and AGENTS.md states what a warning obliges.
+# run as advice instead, through `ruff check --select S105,S106 .`; the style's decision 0025,
+# Let a check imply no more than it decides, carries the principle and AGENTS.md states what
+# a warning obliges.
 ignore = ["E501", "S105", "S106"]
 # The subprocess and URL-opening heuristics, S603, S607 and S310 among them, fire at a call site
 # and not on a string, so they stay in the gate. A literal argument list needs nothing; a call that

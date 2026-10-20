@@ -45,7 +45,8 @@ seams, and its own tests, without any of the repository trappings. No engine
 carries its own `pyproject.toml`, manifest, or documentation spine, because the
 host repository's tooling already covers it; when the first engine lands, its
 paths join the Type-check command and the import contract gains the clause that
-engines never import `app/`, both already provided for in decision 0009.
+engines never import `app/`, both already provided for in the style's decision 0009,
+Check the Dependency Rule instead of reviewing it.
 
 In the template itself this directory stays empty on purpose. A style is not a
 product, and the engine that belongs here is the one a real project grows when

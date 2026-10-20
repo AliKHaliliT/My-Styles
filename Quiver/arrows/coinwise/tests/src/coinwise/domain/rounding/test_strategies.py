@@ -8,7 +8,8 @@ from coinwise.domain.rounding import is_tie, round_half_even, round_half_up
 # The gate must reproduce from a pinned tree, so every property runs
 # derandomized with no example database; free-roaming randomness stays a
 # local exploration tool. A green property test claims no counterexample
-# in its generated cases, not a proof (decision 0035).
+# in its generated cases, not a proof (Keel's decision 0035, Test stated
+# invariants with derandomized properties).
 AMOUNTS = st.decimals(
     min_value=Decimal("0.000"), max_value=Decimal("1000000.000"), places=3, allow_nan=False, allow_infinity=False
 )

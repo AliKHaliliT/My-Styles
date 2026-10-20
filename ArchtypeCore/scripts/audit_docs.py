@@ -155,6 +155,11 @@ VOCABULARY = re.compile(
 # What the two advisories skip: the workflows, the prose law that lists the tells, and this
 # script, which carries the list; a record is skipped by its depth under docs/.
 VOCABULARY_SKIP = (".github/", "docs/PROSE.md", "scripts/audit_docs.py")
+# A record cited by its number alone says nothing about whose sequence it belongs to, and in a project
+# built from the style the same number names an inherited record and one of the project's own. A citation
+# names its owner, the style's or this project's own, or stands inside a titled link, which the citation
+# check holds; the files the vocabulary advisory skips are quoting ground here too.
+BARE_CITATION = re.compile(r"(?<!\[)(?<!'s )(?<!inherited )(?<!own )\b(?:decision|record)s? (0\d{3})\b")
 # The invariants ledger's header row, the words a rung may be, and the shape of a holder: a tracked
 # path in backticks with an optional quoted needle the file must contain, or the word review, which
 # pairs only with the review rung. Every review row is advised on every run, so a claim nothing
@@ -596,6 +601,22 @@ def advise_vocabulary(advice: list[str]) -> None:
             hit = VOCABULARY.search(line)
             if hit:
                 advice.append(f"{rel}:{number}: inflated vocabulary or weasel attribution, {hit.group(0)!r}; the verdict is review's")
+
+
+def check_bare_citations(problems: list[str]) -> None:
+    """No living document or tracked configuration cites a record by its number alone; a declared generated file is left alone."""
+    generated = declared_generated()
+    for rel in tracked_files():
+        path = ROOT / rel
+        if rel in generated or rel.startswith(VOCABULARY_SKIP) or (rel.startswith("docs/") and rel.count("/") >= 2) or not path.is_file():
+            continue
+        data = path.read_bytes()
+        if b"\0" in data:
+            continue
+        for number, line in enumerate(data.decode("utf-8", errors="replace").splitlines(), 1):
+            hit = BARE_CITATION.search(line)
+            if hit:
+                problems.append(f"{rel}:{number}: cites record {hit.group(1)} by bare number; name whose record it is, the style's or this project's own, and its title")
 
 
 def advise_spelling(advice: list[str]) -> None:
@@ -1602,6 +1623,7 @@ def run() -> tuple[list[str], list[str], list[Path]]:
     check_template_copies(problems)
     check_em_dashes(problems)
     check_invisible(problems)
+    check_bare_citations(problems)
     check_rooms(problems)
     check_ignored_working_trees(problems)
     check_action_pins(problems)
@@ -1651,6 +1673,7 @@ TRACKED_PLANTS = [
     ("docs/planted-folder/GUIDE.md", "# Guide\n", "a file below a docs/ subfolder is a dated record named YYYY-MM-DD-short-kebab-title.md"),
     ("docs/PLANTED-DASHES.md", "\u2014 \u2014 \u2014\n", "docs/PLANTED-DASHES.md carries 3 em dashes; the budget is 2 per file"),
     ("docs/PLANTED-INVISIBLE.md", "a\u200bb\n", "docs/PLANTED-INVISIBLE.md:1: carries U+200B, an invisible character"),
+    ("docs/PLANTED-CITED.md", "# Planted\n\nSee decision 0001 in passing.\n", "docs/PLANTED-CITED.md:3: cites record 0001 by bare number"),
 ]
 
 # A source file carrying one defect per docstring rule, planted under the first package root.
