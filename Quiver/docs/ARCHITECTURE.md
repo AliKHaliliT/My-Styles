@@ -48,7 +48,7 @@ Reading enters the same chain as running. A pass over one slice of one question,
 
 A pass that screened leaves its logs in the `screening/` folder under
 `docs/`, one per reader, and may keep the raw exports its searches
-returned under `util_resources/searches/`, declared generated so the
+returned in the `searches/` folder under `util_resources/`, declared generated so the
 prose law does not read them; the record names both.
 
 ## Exemplars
