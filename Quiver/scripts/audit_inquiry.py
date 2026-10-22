@@ -2082,9 +2082,6 @@ PLANTS = [
     ("docs/claims/0011-planted.md",
      "# 0011. Planted\n\nStatus: Conjecture\nDate: 2026-01-01\n\n## Claim\n\ncites [fake754-2019].\n\n## Evidence\n\nNone.\n\n## Threats\n\n- None named.\n",
      "[fake754-2019] not in the bibliography"),
-    ("docs/claims/0094-planted-orphan.md",
-     "# 0094. Planted orphan\n\nStatus: Conjecture\nDate: 2026-01-01\n\n## Claim\n\nx.\n\n## Evidence\n\nNone.\n\n## Threats\n\n- None named.\n",
-     "0094-planted-orphan.md: is linked from no question"),
     ("docs/arrows/ghost.md", "# Arrow: ghost\n\n- **Style**: [Nowhere](../../../Nowhere/).\n- **Serves**: question 1, by nothing.\n", "Style names 'Nowhere', which the stale-pin scan has no paths for"),
     ("docs/arrows/ghost.md", "# Arrow: ghost\n\n- **Serves**: question 1, by nothing.\n", "docs/arrows/ghost.md: names no style"),
     ("docs/arrows/ghost.md", "# Arrow: ghost\n\n- **Serves**: question 99, by nothing.\n", "serves question 99, which docs/QUESTIONS.md does not ask"),
@@ -2259,6 +2256,21 @@ def prove_single_plants() -> int:
         finally:
             target.unlink()
     return failures
+
+
+def prove_orphan_plant() -> int:
+    """A claim no question links is reported, planted at a number no claim uses, because a fixed number a real question links would inherit the link and silence the finding."""
+    claims = ROOT / "docs/claims"
+    number = free_number(claims, 900)
+    target = claims / f"{number}-planted-orphan.md"
+    target.write_text(
+        f"# {number}. Planted orphan\n\nStatus: Conjecture\nDate: 2026-01-01\n\n## Claim\n\nx.\n\n## Evidence\n\nNone.\n\n## Threats\n\n- None named.\n",
+        encoding="utf-8",
+    )
+    try:
+        return expect_finding(run(ROOT)[0], f"{number}-planted-orphan.md: is linked from no question", "an orphan claim at a free number")
+    finally:
+        target.unlink()
 
 
 def prove_legal_plants() -> int:
@@ -3690,6 +3702,7 @@ def selftest() -> int:
         folder.mkdir()
     proofs = (
         prove_single_plants,
+        prove_orphan_plant,
         prove_legal_plants,
         prove_unlisted_claim,
         prove_review_plants,
