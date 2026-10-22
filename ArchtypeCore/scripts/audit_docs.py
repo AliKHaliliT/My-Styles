@@ -160,6 +160,9 @@ VOCABULARY_SKIP = (".github/", "docs/PROSE.md", "scripts/audit_docs.py")
 # names its owner, the style's or this project's own, or stands inside a titled link, which the citation
 # check holds; the files the vocabulary advisory skips are quoting ground here too.
 BARE_CITATION = re.compile(r"(?<!\[)(?<!'s )(?<!inherited )(?<!own )\b(?:decision|record)s? (0\d{3})\b")
+# A line that names the same record with its owner clears a bare mention on that line, so a form kept
+# byte for byte, a serialized string compared as written, keeps its bytes and the comment beside it answers.
+OWNED_CITATION = re.compile(r"(?:'s |inherited |own )(?:decision|record)s? (0\d{3})\b")
 # The invariants ledger's header row, the words a rung may be, and the shape of a holder: a tracked
 # path in backticks with an optional quoted needle the file must contain, or the word review, which
 # pairs only with the review rung. Every review row is advised on every run, so a claim nothing
@@ -614,9 +617,12 @@ def check_bare_citations(problems: list[str]) -> None:
         if b"\0" in data:
             continue
         for number, line in enumerate(data.decode("utf-8", errors="replace").splitlines(), 1):
-            hit = BARE_CITATION.search(line)
-            if hit:
-                problems.append(f"{rel}:{number}: cites record {hit.group(1)} by bare number; name whose record it is, the style's or this project's own, and its title")
+            owned = set(OWNED_CITATION.findall(line))
+            problems.extend(
+                f"{rel}:{number}: cites record {hit.group(1)} by bare number; name whose record it is, the style's or this project's own, and its title"
+                for hit in BARE_CITATION.finditer(line)
+                if hit.group(1) not in owned
+            )
 
 
 def advise_spelling(advice: list[str]) -> None:
@@ -1836,6 +1842,22 @@ def prove_tracked_plants() -> int:
     return failures
 
 
+def prove_owned_citation_line() -> int:
+    """A tracked line carrying a bare record number beside the same number with its owner raises nothing, so a form kept byte for byte is answered by the comment beside it."""
+    rel = "docs/PLANTED-OWNED.md"
+    target = ROOT / rel
+    target.write_text("# Planted\n\nThe wire form is \"decision 0001\", the style's decision 0001, Planted.\n", encoding="utf-8")
+    git("add", "-N", "--", rel)
+    try:
+        noise = [p for p in run()[0] if rel in p and "by bare number" in p]
+        if not noise:
+            return 0
+        return wrong(f"an owned citation on the same line was reported as bare: {noise}")
+    finally:
+        git("rm", "--cached", "-q", "--", rel)
+        remove_planted(target, ROOT)
+
+
 def prove_declared_dashes() -> int:
     """A tracked file over the budget, carrying an invisible character and a banned word, that the attributes file declares linguist-generated raises nothing and is advised nothing, and the file and the declaration both leave."""
     attributes = ROOT / ".gitattributes"
@@ -2603,6 +2625,7 @@ def selftest() -> int:
         prove_append_plants,
         prove_invariant_plants,
         prove_tracked_plants,
+        prove_owned_citation_line,
         prove_record_dashes,
         prove_declared_dashes,
         prove_twin_numbers,

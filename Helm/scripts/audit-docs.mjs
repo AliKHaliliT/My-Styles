@@ -150,7 +150,9 @@ const VOCABULARY = /paradigm shift|game.changer|ever-evolving|cutting.edge|\bdel
 // script, which carries the list; a record is skipped by its depth under docs/.
 const VOCABULARY_SKIP = [".github/", "docs/PROSE.md", "scripts/audit-docs.mjs", "scripts/audit-docs-selftest.mjs", "eslint.config.js"];
 // A record cited by its number alone says nothing about whose sequence it belongs to, and in a project built from the style the same number names an inherited record and one of the project's own. A citation names its owner, the style's or this project's own, or stands inside a titled link, which the citation check holds; the files the vocabulary advisory skips are quoting ground here too.
-const BARE_CITATION = /(?<!\[)(?<!'s )(?<!inherited )(?<!own )\b(?:decision|record)s? (0\d{3})\b/;
+const BARE_CITATION = /(?<!\[)(?<!'s )(?<!inherited )(?<!own )\b(?:decision|record)s? (0\d{3})\b/g;
+// A line that names the same record with its owner clears a bare mention on that line, so a form kept byte for byte, a serialized string compared as written, keeps its bytes and the comment beside it answers.
+const OWNED_CITATION = /(?:'s |inherited |own )(?:decision|record)s? (0\d{3})\b/g;
 // The audits are skipped as quoting ground, because they carry the banned-word list the vocabulary advisory reads,
 // and so is the lint configuration, which names the markers it refuses.
 const CODESPELL_SKIP = ".git,node_modules,.hypothesis,__pycache__,dist,package-lock.json,*.svg,*.png,*.ico,*.woff,*.woff2,*.map,decisions,claims,reviews,inherited,mockServiceWorker.js,audit_docs.py,audit-docs.mjs,audit_inquiry.py";
@@ -824,8 +826,10 @@ function checkBareCitations() {
     const bytes = readFileSync(join(ROOT, rel));
     if (bytes.includes(0)) continue;
     bytes.toString("utf-8").split("\n").forEach((line, index) => {
-      const hit = line.match(BARE_CITATION);
-      if (hit) problems.push(`${rel}:${index + 1}: cites record ${hit[1]} by bare number; name whose record it is, the style's or this project's own, and its title`);
+      const owned = new Set([...line.matchAll(OWNED_CITATION)].map((match) => match[1]));
+      for (const hit of line.matchAll(BARE_CITATION)) {
+        if (!owned.has(hit[1])) problems.push(`${rel}:${index + 1}: cites record ${hit[1]} by bare number; name whose record it is, the style's or this project's own, and its title`);
+      }
     });
   }
 }

@@ -190,6 +190,20 @@ function proveTrackedPlants() {
 }
 
 /** A tracked file over the budget, carrying an invisible character and a banned word, that the attributes file declares linguist-generated raises nothing and is advised nothing, and the file and the declaration both leave. */
+function proveOwnedCitationLine() {
+  const rel = "docs/PLANTED-OWNED.md";
+  plant(rel, "# Planted\n\nThe wire form is \"decision 0001\", the style's decision 0001, Planted.\n");
+  git("add", "-N", "--", rel);
+  try {
+    const noise = audit().filter((line) => line.includes(rel) && line.includes("by bare number"));
+    if (noise.length > 0) wrong(`an owned citation on the same line was reported as bare: ${noise.join("; ")}`);
+  } finally {
+    git("rm", "--cached", "-q", "--", rel);
+    unplant(rel);
+  }
+}
+
+/** A tracked line carrying a bare record number beside the same number with its owner raises nothing, so a form kept byte for byte is answered by the comment beside it. */
 function proveDeclaredDashes() {
   const attributes = join(ROOT, ".gitattributes");
   const original = existsSync(attributes) ? readFileSync(attributes) : null;
@@ -767,7 +781,7 @@ if (baseline.length > 0) {
   for (const p of baseline.slice(0, 5)) console.log(`  ${p}`);
   process.exit(1);
 }
-for (const proof of [proveFilePlants, proveTrackedPlants, proveRecordDashes, proveDeclaredDashes, proveAppendedPlants, proveInvariantPlants, proveStatePlants, proveUpstreamPlants, provePalettePlant, proveCitationPlant, proveDensePlant, proveVocabularyPlant, proveSpliceAdvice, proveActionPins, proveSpellingPlant, proveUntrackedSpelling, proveIgnoredTerm, proveImmutability, proveBulletEdit, proveLinkRepair, proveIgnoredPath, proveRecordLinkPlant, proveAnchors, proveTemplateCopy, proveDisposition, proveIgnorePlant, proveStaleBranch, proveNoRemoteReport, proveUnrunReport]) {
+for (const proof of [proveFilePlants, proveTrackedPlants, proveRecordDashes, proveDeclaredDashes, proveAppendedPlants, proveInvariantPlants, proveStatePlants, proveUpstreamPlants, provePalettePlant, proveCitationPlant, proveDensePlant, proveVocabularyPlant, proveSpliceAdvice, proveActionPins, proveSpellingPlant, proveUntrackedSpelling, proveIgnoredTerm, proveImmutability, proveBulletEdit, proveLinkRepair, proveIgnoredPath, proveRecordLinkPlant, proveAnchors, proveTemplateCopy, proveDisposition, proveIgnorePlant, proveStaleBranch, proveNoRemoteReport, proveUnrunReport, proveOwnedCitationLine]) {
   proof();
 }
 console.log(failures === 0 ? "every rule fires" : `${failures} rule(s) do not work`);
