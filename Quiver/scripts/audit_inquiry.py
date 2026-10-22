@@ -132,7 +132,7 @@ UPSTREAM_ALIGNED = re.compile(r"^Aligned to .+ at (`?[0-9a-f]{7,40}`?|the host's
 # a drive path and an absolute path under the usual roots. A name is review's.
 UPSTREAM_ADDRESS = re.compile(
     r"[a-z][a-z0-9+.-]*://|\bwww\.|[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+"
-    r"|(?<![A-Za-z0-9])[A-Za-z]:[\\/]|(?<![\w./-])/(?:home|Users|root|mnt|srv|opt|var|tmp|etc)/"
+    r"|(?<![A-Za-z0-9])[A-Za-z]:[\\/]|(?<![\w./-])/(?:home|Users|root|mnt|media|Volumes|private|run|srv|opt|var|tmp|etc)/"
 )
 # A key is an author name closed by a year, or a standard's designation with
 # its year suffixed, so digits may sit inside the name (ieee754-2019).
@@ -3043,6 +3043,10 @@ def prove_upstream_plants() -> int:
         (head_text + f"Nothing open.\n\n### {today_stamp} Planted entry\n\nKind: defect\nPin: 0123456789ab\n\n" + parts, "beside open entries"),
         (head_text + f"### {today_stamp} Planted entry\n\nKind: defect\nPin: 0123456789ab\n\n" + parts.replace("**What it is.** x.", "**What it is.** x, as https://example.invalid/private shows."), "an address, a URL, an email or an absolute path"),
         (head_text + f"### {today_stamp} Planted entry\n\nKind: defect\nPin: 0123456789ab\n\n" + parts.replace("**What it is.** x.", "**What it is.** x, in /home/someone/project/app."), "an address, a URL, an email or an absolute path"),
+        (head_text + f"### {today_stamp} Planted entry\n\nKind: defect\nPin: 0123456789ab\n\n" + parts.replace("**What it is.** x.", "**What it is.** x, write to someone@example.invalid for the rest."), "an address, a URL, an email or an absolute path"),
+        (head_text + f"### {today_stamp} Planted entry\n\nKind: defect\nPin: 0123456789ab\n\n" + parts.replace("**What it is.** x.", "**What it is.** x, in C:\\Users\\someone\\project."), "an address, a URL, an email or an absolute path"),
+        (head_text + f"### {today_stamp} Planted entry\n\nKind: defect\nPin: 0123456789ab\n\n" + parts.replace("**What it is.** x.", "**What it is.** x, in /Volumes/shared/project/app."), "an address, a URL, an email or an absolute path"),
+        (head_text + f"### {today_stamp} Planted entry\n\nKind: defect\nPin: 0123456789ab\n\n" + parts.replace("**What it is.** x.", "**What it is.** x, in /media/someone/disk/project."), "an address, a URL, an email or an absolute path"),
     ]
     try:
         if "(docs/UPSTREAM.md)" not in index_rows(original_agents.decode("utf-8")):

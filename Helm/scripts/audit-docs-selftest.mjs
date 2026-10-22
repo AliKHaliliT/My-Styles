@@ -335,6 +335,10 @@ function proveUpstreamPlants() {
     [`${UPSTREAM_HEAD}### 2026-01-01 Planted entry\n\nKind: defect\nPin: 0123456789ab\n\n${UPSTREAM_PARTS}`, `past the ${HORIZON_DAYS}-day horizon`],
     [`${UPSTREAM_HEAD}${entry}${UPSTREAM_PARTS.replace("**What it is.** x.", "**What it is.** x, as https://example.invalid/private shows.")}`, "an address, a URL, an email or an absolute path"],
     [`${UPSTREAM_HEAD}${entry}${UPSTREAM_PARTS.replace("**What it is.** x.", "**What it is.** x, in /home/someone/project/app.")}`, "an address, a URL, an email or an absolute path"],
+    [`${UPSTREAM_HEAD}${entry}${UPSTREAM_PARTS.replace("**What it is.** x.", "**What it is.** x, write to someone@example.invalid for the rest.")}`, "an address, a URL, an email or an absolute path"],
+    [`${UPSTREAM_HEAD}${entry}${UPSTREAM_PARTS.replace("**What it is.** x.", "**What it is.** x, in C:\\Users\\someone\\project.")}`, "an address, a URL, an email or an absolute path"],
+    [`${UPSTREAM_HEAD}${entry}${UPSTREAM_PARTS.replace("**What it is.** x.", "**What it is.** x, in /Volumes/shared/project/app.")}`, "an address, a URL, an email or an absolute path"],
+    [`${UPSTREAM_HEAD}${entry}${UPSTREAM_PARTS.replace("**What it is.** x.", "**What it is.** x, in /media/someone/disk/project.")}`, "an address, a URL, an email or an absolute path"],
   ];
   for (const [text, needle] of variants) proveReplaced("an UPSTREAM.md plant", "docs/UPSTREAM.md", text, [needle]);
 }

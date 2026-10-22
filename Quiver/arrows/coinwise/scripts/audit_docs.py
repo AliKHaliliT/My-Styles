@@ -75,7 +75,7 @@ UPSTREAM_ALIGNED = re.compile(r"^Aligned to .+ at (`?[0-9a-f]{7,40}`?|the host's
 # a drive path and an absolute path under the usual roots. A name is review's.
 UPSTREAM_ADDRESS = re.compile(
     r"[a-z][a-z0-9+.-]*://|\bwww\.|[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+"
-    r"|(?<![A-Za-z0-9])[A-Za-z]:[\\/]|(?<![\w./-])/(?:home|Users|root|mnt|srv|opt|var|tmp|etc)/"
+    r"|(?<![A-Za-z0-9])[A-Za-z]:[\\/]|(?<![\w./-])/(?:home|Users|root|mnt|media|Volumes|private|run|srv|opt|var|tmp|etc)/"
 )
 FENCE = re.compile(r"```[^\n]*\n(.*?)```", re.DOTALL)
 DOTTED_MODULE = re.compile(r"[a-z_][a-z0-9_]*(?:\.[a-z_][a-z0-9_]*)+")
@@ -1939,6 +1939,10 @@ def upstream_variants() -> list[tuple[str, str | None]]:
         (UPSTREAM_HEAD + "### 2026-01-01 Planted entry\n\nKind: defect\nPin: 0123456789ab\n\n" + UPSTREAM_PARTS_TEXT, f"past the {HORIZON_DAYS}-day horizon"),
         (UPSTREAM_HEAD + entry + UPSTREAM_PARTS_TEXT.replace("**What it is.** x.", "**What it is.** x, as https://example.invalid/private shows."), "an address, a URL, an email or an absolute path"),
         (UPSTREAM_HEAD + entry + UPSTREAM_PARTS_TEXT.replace("**What it is.** x.", "**What it is.** x, in /home/someone/project/app."), "an address, a URL, an email or an absolute path"),
+        (UPSTREAM_HEAD + entry + UPSTREAM_PARTS_TEXT.replace("**What it is.** x.", "**What it is.** x, write to someone@example.invalid for the rest."), "an address, a URL, an email or an absolute path"),
+        (UPSTREAM_HEAD + entry + UPSTREAM_PARTS_TEXT.replace("**What it is.** x.", "**What it is.** x, in C:\\Users\\someone\\project."), "an address, a URL, an email or an absolute path"),
+        (UPSTREAM_HEAD + entry + UPSTREAM_PARTS_TEXT.replace("**What it is.** x.", "**What it is.** x, in /Volumes/shared/project/app."), "an address, a URL, an email or an absolute path"),
+        (UPSTREAM_HEAD + entry + UPSTREAM_PARTS_TEXT.replace("**What it is.** x.", "**What it is.** x, in /media/someone/disk/project."), "an address, a URL, an email or an absolute path"),
     ]
 
 
