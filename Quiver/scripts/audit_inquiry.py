@@ -151,7 +151,9 @@ FLOOR_LINE = re.compile(r"^Evidence floor: (.+?)\s*$", re.MULTILINE)
 # A retracted work ranks below every floor, so a Supported claim resting on one is advised floor or none.
 STANDING_RANK = {"reviewed": 4, "preprint": 3, "grey, first tier": 3, "grey, second tier": 2, "grey, third tier": 1, "retracted": 0}
 LEGAL_FLOORS = tuple(standing for standing in STANDING_RANK if standing != "retracted")
-PIN = re.compile(r"arrows/([a-z0-9-]+) at ([0-9a-f]{7,40})\b")
+# A record wraps at seventy-two columns, so the space between the arrow and the hash may be a line break;
+# any whitespace is read there, because a pin the matcher skips is a run the audit never holds.
+PIN = re.compile(r"arrows/([a-z0-9-]+)\s+at\s+([0-9a-f]{7,40})\b")
 # A manifest's verification: a claim number and the commit at which its figures reproduced.
 VERIFIED = re.compile(r"\b(\d{4}) at ([0-9a-f]{7,40})\b")
 # Evidence observed once and never re-run declares itself on one line of the Evidence section.
@@ -2095,6 +2097,10 @@ PLANTS = [
       "Recorded: one paid run, preserved as `docs/ghost-artifact.json`.\n\nrun at arrows/planted at 0123456789ab.\n\n"
       "## Threats\n\n- None named.\n"),
      "recorded evidence names `docs/ghost-artifact.json`, which the tree does not hold"),
+    ("docs/claims/0090-planted-wrapped-pin.md",
+     ("# 0090. Planted\n\nStatus: Supported\nDate: 2026-01-01\n\n## Claim\n\nx.\n\n## Evidence\n\n"
+      "run at arrows/planted\nat 0123456789ab.\n\n## Threats\n\n- None named.\n"),
+     "pin 0123456789ab is not a commit in this history"),
     ("docs/claims/0091-planted-recorded-bare.md",
      ("# 0091. Planted\n\nStatus: Supported\nDate: 2026-01-01\n\n## Claim\n\nx.\n\n## Evidence\n\n"
       "Recorded: one paid run.\n\nrun at arrows/planted at 0123456789ab.\n\n## Threats\n\n- None named.\n"),
