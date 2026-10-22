@@ -3,9 +3,9 @@
 -r requirements.txt
 
 # The access-log suite captures through pytest's own handler, which reaches a logger that does not
-# propagate from pytest 9, the version the suite was proven under; an older pytest sees nothing once
-# the application has started and quieted that logger.
-pytest>=9
+# propagate from pytest 9.1, the release that attaches its capture to such a logger; an older pytest,
+# 9.0 among them, sees nothing once the application has started and quieted that logger.
+pytest>=9.1
 pytest-asyncio
 pytest-randomly
 pytest-socket
