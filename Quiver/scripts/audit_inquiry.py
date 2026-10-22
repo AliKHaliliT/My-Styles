@@ -81,6 +81,10 @@ FLOW_SCOPE = "review passes held to a funnel line in Boundary from the rule's ar
 # strings found, so a search is measured by what it was known to owe; a pass that ran no string says none.
 SEEDS = re.compile(r"^Seeds: (none|(\d+) fixed, (\d+) indexed, (\d+) found(.*))\s*$", re.MULTILINE)
 SEEDS_SCOPE = "review passes held to a seeds line in Boundary from the rule's arrival on"
+# A seed read whole and found to fail the criteria was mis-chosen; its key carries this mark in the seeds
+# line, it stays counted among the fixed, its miss is charged to no string, and Found does not name it,
+# because Found is what the pass entered.
+MISCHOSEN = re.compile(r"\[([a-z][a-z0-9]*[0-9]{4}[a-z]?|[a-z][a-z0-9]*-[0-9]{4})\] \(mis-chosen\)")
 # An extending pass names the date it extends from, set before the day the prior pass ran, so a work
 # indexed after that day and dated before it does not fall between two passes that meet exactly.
 SINCE = re.compile(r"\bfrom (\d{4}-\d{2}-\d{2})\b")
@@ -1483,7 +1487,7 @@ def check_review_flow(problems: list[str], rel: str, boundary_text: str, found_t
 
 
 def check_review_seeds(problems: list[str], rel: str, boundary_text: str, found_text: str) -> None:
-    """The Boundary names the seeds the pass fixed before its strings ran, fixed, indexed and found never rising, each a key Found names, or says none."""
+    """The Boundary names the seeds the pass fixed before its strings ran, fixed, indexed and found never rising, each a key Found names unless marked mis-chosen, or says none."""
     seeds = SEEDS.search(boundary_text)
     if seeds is None:
         problems.append(f"{rel}: the Boundary carries a line Seeds: N fixed, N indexed, N found, followed by the seeds' keys, or Seeds: none")
@@ -1497,10 +1501,15 @@ def check_review_seeds(problems: list[str], rel: str, boundary_text: str, found_
     if len(keys) != fixed:
         problems.append(f"{rel}: the seeds line says {fixed} fixed but names {len(keys)} key(s)")
     named = set(CITE_KEY.findall(prose_only(found_text)))
-    problems.extend(
-        f"{rel}: seed [{key}] is not among the keys Found names; a seed is a relevant work and the pass enters it"
-        for key in keys if key not in named
-    )
+    mischosen = set(MISCHOSEN.findall(seeds.group(5)))
+    for key in keys:
+        if (key in named) == (key in mischosen):
+            which = (
+                "is marked mis-chosen and still among the keys Found names; a work that failed the criteria is not entered"
+                if key in named
+                else "is not among the keys Found names; a seed is a relevant work and the pass enters it, or marks it (mis-chosen) where it failed the criteria in full"
+            )
+            problems.append(f"{rel}: seed [{key}] {which}")
 
 
 def depth_marks(found_text: str) -> list[tuple[str, str]]:
@@ -2180,6 +2189,7 @@ REVIEW_PLANTS = [
     ("docs/reviews/2026-01-01-planted-rising-seeds.md", REVIEW_TEMPLATE.replace("Seeds: none", "Seeds: 1 fixed, 2 indexed, 1 found, [planted9999]"), "the seeds never rise"),
     ("docs/reviews/2026-01-01-planted-miscounted-seeds.md", REVIEW_TEMPLATE.replace("Seeds: none", "Seeds: 2 fixed, 1 indexed, 1 found, [planted9999]"), "says 2 fixed but names 1 key"),
     ("docs/reviews/2026-01-01-planted-unentered-seed.md", REVIEW_TEMPLATE.replace("Seeds: none", "Seeds: 1 fixed, 1 indexed, 1 found, [planted8888]"), "seed [planted8888] is not among the keys Found names"),
+    ("docs/reviews/2026-01-01-planted-mischosen-entered.md", REVIEW_TEMPLATE.replace("Seeds: none", "Seeds: 1 fixed, 1 indexed, 1 found, [planted9999] (mis-chosen)"), "seed [planted9999] is marked mis-chosen and still among the keys Found names"),
 ]
 
 # The claim the depth advisory's plants share; its threats vary per plant.
@@ -2332,7 +2342,14 @@ def prove_review_plants() -> int:
         table = REVIEW_TEMPLATE.replace("- [planted9999] full", "| Key | Depth | Facet |\n| --- | --- | --- |\n| [planted9999] | full | x |")
         seeded = REVIEW_TEMPLATE.replace("Seeds: none", "Seeds: 1 fixed, 1 indexed, 1 found, [planted9999]")
         neighboured = REVIEW_TEMPLATE.replace("Nearest review: none found, the planted slice has none.", "Nearest review: [planted9999], which covered the slice to 2025; this pass adds the year since.")
-        legal = (("planted-legal-pass", REVIEW_TEMPLATE), ("planted-legal-table", table), ("planted-legal-seeds", seeded), ("planted-legal-nearest", neighboured))
+        mischosen = REVIEW_TEMPLATE.replace("Seeds: none", "Seeds: 2 fixed, 2 indexed, 1 found, [planted9999], [planted8888] (mis-chosen)")
+        legal = (
+            ("planted-legal-pass", REVIEW_TEMPLATE),
+            ("planted-legal-table", table),
+            ("planted-legal-seeds", seeded),
+            ("planted-legal-mischosen", mischosen),
+            ("planted-legal-nearest", neighboured),
+        )
         for name, content in legal:
             target = ROOT / f"docs/reviews/2026-01-01-{name}.md"
             target.write_text(content, encoding="utf-8")
