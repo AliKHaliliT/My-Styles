@@ -2,7 +2,10 @@
 # Dockerfile builds never carries a linter, a type checker, or a test runner.
 -r requirements.txt
 
-pytest
+# The access-log suite captures through pytest's own handler, which reaches a logger that does not
+# propagate from pytest 9, the version the suite was proven under; an older pytest sees nothing once
+# the application has started and quieted that logger.
+pytest>=9
 pytest-asyncio
 pytest-randomly
 pytest-socket
