@@ -896,9 +896,28 @@ def ignored(token: str, root: Path) -> bool:
     An ignored path is by declaration not part of the tree, so a living document naming one claims
     nothing the tree can be held to, whatever happens to exist on the machine the audit runs on.
     """
-    # The token comes from a tracked document and git is the tool the family runs on.
-    done = subprocess.run(["git", "check-ignore", "-q", "--", repo_relative(token)], cwd=root, capture_output=True, check=False)
-    return done.returncode == 0
+    # The token comes from a tracked document and git is the tool the family runs on. A path git refuses to
+    # judge, one beyond a symbolic link, is judged by the nearest ancestor git answers for, because the ignore
+    # file that covers the link covers everything reached through it.
+    rel = repo_relative(token)
+    while rel:
+        done = subprocess.run(["git", "check-ignore", "-q", "--", rel], cwd=root, capture_output=True, check=False)
+        if done.returncode in (0, 1):
+            return done.returncode == 0
+        rel = rel.rstrip("/").rpartition("/")[0]
+    return False
+
+
+def ignored_many(rels: list[str], root: Path) -> set[str]:
+    """The paths among these the ignore file covers, asked of git in one call, or one by one where git refuses the batch."""
+    if not rels:
+        return set()
+    done = subprocess.run(
+        ["git", "check-ignore", "--stdin", "-z"], cwd=root, input="\0".join(rels), capture_output=True, text=True, check=False
+    )
+    if done.returncode in (0, 1):
+        return {rel for rel in done.stdout.split("\0") if rel}
+    return {rel for rel in rels if ignored(rel, root)}
 
 
 def path_shaped(token: str) -> bool:
@@ -984,23 +1003,63 @@ def check_references(problems: list[str], root: Path) -> None:
         if not path.exists():
             continue
         check_record_citations(problems, rel, path, path.read_text(encoding="utf-8"))
-        flag_dead_links(problems, rel, path)
+        flag_dead_links(problems, rel, path, root)
         for line_no, line in enumerate(path.read_text(encoding="utf-8").split("\n"), 1):
             for token in PATH_TOKEN.findall(line):
                 if claims_to_be_path(token, root) and not (root / repo_relative(token).rstrip("/")).exists() and not ignored(token, root):
                     problems.append(f"{rel}:{line_no}: names `{token}`, which does not exist")
 
 
-def flag_dead_links(problems: list[str], rel: str, path: Path) -> None:
-    """Every relative link in the file resolves from the file's own folder; a link inside a code span is a form, not a claim."""
+def relative_links(path: Path) -> list[tuple[int, str, str]]:
+    """Every relative link in the file as its line, its target and the target without its anchor; a link inside a code span is a form, not a claim."""
     prose = CODE_SPAN.sub(lambda m: re.sub(r"[^\n]", " ", m.group(0)), path.read_text(encoding="utf-8"))
+    found: list[tuple[int, str, str]] = []
     for line_no, line in enumerate(prose.split("\n"), 1):
         for target in LINK.findall(line):
             bare = target.split("#", 1)[0]
-            if not bare or "://" in bare or bare.startswith("mailto:"):
-                continue
-            if not (path.parent / bare).exists():
-                problems.append(f"{rel}:{line_no}: links to {target}, which does not resolve")
+            if bare and "://" not in bare and not bare.startswith("mailto:"):
+                found.append((line_no, target, bare))
+    return found
+
+
+def linked_rel(rel: str, bare: str) -> str:
+    """The repository-relative path a relative link names from the file that carries it."""
+    return posixpath.normpath(posixpath.join(posixpath.dirname(rel), bare))
+
+
+def flag_dead_links(problems: list[str], rel: str, path: Path, root: Path) -> None:
+    """Every relative link in the file resolves from the file's own folder, or the ignore file withholds its target, which is no verdict either way."""
+    for line_no, target, bare in relative_links(path):
+        if not (path.parent / bare).exists() and not ignored(linked_rel(rel, bare), root):
+            problems.append(f"{rel}:{line_no}: links to {target}, which does not resolve")
+
+
+def link_bearing(root: Path) -> list[tuple[str, Path]]:
+    """Every file whose relative links the audit holds, the living documents and the records of the project's own."""
+    files = [(rel, root / rel) for rel in living_documents(root) if (root / rel).exists()]
+    docs = root / "docs"
+    if docs.is_dir():
+        for path in sorted(docs.rglob("*.md")):
+            rel = path.relative_to(root).as_posix()
+            if rel.count("/") >= 2 and not rel.startswith(("docs/inherited/", "docs/arrows/")):
+                files.append((rel, path))
+    return files
+
+
+def withheld_links(root: Path) -> list[str]:
+    """One not-run line per relative link whose target the ignore file keeps outside the tree, saying whether it lies on this machine."""
+    links = [(rel, target, linked_rel(rel, bare)) for rel, path in link_bearing(root) for _, target, bare in relative_links(path)]
+    withheld = ignored_many(sorted({linked for _, _, linked in links}), root)
+    lines: list[str] = []
+    for rel, target, linked in links:
+        if linked not in withheld:
+            continue
+        where = "present on this machine" if (root / linked).exists() else "absent from this machine"
+        lines.append(
+            f"check_record_links did not run on `{target}` for {rel}: the ignore file keeps it outside the tree,"
+            f" which no checkout can vouch for; {where}"
+        )
+    return lines
 
 
 def check_invisible(problems: list[str], root: Path) -> None:
@@ -1088,7 +1147,7 @@ def check_record_links(problems: list[str], root: Path) -> None:
         rel = path.relative_to(root).as_posix()
         if rel.count("/") < 2 or rel.startswith(("docs/inherited/", "docs/arrows/")):
             continue
-        flag_dead_links(problems, rel, path)
+        flag_dead_links(problems, rel, path, root)
 
 
 def check_upstream(problems: list[str], root: Path) -> None:
@@ -2023,6 +2082,7 @@ def unrun_checks(root: Path) -> list[str]:
             " the one check beyond the gate's commands it carries, ran nowhere"
         )
     unrun.extend(withheld_artifacts(root))
+    unrun.extend(withheld_links(root))
     return unrun
 
 
@@ -3665,6 +3725,66 @@ def expect_withheld(problems: list[str], unrun: list[str], name: str, token: str
     return 1
 
 
+def prove_withheld_link() -> int:
+    """A relative link whose target the ignore file covers is named as not run, absent or present, and never a dead link."""
+    ignore = ROOT / ".gitignore"
+    if not ignore.exists():
+        print("withheld link plant skipped: no .gitignore in this tree")
+        return 0
+    document = ROOT / "docs/PLANTED.md"
+    target = ROOT / "planted-withheld/run.json"
+    original = ignore.read_bytes()
+    failures = 0
+    try:
+        document.write_text("# Planted\n\nSee [the run](../planted-withheld/run.json) kept outside the tree.\n", encoding="utf-8")
+        ignore.write_bytes(original.rstrip(b"\n") + b"\n\n# Planted\nplanted-withheld/\n")
+        problems, unrun = run(ROOT)[0], unrun_checks(ROOT)
+        failures += expect_withheld(problems, unrun, "docs/PLANTED.md", "`../planted-withheld/run.json`", "absent from this machine")
+        target.parent.mkdir(exist_ok=True)
+        target.write_text("{}\n", encoding="utf-8")
+        problems, unrun = run(ROOT)[0], unrun_checks(ROOT)
+        failures += expect_withheld(problems, unrun, "docs/PLANTED.md", "`../planted-withheld/run.json`", "present on this machine")
+    finally:
+        ignore.write_bytes(original)
+        document.unlink(missing_ok=True)
+        target.unlink(missing_ok=True)
+        if target.parent.exists() and not any(target.parent.iterdir()):
+            target.parent.rmdir()
+    return failures
+
+
+def prove_withheld_symlink() -> int:
+    """A recorded artifact reached through an ignored symbolic link is withheld, judged by the link git answers for, and never a verdict."""
+    ignore = ROOT / ".gitignore"
+    if not ignore.exists():
+        print("withheld symlink plant skipped: no .gitignore in this tree")
+        return 0
+    link = ROOT / "docs/planted-link"
+    claims = ROOT / "docs/claims"
+    number = free_number(claims, 940)
+    claim = claims / f"{number}-planted-linked.md"
+    original = ignore.read_bytes()
+    with tempfile.TemporaryDirectory() as scratch:
+        (Path(scratch) / "run.json").write_text("{}\n", encoding="utf-8")
+        try:
+            link.symlink_to(scratch, target_is_directory=True)
+        except OSError:
+            print("withheld symlink plant skipped: this machine cannot create a symbolic link")
+            return 0
+        try:
+            ignore.write_bytes(original.rstrip(b"\n") + b"\n\n# Planted\ndocs/planted-link\n")
+            claim.write_text(
+                ADVISORY_BODY.format(num=number, status="Supported", evidence="Recorded: one paid run, preserved as `docs/planted-link/run.json`."),
+                encoding="utf-8",
+            )
+            problems, unrun = run(ROOT)[0], unrun_checks(ROOT)
+            return expect_withheld(problems, unrun, claim.name, "`docs/planted-link/run.json`", "present on this machine")
+        finally:
+            ignore.write_bytes(original)
+            claim.unlink(missing_ok=True)
+            link.unlink(missing_ok=True)
+
+
 def prove_unrun_report() -> int:
     """Hiding a check's need names the check as not run, and the file comes back."""
     state = ROOT / "STATE.md"
@@ -3749,6 +3869,8 @@ def selftest() -> int:
         prove_no_remote_report,
         prove_unrun_report,
         prove_withheld_artifact,
+        prove_withheld_link,
+        prove_withheld_symlink,
         prove_empty_tree,
     )
     failures = sum(proof() for proof in proofs)
