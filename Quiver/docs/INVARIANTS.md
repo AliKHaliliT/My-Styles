@@ -12,7 +12,7 @@ What must stay true about this product, one row per claim, each bound to the hol
 | Every manifest names a style the stale-pin scan has paths for. | `scripts/audit_inquiry.py` "check_manifest_style" | impossible |
 | Two claims quoting one figure at one pin quote one value. | `scripts/audit_inquiry.py` "check_figures" | impossible |
 | Every claim still standing is linked from a question, and every question links a claim or says it has none. | `scripts/audit_inquiry.py` "check_questions" | impossible |
-| A pass added from the seed rule's arrival names its seeds in its Boundary, fixed, indexed and found never rising, each seed a key Found names, or says none. | `scripts/audit_inquiry.py` "check_review_seeds" | impossible |
+| A pass added from the seed rule's arrival names its seeds in its Boundary, fixed, indexed and found never rising, each seed a key Found names unless the line marks it mis-chosen, which Found never names, or says none. | `scripts/audit_inquiry.py` "check_review_seeds" | impossible |
 | A pass added from the extension rule's arrival that extends another names the date it extends from, before the day the extended pass ran. | `scripts/audit_inquiry.py` "check_review_extension" | impossible |
 | A pass added from the nearest-review rule's arrival names in its Boundary the review that already covers its slice, by key, or says none found. | `scripts/audit_inquiry.py` "check_review_nearest" | impossible |
 | A pass added from the screening rule's arrival links a screening log that exists or says none, and the rows the linked log passed at the abstract stage are the funnel's screened count. | `scripts/audit_inquiry.py` "check_review_screening" | impossible |
