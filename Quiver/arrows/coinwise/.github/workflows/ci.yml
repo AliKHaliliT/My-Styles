@@ -6,6 +6,8 @@ name: CI
 # broken build configuration would otherwise pass every other gate.
 # Actions ride major-version tags so a child of this template starts current; pin them to commit digests when your threat model warrants hardening.
 
+# A push to a branch of this repository is that branch's run, so a job runs on a pull request only
+# when the request comes from a fork, whose push never reaches this repository.
 on:
   push:
   pull_request:
@@ -13,6 +15,7 @@ on:
 jobs:
   check:
     runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:

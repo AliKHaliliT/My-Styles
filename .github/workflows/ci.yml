@@ -10,6 +10,8 @@ name: CI
 # exercises packaging. Actions are pinned by commit for the same reason the family audit
 # holds carried law by digest, because a tag can move and a digest cannot.
 
+# A push to a branch of this repository is that branch's run, so a job runs on a pull request only
+# when the request comes from a fork, whose push never reaches this repository.
 on:
   push:
   pull_request:
@@ -18,6 +20,7 @@ jobs:
   em-dashes:
     name: Em dashes
     runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       # The seats' docs audits count the budget and advise on vocabulary and spelling inside each
@@ -61,6 +64,7 @@ jobs:
   family:
     name: Family law
     runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -86,6 +90,7 @@ jobs:
   audit-scripts:
     name: Audit scripts
     runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
@@ -105,6 +110,7 @@ jobs:
   rehearsal:
     name: Adoption rehearsal
     runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
@@ -124,6 +130,7 @@ jobs:
   secrets:
     name: Secret scan
     runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -135,6 +142,7 @@ jobs:
   archetypecore:
     name: ArchetypeCore
     runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository }}
     defaults:
       run:
         working-directory: ArchtypeCore
@@ -173,6 +181,7 @@ jobs:
   keel:
     name: Keel
     runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository }}
     defaults:
       run:
         working-directory: Keel
@@ -220,6 +229,7 @@ jobs:
   quiver:
     name: Quiver
     runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository }}
     defaults:
       run:
         working-directory: Quiver
@@ -273,6 +283,7 @@ jobs:
   helm:
     name: Helm
     runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository }}
     defaults:
       run:
         working-directory: Helm
