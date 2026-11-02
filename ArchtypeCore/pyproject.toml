@@ -112,6 +112,9 @@ ignore_missing_imports = true
 # The suite runs in a shuffled order under a seed the run prints, so a test that leans on
 # its neighbor fails on the day it is written; replay a run with --randomly-seed=<printed>.
 asyncio_mode = "auto"
+# Every asynchronous fixture gets a loop of its own test, which is the isolation the suite already
+# assumes; the plugin warns at configuration while the scope is unset, and here a warning is an error.
+asyncio_default_fixture_loop_scope = "function"
 testpaths = ["tests"]
 # A suite cannot reach a provider or the network, because pytest-socket refuses every connection
 # that would leave the loopback, so an adapter that resolves its credentials from the environment
