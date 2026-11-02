@@ -15,12 +15,51 @@ name: CI
 on:
   push:
   pull_request:
+  workflow_dispatch:
 
 jobs:
+  landing:
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository }}
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      verified: ${{ steps.evidence.outputs.verified }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+      - name: Landed branches are gone
+        run: |
+          git fetch --prune origin '+refs/heads/*:refs/remotes/origin/*'
+          stale=$(git branch -r --merged origin/main | grep -vE 'origin/(main|HEAD)$' || true)
+          if [ -n "$stale" ]; then
+            echo "$stale"
+            echo "A landed branch outlives its landing; delete it locally and on the remote in the push that moves main."
+            exit 1
+          fi
+      - name: Evidence of a run this commit already passed
+        id: evidence
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # A fast-forward keeps the commit, so a branch run that passed at this commit has seen this tree whole;
+          # the gate is not repeated for it and only this landing check runs. Without that evidence the gate runs.
+          passed=$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/ci.yml/runs?head_sha=${GITHUB_SHA}&status=success&per_page=50" --jq '[.workflow_runs[] | select(.head_branch != "main" and .event == "push")] | length' 2>/dev/null || echo 0)
+          if [ "${passed:-0}" -gt 0 ]; then
+            echo "verified=true" >> "$GITHUB_OUTPUT"
+            echo "a branch run passed at ${GITHUB_SHA}, so the gate is not repeated; only the landing check ran"
+          else
+            echo "verified=false" >> "$GITHUB_OUTPUT"
+          fi
+
   em-dashes:
     name: Em dashes
     runs-on: ubuntu-latest
-    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository }}
+    needs: landing
+    if: ${{ needs.landing.outputs.verified != 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository) }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       # The seats' docs audits count the budget and advise on vocabulary and spelling inside each
@@ -64,7 +103,8 @@ jobs:
   family:
     name: Family law
     runs-on: ubuntu-latest
-    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository }}
+    needs: landing
+    if: ${{ needs.landing.outputs.verified != 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository) }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -77,20 +117,12 @@ jobs:
         run: |
           python3 scripts/audit_treasury.py --selftest
           python3 scripts/audit_treasury.py
-      - name: Landed branches are gone
-        run: |
-          git fetch --prune origin '+refs/heads/*:refs/remotes/origin/*'
-          stale=$(git branch -r --merged origin/main | grep -vE 'origin/(main|HEAD)$' || true)
-          if [ -n "$stale" ]; then
-            echo "$stale"
-            echo "A landed branch outlives its landing; delete it locally and on the remote in the push that moves main."
-            exit 1
-          fi
 
   audit-scripts:
     name: Audit scripts
     runs-on: ubuntu-latest
-    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository }}
+    needs: landing
+    if: ${{ needs.landing.outputs.verified != 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository) }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
@@ -110,7 +142,8 @@ jobs:
   rehearsal:
     name: Adoption rehearsal
     runs-on: ubuntu-latest
-    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository }}
+    needs: landing
+    if: ${{ needs.landing.outputs.verified != 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository) }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
@@ -130,7 +163,8 @@ jobs:
   secrets:
     name: Secret scan
     runs-on: ubuntu-latest
-    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository }}
+    needs: landing
+    if: ${{ needs.landing.outputs.verified != 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository) }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -142,7 +176,8 @@ jobs:
   archetypecore:
     name: ArchetypeCore
     runs-on: ubuntu-latest
-    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository }}
+    needs: landing
+    if: ${{ needs.landing.outputs.verified != 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository) }}
     defaults:
       run:
         working-directory: ArchtypeCore
@@ -181,7 +216,8 @@ jobs:
   keel:
     name: Keel
     runs-on: ubuntu-latest
-    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository }}
+    needs: landing
+    if: ${{ needs.landing.outputs.verified != 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository) }}
     defaults:
       run:
         working-directory: Keel
@@ -229,7 +265,8 @@ jobs:
   quiver:
     name: Quiver
     runs-on: ubuntu-latest
-    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository }}
+    needs: landing
+    if: ${{ needs.landing.outputs.verified != 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository) }}
     defaults:
       run:
         working-directory: Quiver
@@ -283,7 +320,8 @@ jobs:
   helm:
     name: Helm
     runs-on: ubuntu-latest
-    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository }}
+    needs: landing
+    if: ${{ needs.landing.outputs.verified != 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository) }}
     defaults:
       run:
         working-directory: Helm

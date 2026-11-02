@@ -11,15 +11,20 @@ name: CI
 on:
   push:
   pull_request:
+  workflow_dispatch:
 
 jobs:
-  inquiry:
+  landing:
     runs-on: ubuntu-latest
     if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository }}
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      verified: ${{ steps.evidence.outputs.verified }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
-          # Pins are verified against history, so the clone cannot be shallow.
           fetch-depth: 0
       - name: Landed branches are gone
         run: |
@@ -30,6 +35,31 @@ jobs:
             echo "A landed branch outlives its landing; delete it locally and on the remote in the push that moves main."
             exit 1
           fi
+      - name: Evidence of a run this commit already passed
+        id: evidence
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # A fast-forward keeps the commit, so a branch run that passed at this commit has seen this tree whole;
+          # the gate is not repeated for it and only this landing check runs. Without that evidence the gate runs.
+          passed=$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/ci.yml/runs?head_sha=${GITHUB_SHA}&status=success&per_page=50" --jq '[.workflow_runs[] | select(.head_branch != "main" and .event == "push")] | length' 2>/dev/null || echo 0)
+          if [ "${passed:-0}" -gt 0 ]; then
+            echo "verified=true" >> "$GITHUB_OUTPUT"
+            echo "a branch run passed at ${GITHUB_SHA}, so the gate is not repeated; only the landing check ran"
+          else
+            echo "verified=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  inquiry:
+    runs-on: ubuntu-latest
+    needs: landing
+    if: ${{ needs.landing.outputs.verified != 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository) }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          # Pins are verified against history, so the clone cannot be shallow.
+          fetch-depth: 0
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
         with:
           python-version: "3.14"
@@ -42,7 +72,8 @@ jobs:
 
   coinwise:
     runs-on: ubuntu-latest
-    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository }}
+    needs: landing
+    if: ${{ needs.landing.outputs.verified != 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository) }}
     defaults:
       run:
         working-directory: arrows/coinwise
