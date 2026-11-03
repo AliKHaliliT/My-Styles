@@ -7,4 +7,4 @@ import os
 os.environ["DATABASE_URL"] = "sqlite+aiosqlite:///:memory:"
 os.environ["SERVER_IP"] = "127.0.0.1"
 os.environ["SERVER_PUBKEY"] = "test-only-server-public-key"
-os.environ["SECRET_KEY"] = "test-only-secret-key-of-sufficient-length"
+os.environ["SECRET_KEY"] = "test-only-secret-key-long-enough-for-every-hmac-algorithm-of-the-family"

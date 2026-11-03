@@ -13,3 +13,8 @@ What must stay true about this product, one row per claim, each bound to the hol
 | The core never learns which provider implementation it drives. | review | review |
 | No suite replaces a collaborator by patching a module's internals. | `.github/workflows/ci.yml` "Module mocking is banned" | impossible |
 | An upstream entry carries no address, URL, email or absolute path. | `scripts/audit_docs.py` "check_upstream_entry" | impossible |
+| A token is accepted only under the configured algorithm, so one signed with the right secret under another algorithm is refused. | `tests/app/core/security/test_local_auth.py` "test_a_token_signed_under_another_algorithm_is_refused" | listed cases |
+| A token signed with another secret, or not signed at all, is refused. | `tests/app/core/security/test_local_auth.py` "test_an_unsigned_token_is_refused_whatever_its_claims_say" | listed cases |
+| A token without its expiry or its subject is refused. | `tests/app/core/security/test_local_auth.py` "test_a_token_without_an_expiry_is_refused" | listed cases |
+| The token algorithm is one of the HMAC family, since one shared secret both signs and verifies. | `app/core/config/settings.py` "enforce_hmac_algorithm" | impossible |
+| The shared secret is at least as long as the configured algorithm's hash output. | `app/core/config/settings.py` "enforce_secret_length_for_algorithm" | impossible |

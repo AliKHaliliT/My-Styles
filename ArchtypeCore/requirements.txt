@@ -3,7 +3,8 @@ uvicorn[standard]
 sqlalchemy[asyncio]
 alembic
 pydantic-settings
-python-jose[cryptography]
+# Tokens are signed and verified with one shared secret, so the token library needs no cryptography extra.
+PyJWT
 requests
 aiosqlite
 python-multipart

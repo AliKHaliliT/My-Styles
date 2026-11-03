@@ -4,7 +4,8 @@ from typing import Any
 
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
-from jose import JWTError, jwt
+import jwt
+from jwt.exceptions import PyJWTError
 
 from app.core.config.settings import settings
 from app.domain.interfaces.security import IAuthManager
@@ -239,10 +240,14 @@ class LocalAuthAdapter(IAuthManager):
             raise TypeError(f"token must be a str. Received: {token} with type {type(token)}")
 
 
+        # The configured algorithm is the only one accepted, so a token naming another, the unsigned kind
+        # included, is refused, and a token without its expiry or its subject is refused before either is read.
         try:
-            payload: dict[str, Any] = jwt.decode(token, self.secret_key, algorithms=[self.algorithm])
+            payload: dict[str, Any] = jwt.decode(
+                token, self.secret_key, algorithms=[self.algorithm], options={"require": ["exp", "sub"]}
+            )
             return payload
-        except JWTError as e:
+        except PyJWTError as e:
             logging.debug(f"JWT decode error: {e}")
             return None
         except Exception as e:

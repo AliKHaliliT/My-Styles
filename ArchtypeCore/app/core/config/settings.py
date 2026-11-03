@@ -1,6 +1,7 @@
 from pathlib import Path
+from typing import Self
 
-from pydantic import Field, field_validator
+from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from app.docs.fragments.headers_content import HEADERS_CONTENT
@@ -59,8 +60,8 @@ class Settings(BaseSettings):
 
 
     # --- Security / JWT ---
-    SECRET_KEY: str = Field(..., description="Cryptographic secret key for signing JWTs (must be ≥32 characters)")
-    ALGORITHM: str = Field(default="HS256", description="Hashing algorithm used for token signatures")
+    SECRET_KEY: str = Field(..., description="Shared secret for signing tokens, at least as long as the algorithm's hash output (32 bytes for HS256)")
+    ALGORITHM: str = Field(default="HS256", description="Token signature algorithm, one of HS256, HS384 and HS512")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(default=30, ge=5, description="Minutes until an access token expires")
 
 
@@ -117,6 +118,41 @@ class Settings(BaseSettings):
                 "SECRET_KEY must be set and at least 32 characters for production!"
             )
         return v
+
+
+    @field_validator("ALGORITHM")
+    @classmethod
+    def enforce_hmac_algorithm(cls, v: str) -> str:
+
+        """
+
+        Ensure the token algorithm is one of the HMAC family, since the local adapter signs and verifies with one shared secret.
+
+        """
+
+        if v not in ("HS256", "HS384", "HS512"):
+            raise ValueError(
+                "ALGORITHM must be HS256, HS384 or HS512, because the local auth adapter signs and verifies "
+                "with one shared secret; an asymmetric algorithm needs an adapter with two keys."
+            )
+        return v
+
+
+    @model_validator(mode="after")
+    def enforce_secret_length_for_algorithm(self) -> Self:
+
+        """
+
+        Ensure the shared secret is at least as long as the configured algorithm's hash output, as RFC 7518 requires.
+
+        """
+
+        needed = {"HS256": 32, "HS384": 48, "HS512": 64}[self.ALGORITHM]
+        if len(self.SECRET_KEY.encode("utf-8")) < needed:
+            raise ValueError(
+                f"SECRET_KEY must be at least {needed} bytes for {self.ALGORITHM}, the size of its hash output."
+            )
+        return self
 
 
     # --- Helper properties ---
