@@ -68,6 +68,16 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -e .
           python -m pip install --group dev
+      - name: Dependency audit, advisory
+        continue-on-error: true
+        run: |
+          # The set the install step resolves, the declared dependencies and the development group, read against
+          # the advisories the index has published by the day of the run; a finding is review's to fix or dismiss
+          # in writing.
+          python -c "import tomllib; p = tomllib.load(open('pyproject.toml', 'rb')); print('\n'.join(p['project'].get('dependencies', []) + p.get('dependency-groups', {}).get('dev', [])))" > "$RUNNER_TEMP/audit-requirements.txt"
+          python -m venv "$RUNNER_TEMP/audit"
+          "$RUNNER_TEMP/audit/bin/python" -m pip install --quiet pip-audit
+          "$RUNNER_TEMP/audit/bin/pip-audit" --progress-spinner off -r "$RUNNER_TEMP/audit-requirements.txt"
       - name: Audit selftest
         run: python scripts/audit_docs.py --selftest
       - name: Docs

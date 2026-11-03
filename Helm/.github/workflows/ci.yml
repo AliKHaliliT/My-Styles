@@ -67,6 +67,11 @@ jobs:
           npm ci
           # The docs audit's spelling advisory runs where codespell is installed.
           pipx install codespell
+      - name: Dependency audit, advisory
+        continue-on-error: true
+        # The tree the lock installs, read against the advisories the registry has published by the day of the
+        # run; a finding is review's to fix or dismiss in writing.
+        run: npm audit
       - name: Audit selftest
         run: node scripts/audit-docs-selftest.mjs
       - name: Docs
