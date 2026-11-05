@@ -1,6 +1,6 @@
 # 0014. Rounded parts miss the rounded total at a known rate
 
-Status: Supported
+Status: Superseded by 0018
 Date: 2026-10-16
 
 ## Claim

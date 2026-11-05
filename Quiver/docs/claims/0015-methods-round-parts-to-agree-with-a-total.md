@@ -1,6 +1,6 @@
 # 0015. Methods round parts to agree with a total
 
-Status: Supported
+Status: Superseded by 0019
 Date: 2026-10-16
 
 ## Claim

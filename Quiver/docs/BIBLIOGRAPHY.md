@@ -167,35 +167,42 @@ Evidence floor: grey, first tier
   Source: grey, first tier.
 - **diaconis1979**: Diaconis, Persi, and David Freedman. 1979. "On Rounding
   Percentages." Journal of the American Statistical Association, volume 74,
-  number 366, pages 359 to 364. Read at abstract depth, for the result that
+  number 366, pages 359 to 364. Read whole on 2026-11-04, for the proof that
   percentages rounded to integers sum to one hundred with a probability that
-  falls with their number, which [janson2013] restates and extends.
+  falls as the square root of their number, the small-sample caveat for a
+  fixed multinomial, and the reading of a classic table whose rows had been
+  forced to round.
   Source: reviewed.
 - **mosteller1967**: Mosteller, Frederick, Cleo Youtz, and Douglas Zahn. 1967.
   "The Distribution of Sums of Rounded Percentages." Demography, volume 4,
-  number 2, pages 850 to 858. Read at abstract depth, for the distribution of
-  the sum of three or four rounded percentages and how often it misses one
-  hundred.
+  number 2, pages 850 to 858. Read whole on 2026-11-04 in its reprint as
+  chapter 21 of Selected Papers of Frederick Mosteller, Springer Series in
+  Statistics, pages 399 to 411, whose pages the claims cite, for the
+  probabilities that two, three, four and many rounded percentages sum to
+  exactly one hundred, the variance of the sum, and the tie rule the study set
+  aside.
   Source: reviewed.
 - **cox1987**: Cox, Lawrence H. 1987. "A Constructive Procedure for Unbiased
   Controlled Rounding." Journal of the American Statistical Association,
   volume 82, number 398, pages 520 to 524. Read at abstract depth, for the
   procedure that rounds a two-way table so that every rounded value is a
   neighbor of the original, the totals stay additive, and the expected value
-  of each rounded entry equals the original.
+  of each rounded entry equals the original; a copy was sought through a
+  library on 2026-11-03 and not obtained, so the depth stands.
   Source: reviewed.
 - **coxernst1982**: Cox, Lawrence H., and Lawrence R. Ernst. 1982. "Controlled
   Rounding." INFOR: Information Systems and Operational Research, volume 20,
-  number 4, pages 423 to 432. Read at abstract depth, for the definition of a
-  controlled rounding of a two-way table and its construction as a
-  transportation problem, which always has a solution in two dimensions.
+  number 4, pages 423 to 432. Read whole on 2026-11-04, for the definition of
+  a controlled rounding of a two-way table, its construction as a capacitated
+  transportation problem, and the proof that one always exists, the
+  zero-restricted case included.
   Source: reviewed.
 - **balinski1993**: Balinski, Michel L., and Svetlozar T. Rachev. 1993.
   "Rounding Proportions: Rules of Rounding." Numerical Functional Analysis and
-  Optimization, volume 14, numbers 5 to 6, pages 475 to 501. Read at abstract
-  depth, for the rules that round a vector of proportions to integers summing
-  to a fixed total and the properties that single out the stationary divisor
-  rules.
+  Optimization, volume 14, numbers 5 to 6, pages 475 to 501. Read whole on
+  2026-11-04, for the distinction between rules and methods of rounding, the
+  extension of the classic results to the divisor rules, among which Webster's
+  maximizes the chance of a justified sum, and the bounds for tables.
   Source: reviewed.
 - **pukelsheim2014**: Pukelsheim, Friedrich. 2014. Proportional
   Representation: Apportionment Methods and Their Applications. Springer,
@@ -256,7 +263,8 @@ Evidence floor: grey, first tier
 - **yamaguchi2015**: Yamaguchi, Yoh. 2015. "When Sum of Rounded Percentages is
   not 100." Journal of Social Studies, volume 60, from page 111. Read at the
   depth of its index record, title and venue alone, since no registry resolves
-  it and no copy could be opened; it is held out of every claim.
+  it and no copy could be opened; a search through a library on 2026-11-03
+  found neither, so it is held out of every claim and the depth stands.
   Source: reviewed.
 - **gonzalez2005**: Gonzalez, Joe Fred, and Lawrence H. Cox. 2005. "Software
   for tabular data protection." Statistics in Medicine, volume 24, number 4,
@@ -265,9 +273,10 @@ Evidence floor: grey, first tier
   Source: reviewed.
 - **berry1976**: Berry, Paul. 1976. "Distributive rounding in commercial
   applications." Proceedings of the Eighth International Conference on APL,
-  APL '76, pages 74 to 77. Read at abstract depth, for distributive rounding,
-  the rounding of a set of amounts so that their sum equals a given total; the
-  publisher refuses scripted readers.
+  APL '76, pages 74 to 77. Read whole on 2026-11-04, for distributive
+  rounding, the floors of the parts raised by one at the least accurate
+  elements until the sum equals the total, its guarantees and its payroll
+  case.
   Source: reviewed.
 - **balinski1996**: Balinski, Michel L. 1996. "How should data be rounded?" In
   Distributions with Fixed Marginals and Related Topics, Institute of
@@ -698,3 +707,9 @@ Evidence floor: grey, first tier
   entitlement, carries the residual to a first-in-first-out stage, and
   conserves the total; the paper was not read whole.
   Source: preprint, checked 2026-10-16.
+- **wainer1998**: Wainer, Howard. 1998. "Rounding Tables," in the column
+  Visual Revelations. CHANCE, volume 11, number 1, pages 46 to 50. Read whole
+  on 2026-11-04, for its account of rounded percentages failing to sum to one
+  hundred in published tables and of the Webster method that forces them to,
+  with the tie rule it states.
+  Source: reviewed.
