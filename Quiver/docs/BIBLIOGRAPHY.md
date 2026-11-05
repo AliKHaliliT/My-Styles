@@ -713,3 +713,13 @@ Evidence floor: grey, first tier
   hundred in published tables and of the Webster method that forces them to,
   with the tie rule it states.
   Source: reviewed.
+- **gstact-1999**: Commonwealth of Australia. 1999. A New Tax System (Goods
+  and Services Tax) Act 1999, Compilation No. 96 of 1 January 2026, Federal
+  Register of Legislation C2026C00081, sections 9-90 and 29-70, as published
+  at the register and saved from a browser by the owner on 2026-11-05. Read
+  for the rounding of GST on one supply to the nearest cent with half a cent
+  up, the supplier's choice for several supplies on one invoice between
+  rounding the summed unrounded amounts once and summing amounts each rounded
+  to the accounting system's decimal places, with its ties settled upward, and
+  the GST per supply a tax invoice shows.
+  Source: grey, first tier.

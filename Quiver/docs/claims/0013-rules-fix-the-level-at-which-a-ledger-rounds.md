@@ -1,6 +1,6 @@
 # 0013. Rules fix the level at which a ledger rounds
 
-Status: Supported
+Status: Superseded by 0020
 Date: 2026-10-16
 
 ## Claim

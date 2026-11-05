@@ -1,0 +1,256 @@
+{
+ "index": "dblp",
+ "day": "2026-11-05",
+ "syntax": "publication search endpoint, each term stemmed by the index, one hundred hits per query, run in a browser",
+ "runs": [
+  {
+   "query": "rounding* percentages*",
+   "total": 0,
+   "hits": []
+  },
+  {
+   "query": "rounding* invoice*",
+   "total": 0,
+   "hits": []
+  },
+  {
+   "query": "rounding* ledger*",
+   "total": 0,
+   "hits": []
+  },
+  {
+   "query": "rounded* percentages*",
+   "total": 0,
+   "hits": []
+  },
+  {
+   "query": "currency* rounding*",
+   "total": 1,
+   "hits": [
+    {
+     "record": "conf/fc/MRaihiNT00",
+     "title": "Asymmetric Currency Rounding.",
+     "year": "2000",
+     "venue": "Financial Cryptography",
+     "doi": "10.1007/3-540-45472-1_14",
+     "ee": "https://doi.org/10.1007/3-540-45472-1_14",
+     "authors": [
+      "David M'Raïhi",
+      "David Naccache",
+      "Michael Tunstall"
+     ]
+    }
+   ]
+  },
+  {
+   "query": "monetary* rounding*",
+   "total": 0,
+   "hits": []
+  },
+  {
+   "query": "rounding* money*",
+   "total": 0,
+   "hits": []
+  },
+  {
+   "query": "apportionment* rounding*",
+   "total": 1,
+   "hits": [
+    {
+     "record": "journals/jsiaml/Ichimori11",
+     "title": "On rounding off quotas to the nearest integers in the problem of apportionment.",
+     "year": "2011",
+     "venue": "JSIAM Lett.",
+     "doi": "10.14495/JSIAML.3.21",
+     "ee": "https://doi.org/10.14495/jsiaml.3.21",
+     "authors": [
+      "Tetsuo Ichimori"
+     ]
+    }
+   ]
+  },
+  {
+   "query": "rounding* proportions*",
+   "total": 0,
+   "hits": []
+  },
+  {
+   "query": "distributive* rounding*",
+   "total": 1,
+   "hits": [
+    {
+     "record": "conf/apl/Berry76",
+     "title": "Distributive rounding in commercial applications.",
+     "year": "1976",
+     "venue": "APL",
+     "doi": "10.1145/800114.803662",
+     "ee": "https://doi.org/10.1145/800114.803662",
+     "authors": [
+      "Paul C. Berry"
+     ]
+    }
+   ]
+  },
+  {
+   "query": "table* rounding*",
+   "total": 4,
+   "hits": [
+    {
+     "record": "conf/cscml/DevorKM24",
+     "title": "A Probabilistic Model for Rounding Errors: A New Look at the Table-Maker's Dilemma.",
+     "year": "2024",
+     "venue": "CSCML",
+     "doi": "10.1007/978-3-031-76934-4_17",
+     "ee": "https://doi.org/10.1007/978-3-031-76934-4_17",
+     "authors": [
+      "Jonathan Devor",
+      "Daniel Khankin",
+      "Oded Margalit"
+     ]
+    },
+    {
+     "record": "conf/psd/GonzalezS04",
+     "title": "A New Tool for Applying Controlled Rounding to a Statistical Table in Microsoft Excel.",
+     "year": "2004",
+     "venue": "Privacy in Statistical Databases",
+     "doi": "10.1007/978-3-540-25955-8_4",
+     "ee": "https://doi.org/10.1007/978-3-540-25955-8_4",
+     "authors": [
+      "Juan José Salazar González",
+      "Markus Schoch"
+     ]
+    },
+    {
+     "record": "journals/cai/Sima99",
+     "title": "Table Rounding Problem.",
+     "year": "1999",
+     "venue": "Comput. Artif. Intell.",
+     "doi": null,
+     "ee": "http://www.cai.sk/ojs/index.php/cai/article/view/606",
+     "authors": [
+      "Jirí Síma"
+     ]
+    },
+    {
+     "record": "conf/sofsem/Sima96",
+     "title": "Aunt's Problem: Table Rounding.",
+     "year": "1996",
+     "venue": "SOFSEM",
+     "doi": "10.1007/BFB0037428",
+     "ee": "https://doi.org/10.1007/BFb0037428",
+     "authors": [
+      "Jirí Síma"
+     ]
+    }
+   ]
+  },
+  {
+   "query": "controlled* rounding*",
+   "total": 8,
+   "hits": [
+    {
+     "record": "journals/endm/DoerrK06",
+     "title": "Controlled Randomized Rounding.",
+     "year": "2006",
+     "venue": "Electron. Notes Discret. Math.",
+     "doi": "10.1016/J.ENDM.2006.06.061",
+     "ee": "https://doi.org/10.1016/j.endm.2006.06.061",
+     "authors": [
+      "Benjamin Doerr",
+      "Christian Klein"
+     ]
+    },
+    {
+     "record": "journals/mp/Gonzalez06",
+     "title": "Controlled rounding and cell perturbation: statistical disclosure limitation methods for tabular data.",
+     "year": "2006",
+     "venue": "Math. Program.",
+     "doi": "10.1007/S10107-005-0666-4",
+     "ee": "https://doi.org/10.1007/s10107-005-0666-4",
+     "authors": [
+      "Juan José Salazar González"
+     ]
+    },
+    {
+     "record": "conf/psd/GonzalezLYMBB04",
+     "title": "Getting the Best Results in Controlled Rounding with the Least Effort.",
+     "year": "2004",
+     "venue": "Privacy in Statistical Databases",
+     "doi": "10.1007/978-3-540-25955-8_5",
+     "ee": "https://doi.org/10.1007/978-3-540-25955-8_5",
+     "authors": [
+      "Juan José Salazar González",
+      "Philip Lowthian",
+      "Caroline Young",
+      "Giovanni Maria Merola",
+      "Stephen Bond",
+      "David Brown"
+     ]
+    },
+    {
+     "record": "conf/psd/GonzalezS04",
+     "title": "A New Tool for Applying Controlled Rounding to a Statistical Table in Microsoft Excel.",
+     "year": "2004",
+     "venue": "Privacy in Statistical Databases",
+     "doi": "10.1007/978-3-540-25955-8_4",
+     "ee": "https://doi.org/10.1007/978-3-540-25955-8_4",
+     "authors": [
+      "Juan José Salazar González",
+      "Markus Schoch"
+     ]
+    },
+    {
+     "record": "journals/anor/KellyGA93",
+     "title": "Large-scale controlled rounding using tabu search with strategic oscillation.",
+     "year": "1993",
+     "venue": "Ann. Oper. Res.",
+     "doi": "10.1007/BF02022563",
+     "ee": "https://doi.org/10.1007/BF02022563",
+     "authors": [
+      "James P. Kelly",
+      "Bruce L. Golden",
+      "Arjang A. Assad"
+     ]
+    },
+    {
+     "record": "journals/tsp/Werter92",
+     "title": "Suppression of limit cycles in the first-order two-dimensional direct form digital filter with a controlled rounding arithmetic.",
+     "year": "1992",
+     "venue": "IEEE Trans. Signal Process.",
+     "doi": "10.1109/78.139271",
+     "ee": "https://doi.org/10.1109/78.139271",
+     "authors": [
+      "Michael J. Werter"
+     ]
+    },
+    {
+     "record": "journals/informs/KellyGA90",
+     "title": "Using Simulated Annealing to Solve Controlled Rounding Problems.",
+     "year": "1990",
+     "venue": "INFORMS J. Comput.",
+     "doi": "10.1287/IJOC.2.2.174",
+     "ee": "https://doi.org/10.1287/ijoc.2.2.174",
+     "authors": [
+      "James P. Kelly",
+      "Bruce L. Golden",
+      "Arjang A. Assad"
+     ]
+    },
+    {
+     "record": "journals/ior/KellyGAB90",
+     "title": "Controlled Rounding of Tabular Data.",
+     "year": "1990",
+     "venue": "Oper. Res.",
+     "doi": "10.1287/OPRE.38.5.760",
+     "ee": "https://doi.org/10.1287/opre.38.5.760",
+     "authors": [
+      "James P. Kelly",
+      "Bruce L. Golden",
+      "Arjang A. Assad",
+      "Edward K. Baker"
+     ]
+    }
+   ]
+  }
+ ]
+}

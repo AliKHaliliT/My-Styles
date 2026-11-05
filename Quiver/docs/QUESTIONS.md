@@ -54,7 +54,7 @@ kind a maintainer decides by recollection unless someone runs it.
   reaches its total, held in
   [claim 0016, The rule decides whether the tie rule accumulates](claims/0016-the-rule-decides-whether-the-tie-rule-accumulates.md),
   resting on the read evidence of
-  [claim 0013, Rules fix the level at which a ledger rounds](claims/0013-rules-fix-the-level-at-which-a-ledger-rounds.md),
+  [claim 0020, Rules fix the level at which a ledger rounds](claims/0020-rules-fix-the-level-at-which-a-ledger-rounds.md),
   [claim 0018, Rounded parts miss the rounded total at a known rate](claims/0018-rounded-parts-miss-the-rounded-total-at-a-known-rate.md)
   and
   [claim 0019, Methods round parts to agree with a total](claims/0019-methods-round-parts-to-agree-with-a-total.md);
