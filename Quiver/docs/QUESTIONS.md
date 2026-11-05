@@ -44,7 +44,7 @@ kind a maintainer decides by recollection unless someone runs it.
   digits prices cluster on, held in
   [claim 0012, Tie density on real amounts follows the rate and the endings](claims/0012-tie-density-on-real-amounts-follows-the-rate-and-the-endings.md),
   resting on the read evidence of
-  [claim 0011, Retail price endings cluster on a few digits](claims/0011-retail-price-endings-cluster-on-a-few-digits.md);
+  [claim 0017, Retail price endings cluster on a few digits](claims/0017-retail-price-endings-cluster-on-a-few-digits.md);
   an arrow that sweeps rates over a read distribution of endings would
   settle it.
 

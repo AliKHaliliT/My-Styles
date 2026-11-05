@@ -1,6 +1,6 @@
 # 0011. Retail price endings cluster on a few digits
 
-Status: Supported
+Status: Superseded by 0017
 Date: 2026-09-30
 
 ## Claim

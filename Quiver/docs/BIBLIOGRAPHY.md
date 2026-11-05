@@ -63,36 +63,41 @@ Evidence floor: grey, first tier
 - **schindler1997**: Schindler, Robert M., and Patrick N. Kirby. 1997.
   "Patterns of Rightmost Digits Used in Advertised Prices: Implications for
   Nine-Ending Effects." Journal of Consumer Research, volume 24, number 2,
-  pages 192 to 201. Read at abstract depth on 2026-09-30, for its finding that
-  the digits 0, 5 and 9 are overrepresented among advertised prices.
+  pages 192 to 201. Read whole on 2026-11-04, for the distribution of the
+  rightmost digits of 1,415 advertised prices, in which 0, 5 and 9 carry more
+  than three quarters.
   Source: reviewed.
 - **stiving1997**: Stiving, Mark, and Russell S. Winer. 1997. "An Empirical
   Analysis of Price Endings with Scanner Data." Journal of Consumer Research,
-  volume 24, number 1, pages 57 to 67. Read at abstract depth on 2026-09-30,
-  for its scanner-data account of the preponderance of prices ending in 9.
+  volume 24, number 1, pages 57 to 67. Read whole on 2026-11-04, for the
+  shares of 9 and 0 among the scanner prices of tuna and yogurt and its
+  account of the surveys before it.
   Source: reviewed.
 - **mace2012**: Macé, Sandrine. 2012. "The Impact and Determinants of
   Nine-Ending Pricing in Grocery Retailing." Journal of Retailing, volume 88,
-  number 1, pages 115 to 130, online in 2011. Read at abstract depth on
-  2026-09-30, for its account of how often grocery prices end in nine.
+  number 1, pages 115 to 130, online in 2011. Read whole on 2026-11-04, for
+  the distribution of grocery price endings by digit across ten categories, 83
+  stores and 399 weeks.
   Source: reviewed.
 - **strulovshlain2022**: Strulov-Shlain, Avner. 2022. "More Than a Penny's
   Worth: Left-Digit Bias and Firm Pricing." The Review of Economic Studies,
-  volume 90, number 5, pages 2612 to 2645, online in 2022. Read at abstract
-  depth on 2026-09-30, for its scanner-data account of 99-ending prices across
-  3,500 products.
+  volume 90, number 5, pages 2612 to 2645, online in 2022. Read whole on
+  2026-11-04 in the working-paper version of 2021-07-23, whose pages the
+  claims cite, for the shares of 99-, 9- and 0-ending prices over 77 million
+  supermarket observations of 2006 to 2019.
   Source: reviewed.
 - **bray2006**: Bray, Jeffery, and Christine Harris. 2006. "The Effect of
   9-Ending Prices on Retail Sales: A Quantitative UK Based Field Study."
   Journal of Marketing Management, volume 22, numbers 5 and 6, pages 601 to
-  617. Read at abstract depth on 2026-09-30, for the survey figure it cites
-  that around 64 percent of retail shelf prices end in 9.
+  617. Read whole on 2026-11-04 and found to report no distribution of its
+  own, since the 64 percent of prices ending in 9 that it carries is a
+  newspaper's figure it cites; held out of every claim.
   Source: reviewed.
 - **nguyen2007**: Nguyen, Adam, Roger M. Heeler, and Zinaida Taran. 2007.
   "High-low context cultures and price-ending practices." Journal of Product
-  and Brand Management, volume 16, number 3, pages 206 to 214. Read at
-  abstract depth on 2026-09-30, for its account of odd and even ending
-  practices across countries.
+  and Brand Management, volume 16, number 3, pages 206 to 214. Read whole on
+  2026-11-04, for the distribution of web-posted price endings in ten
+  countries in 2001, with the ending digit defined per country.
   Source: reviewed.
 - **lu2026**: Lu, Shuqi, Chaofan Li, Kun Luo, and twenty-one others. 2026.
   "AREX: Towards a Recursively Self-Improving Agent for Deep Research."
