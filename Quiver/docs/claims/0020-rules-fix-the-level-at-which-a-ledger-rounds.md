@@ -1,6 +1,6 @@
 # 0020. Rules fix the level at which a ledger rounds
 
-Status: Supported
+Status: Superseded by 0021
 Date: 2026-11-05
 
 ## Claim

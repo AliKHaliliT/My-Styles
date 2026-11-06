@@ -723,3 +723,11 @@ Evidence floor: grey, first tier
   to the accounting system's decimal places, with its ties settled upward, and
   the GST per supply a tax invoice shows.
   Source: grey, first tier.
+- **ato2026**: Australian Taxation Office. 2026. "Tax invoices," the section
+  "Rounding of GST," reference QC 22438, last updated 18 September 2026, as
+  published at ato.gov.au and saved from a browser by the owner on 2026-11-05.
+  Read for the rounding of GST on one taxable sale to the nearest cent with
+  half a cent up, the two rules the office names for several sales on one
+  invoice, the total invoice rule and the taxable supply rule, and the
+  statement that a supplier and its customers need not use the same rule.
+  Source: grey, first tier.
