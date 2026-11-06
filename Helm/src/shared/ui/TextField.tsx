@@ -26,7 +26,7 @@ export function TextField({ label, error, className, ref, ...rest }: TextFieldPr
       <input
         ref={ref}
         className={cn(
-          "w-full rounded-md border border-line bg-card px-3 py-2 text-ink outline-none focus:border-signal",
+          "w-full rounded-md border border-edge bg-card px-3 py-2 text-ink outline-none focus:border-signal",
           error !== undefined && "border-alert",
           className,
         )}

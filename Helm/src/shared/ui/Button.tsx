@@ -27,7 +27,7 @@ export function Button({ variant = "primary", className, type, ...rest }: Button
     <button
       type={type ?? "button"}
       className={cn(
-        "rounded-md px-4 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50",
+        "rounded-md px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink disabled:cursor-not-allowed disabled:opacity-50",
         VARIANT_CLASSES[variant],
         className,
       )}

@@ -1,6 +1,7 @@
 /*
  * Design tokens. Components consume colors only through the utilities mapped
- * in the @theme block (bg-surface, text-ink, border-line, and so on); raw
+ * in the @theme block (bg-surface, text-ink, border-line, border-edge for
+ * the border of a control, and so on); raw
  * palette classes are off limits by convention.
  */
 :root {
@@ -9,6 +10,7 @@
   --ink: #1d2733;
   --muted: #5f6c7b;
   --line: #d9d6cc;
+  --edge: #79818c;
   --signal: #9a5b2d;
   --ok: #15803d;
   --warn: #b45309;
@@ -21,6 +23,7 @@
   --ink: #e6ebf1;
   --muted: #93a1b1;
   --line: #2a3542;
+  --edge: #6c7b96;
   --signal: #d99a4e;
   --ok: #3fae7a;
   --warn: #e0a04f;
@@ -33,6 +36,7 @@
   --color-ink: var(--ink);
   --color-muted: var(--muted);
   --color-line: var(--line);
+  --color-edge: var(--edge);
   --color-signal: var(--signal);
   --color-ok: var(--ok);
   --color-warn: var(--warn);

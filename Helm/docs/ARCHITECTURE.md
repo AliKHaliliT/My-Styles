@@ -92,6 +92,7 @@ In mock mode (the default) an MSW service worker answers the same HTTP the clien
 - `bg-surface`
 - `text-ink`
 - `border-line`
+- `border-edge`, the border of a control
 - `text-signal` and the status tones
 
 ## Testing
