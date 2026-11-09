@@ -20,6 +20,8 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from collections.abc import Generator
+from contextlib import contextmanager
 from datetime import UTC, date, datetime
 from pathlib import Path
 
@@ -264,24 +266,51 @@ NOT_PROSE = ("#", "- ", "* ", "|", ">")
 
 # Questions about committed history have one answer for the life of a process, because nothing
 # here commits: a plant writes a file or adds it to the index and history stays as it was. So
-# these subcommands are asked once and remembered, and the selftest's forty runs stop repeating
-# the same walks. A question that reads the working tree or the index, diff, ls-files, status,
-# is never remembered, since the plants change exactly that between runs.
+# these subcommands are asked once and remembered, and the selftest's runs stop repeating the
+# same walks. A question that reads the working tree, the index or the refs, ls-files, diff,
+# check-attr, for-each-ref, has one answer for the life of one run, because a run changes none
+# of them and the plants change exactly them between runs; so it is remembered from the moment
+# a run starts to the moment it ends and never across runs. A write, add, rm or branch, is never
+# remembered and never answered from memory.
 HISTORY_COMMANDS = ("log", "show", "rev-list", "rev-parse", "ls-tree")
 HISTORY_ANSWERS: dict[tuple[str, ...], str] = {}
+WRITE_COMMANDS = ("add", "rm", "branch")
+RUN_ANSWERS: dict[tuple[str, ...], str] | None = None
 
 
-def git(*args: str) -> str:
-    """One git call against the repository this file lives in; answers about committed history are kept."""
-    remembered = bool(args) and args[0] in HISTORY_COMMANDS
-    if remembered and args in HISTORY_ANSWERS:
-        return HISTORY_ANSWERS[args]
+def memory_for(command: str) -> dict[tuple[str, ...], str] | None:
+    """Where an answer to this subcommand is kept, the process's memory for history, the run's for the rest, nowhere for a write."""
+    if command in HISTORY_COMMANDS:
+        return HISTORY_ANSWERS
+    return None if command in WRITE_COMMANDS else RUN_ANSWERS
+
+
+@contextmanager
+def run_memory() -> Generator[None]:
+    """The run's memory of the tree, open from here to the end of the block unless already open, and gone after."""
+    global RUN_ANSWERS
+    opened = RUN_ANSWERS is None
+    if opened:
+        RUN_ANSWERS = {}
+    try:
+        yield
+    finally:
+        if opened:
+            RUN_ANSWERS = None
+
+
+def git(*args: str, stdin: str = "") -> str:
+    """One git call against the repository this file lives in; empty when git says no, and remembered for as long as the answer holds."""
+    memory = memory_for(args[0]) if args else None
+    key = (*args, stdin)
+    if memory is not None and key in memory:
+        return memory[key]
     done = subprocess.run(
-        ["git", *args], cwd=ROOT, capture_output=True, text=True, check=False
+        ["git", *args], cwd=ROOT, input=stdin or None, capture_output=True, text=True, check=False
     )
     answer = done.stdout.strip() if done.returncode == 0 else ""
-    if remembered:
-        HISTORY_ANSWERS[args] = answer
+    if memory is not None:
+        memory[key] = answer
     return answer
 
 
@@ -295,16 +324,7 @@ def declared_generated() -> set[str]:
     tracked = tracked_files()
     if not tracked:
         return set()
-    # The arguments are this script's own constants and git is the tool the family runs on.
-    done = subprocess.run(
-        ["git", "check-attr", "linguist-generated", "-z", "--stdin"],
-        cwd=ROOT,
-        input="\0".join(tracked),
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    fields = done.stdout.split("\0") if done.returncode == 0 else []
+    fields = git("check-attr", "linguist-generated", "-z", "--stdin", stdin="\0".join(tracked)).split("\0")
     return {fields[i] for i in range(0, len(fields) - 2, 3) if fields[i + 2] in ("set", "true")}
 
 
@@ -320,8 +340,8 @@ def commit_date(commit: str) -> date:
 
 
 def is_before(commit: str, other: str) -> bool:
-    """Whether the first commit is a proper ancestor of the second, which is what before means in a history."""
-    return commit != other and git("rev-list", "--count", f"{other}..{commit}").strip() == "0"
+    """Whether the first commit is a proper ancestor of the second, which is what before means in a history, read off one listing of the second's ancestors."""
+    return bool(other) and commit != other and commit in git("rev-list", other).split()
 
 
 def added_commits(prefix: str) -> dict[str, str]:
@@ -1972,8 +1992,12 @@ def tree_holds(token: str, root: Path) -> bool:
     The index and not the disk is asked, because a file that merely lies on this machine proves
     nothing about the tree another checkout receives; a plant that adds to the index is seen.
     """
-    done = subprocess.run(["git", "ls-files", "--", repo_relative(token)], cwd=root, capture_output=True, text=True, check=False)
-    return done.returncode == 0 and bool(done.stdout.strip())
+    wanted = repo_relative(token)
+    if root != ROOT or any(magic in wanted for magic in "*?["):
+        done = subprocess.run(["git", "ls-files", "--", wanted], cwd=root, capture_output=True, text=True, check=False)
+        return done.returncode == 0 and bool(done.stdout.strip())
+    below = wanted.rstrip("/") + "/"
+    return any(path == wanted or path.startswith(below) for path in tracked_files())
 
 
 def recorded_paths(recorded: str, root: Path) -> list[str]:
@@ -2094,6 +2118,12 @@ def unrun_checks(root: Path) -> list[str]:
 
 def run(root: Path) -> tuple[list[str], list[str]]:
     """Every decided problem and every piece of advice for one tree."""
+    with run_memory():
+        return audit_once(root)
+
+
+def audit_once(root: Path) -> tuple[list[str], list[str]]:
+    """One pass of every check over one tree as it stands, with the run's memory of it open."""
     problems: list[str] = []
     advice: list[str] = []
     for rel in living_documents(root):
@@ -3913,9 +3943,10 @@ def main() -> int:
     """Audit the tree, or prove the audit."""
     if "--selftest" in sys.argv:
         return selftest()
-    problems, advice = run(ROOT)
-    advise_spelling(advice, ROOT)
-    unrun = unrun_checks(ROOT)
+    with run_memory():
+        problems, advice = run(ROOT)
+        advise_spelling(advice, ROOT)
+        unrun = unrun_checks(ROOT)
     if unrun:
         print(f"{len(unrun)} check(s) did not run on this tree, each named with what it needs:")
         for item in unrun:

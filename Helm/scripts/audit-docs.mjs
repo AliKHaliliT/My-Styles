@@ -170,13 +170,27 @@ const DENSE_PARAGRAPH = 8;
 const REFERENCE = /`[^`\n]+`|\[[^\]]*\]\([^)\s]+\)/g;
 const NOT_PROSE = ["#", "- ", "* ", "|", ">"];
 
-/** One git call against the repository this file lives in; empty when git says no. */
+// Every answer git gives is remembered for the life of this process, which is the life of one
+// run: a run changes nothing git reads, history, index, tree or refs, and the selftest plants
+// between runs, each run a process of its own. So a question is asked once, the same arguments
+// are answered from memory, and the input a batched question was given is part of its key.
+const ANSWERS = new Map();
+
+/** The remembered answer to a question, asked the first time only. */
+function remembered(key, ask) {
+  if (!ANSWERS.has(key)) ANSWERS.set(key, ask());
+  return ANSWERS.get(key);
+}
+
+/** One git call against the repository this file lives in; empty when git says no, and asked once per run. */
 function git(...args) {
-  try {
-    return execFileSync("git", args, { cwd: ROOT, encoding: "utf-8", stdio: ["ignore", "pipe", "ignore"] });
-  } catch {
-    return "";
-  }
+  return remembered(args.join("\0"), () => {
+    try {
+      return execFileSync("git", args, { cwd: ROOT, encoding: "utf-8", stdio: ["ignore", "pipe", "ignore"] });
+    } catch {
+      return "";
+    }
+  });
 }
 
 /** Every tracked path, posix and relative to the root, so untracked local clutter never fires a check. */
@@ -360,7 +374,7 @@ function commitDate(commit) {
 
 // Whether the first commit is a proper ancestor of the second, which is what before means in a history.
 function isBefore(commit, other) {
-  return commit !== other && git("rev-list", "--count", `${other}..${commit}`).trim() === "0";
+  return Boolean(other) && commit !== other && git("rev-list", other).split("\n").includes(commit);
 }
 
 // How long a queued entry has stood unchanged, counted from the binding commit or the entry's
@@ -732,12 +746,14 @@ function declaredGenerated() {
   const tracked = trackedFiles();
   const declared = new Set();
   if (tracked.length === 0) return declared;
-  let out = "";
-  try {
-    out = execFileSync("git", ["check-attr", "linguist-generated", "-z", "--stdin"], { cwd: ROOT, encoding: "utf-8", input: tracked.join("\0"), stdio: ["pipe", "pipe", "ignore"] });
-  } catch {
-    return declared;
-  }
+  const out = remembered(`check-attr\0${tracked.join("\0")}`, () => {
+    try {
+      return execFileSync("git", ["check-attr", "linguist-generated", "-z", "--stdin"], { cwd: ROOT, encoding: "utf-8", input: tracked.join("\0"), stdio: ["pipe", "pipe", "ignore"] });
+    } catch {
+      return "";
+    }
+  });
+  if (out === "") return declared;
   const fields = out.split("\0");
   for (let i = 0; i + 2 < fields.length; i += 3) if (fields[i + 2] === "set" || fields[i + 2] === "true") declared.add(fields[i]);
   return declared;
