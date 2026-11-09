@@ -1451,8 +1451,8 @@ def check_reviews(problems: list[str], root: Path) -> None:
         if completeness is None:
             problems.append(f"{rel}: the Boundary ends with a line Completeness: exhausted or Completeness: judgment")
         check_review_stages(problems, rel, section_body(text, "## Stages"), completeness)
-        check_review_slice(problems, rel, path, section_body(text, "## Slice"))
         bound = {name: bound_from_arrival(added.get(rel), arrival) for name, arrival in arrivals.items()}
+        check_review_slice(problems, rel, path, section_body(text, "## Slice"), bound["extension"])
         check_review_from_arrival(problems, rel, path, text, bound, asked)
         for recorded in RECORDED.findall(section_body(text, "## Boundary")):
             check_recorded(problems, rel, recorded, root)
@@ -1626,11 +1626,18 @@ def check_review_stages(problems: list[str], rel: str, stages_text: str, complet
         problems.append(f"{rel}: a pass claiming its boundary exhausted ran the completeness review; otherwise it claims judgment")
 
 
-def check_review_slice(problems: list[str], rel: str, path: Path, slice_text: str) -> None:
-    """The Slice names the prior pass it extends, and that pass exists, or it says First pass."""
+def extended_passes(rel: str, slice_text: str) -> list[str]:
+    """The review records a Slice links, each a pass it extends; a document of any other kind linked there is context and names no pass."""
+    home = posixpath.dirname(rel)
+    linked = [t for t in LINK.findall(slice_text) if t.endswith(".md")]
+    return [t for t in linked if posixpath.dirname(posixpath.normpath(posixpath.join(home, t))) == home]
+
+
+def check_review_slice(problems: list[str], rel: str, path: Path, slice_text: str, records_only: bool) -> None:
+    """The Slice names the prior pass it extends, and that pass exists, or it says First pass; from the extension rule's arrival on that pass is a review record the Slice links and no other document."""
     if "First pass" in slice_text:
         return
-    prior = [t for t in LINK.findall(slice_text) if t.endswith(".md")]
+    prior = extended_passes(rel, slice_text) if records_only else [t for t in LINK.findall(slice_text) if t.endswith(".md")]
     if not prior:
         problems.append(f"{rel}: the Slice names the prior pass it extends or says First pass")
     problems.extend(
@@ -1651,9 +1658,9 @@ def check_review_extension(problems: list[str], rel: str, path: Path, slice_text
     if start is None:
         problems.append(f"{rel}: extends from {since.group(1)}, which is not a date")
         return
-    for target in LINK.findall(slice_text):
+    for target in extended_passes(rel, slice_text):
         prior = path.parent / target.split("#", 1)[0]
-        if not target.endswith(".md") or not prior.exists():
+        if not prior.exists():
             continue
         ran = record_date(prior.read_text(encoding="utf-8"))
         if start >= ran:
@@ -2544,10 +2551,13 @@ def prove_screening_plants() -> int:
 
 
 EXTENSION_SLICE = "Extends [the prior pass](2026-01-01-planted-prior.md) over the planted slice of question 1 from {since}."
+# A document of another kind linked in a Slice, here the bibliography the proof itself writes: context beside a pass, and no pass alone.
+BESIDE_SLICE = EXTENSION_SLICE.format(since="2025-12-31") + " Its works stand in [the bibliography](../BIBLIOGRAPHY.md)."
+ALONE_SLICE = "Extends the reading kept in [the bibliography](../BIBLIOGRAPHY.md) over the planted slice of question 1 from 2025-12-31."
 
 
 def prove_extension_plants() -> int:
-    """An extending pass without its date, or dated on or after the day of the pass it extends, raises, and one dated before it raises nothing."""
+    """An extending pass without its date, or dated on or after the day of the pass it extends, raises, one dated before it raises nothing whatever else its Slice links, and a Slice linking no review record names no pass."""
     failures = 0
     bibliography = ROOT / "docs/BIBLIOGRAPHY.md"
     original = bibliography.read_bytes() if bibliography.exists() else None
@@ -2561,6 +2571,8 @@ def prove_extension_plants() -> int:
         (base.replace(first, "Extends [the prior pass](2026-01-01-planted-prior.md) over the planted slice of question 1."), "names the date it extends from", True),
         (base.replace(first, EXTENSION_SLICE.format(since="2026-01-01")), "on or after 2026-01-01", True),
         (base.replace(first, EXTENSION_SLICE.format(since="2025-12-31")), "planted-extension", False),
+        (base.replace(first, BESIDE_SLICE), "planted-extension", False),
+        (base.replace(first, ALONE_SLICE), "names the prior pass it extends", True),
     )
     try:
         for content, needle, wanted in cases:
