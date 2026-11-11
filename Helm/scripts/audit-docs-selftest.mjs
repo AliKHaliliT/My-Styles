@@ -429,6 +429,7 @@ function proveVocabularyPlant() {
 function proveActionPins() {
   proveGroup("a workflow action pinned by tag", [[".github/workflows/PLANTED.yml", "on: push\njobs:\n  planted:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v7\n"]], [".github/workflows/PLANTED.yml:6: actions/checkout@v7 is pinned by a name that can move"]);
   proveGroup("a workflow action pinned without its version", [[".github/workflows/PLANTED.yml", "on: push\njobs:\n  planted:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1\n"]], [".github/workflows/PLANTED.yml:6: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 names its commit and not its version"]);
+  proveGroup("an edition's workflow action pinned by tag", [["edition/overlay/.github/workflows/PLANTED.yml", "on: push\njobs:\n  planted:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v7\n"]], ["edition/overlay/.github/workflows/PLANTED.yml:6: actions/checkout@v7 is pinned by a name that can move"]);
 }
 
 function proveSpliceAdvice() {

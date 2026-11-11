@@ -13,3 +13,5 @@ What must stay true about this product, one row per claim, each bound to the hol
 | A broken plugin found at build time is logged and skipped, never fatal. | review | review |
 | No suite replaces a collaborator by patching a module's internals. | `.github/workflows/ci.yml` "Module mocking is banned" | impossible |
 | An upstream entry carries no address, URL, email or absolute path. | `scripts/audit_docs.py` "check_upstream_entry" | impossible |
+| An edition below the snapshot holds no path the workshop withholds, and its silent version names nothing of the style. | `scripts/cut_edition.py` "prove_silent" | listed cases |
+| A file stripped for an edition differs from its source in comments and docstrings alone. | `scripts/cut_edition.py` "prove_strips" | listed cases |

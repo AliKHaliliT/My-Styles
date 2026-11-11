@@ -18,3 +18,5 @@ What must stay true about this product, one row per claim, each bound to the hol
 | A token without its expiry or its subject is refused. | `tests/app/core/security/test_local_auth.py` "test_a_token_without_an_expiry_is_refused" | listed cases |
 | The token algorithm is one of the HMAC family, since one shared secret both signs and verifies. | `app/core/config/settings.py` "enforce_hmac_algorithm" | impossible |
 | The shared secret is at least as long as the configured algorithm's hash output. | `app/core/config/settings.py` "enforce_secret_length_for_algorithm" | impossible |
+| An edition below the snapshot holds no path the workshop withholds, and its silent version names nothing of the style. | `scripts/cut_edition.py` "prove_silent" | listed cases |
+| A file stripped for an edition differs from its source in comments and docstrings alone. | `scripts/cut_edition.py` "prove_strips" | listed cases |

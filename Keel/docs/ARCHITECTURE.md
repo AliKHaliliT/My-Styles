@@ -23,10 +23,14 @@ my_package/
 │   ├── INVARIANTS.md           # What must stay true about the product, each claim with its holder and rung
 │   └── decisions/              # Immutable decision records; the project's "why" log
 │
+├── edition/                    # What the project's editions need of their own (docs/EDITIONS.md)
+│   └── overlay/                # Files the public receives in another form, the plain workflow first
+│
 ├── local_util_resources/       # Internal development and repository management scripts
 │
 ├── scripts/                    # Tracked repository tooling that ships with the template
 │   ├── audit_docs.py           # The docs audit; the gate's Docs command
+│   ├── cut_edition.py          # The edition tool; cuts the tree a public repository receives
 │   └── record_gemini_fixture.py # One real Gemini call, recorded into the replay fixture
 │
 ├── src/                        # The src layout; prevents importing the uninstalled tree

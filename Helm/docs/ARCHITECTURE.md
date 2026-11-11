@@ -41,10 +41,14 @@ helm/
 │   ├── INVARIANTS.md           # What must stay true about the product, each claim with its holder and rung
 │   └── decisions/              # Immutable decision records; the project's "why" log
 │
+├── edition/                    # What the project's editions need of their own (docs/EDITIONS.md)
+│   └── overlay/                # Files the public receives in another form, the plain workflow first
+│
 ├── public/                     # Static assets served as-is; holds the untracked msw worker after install
 │
 ├── scripts/                    # Tracked repository tooling
-│   └── audit-docs.mjs          # The docs audit; the gate's Docs command
+│   ├── audit-docs.mjs          # The docs audit; the gate's Docs command
+│   └── cut-edition.mjs         # The edition tool; cuts the tree a public repository receives
 │
 ├── src/
 │   ├── app/                    # Composition root (bootstrap, providers, router)

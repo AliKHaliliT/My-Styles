@@ -44,6 +44,7 @@ Triggers are bidirectional. The file appears when its trigger appears and is rem
 | `CHANGELOG.md` | The project is a versioned package that consumers upgrade through (see CONVENTIONS.md). |
 | `.github/workflows/` | The project runs its checks on a hosted runner. `ci.yml` runs the commands AGENTS.md documents, on push and on pull request, with `npm ci` standing in for `npm install` so the runner obeys the lockfile exactly. GitHub reads workflows only from a repository root, so a copy of this project nested inside another repository carries the file inertly until it becomes a root of its own. |
 | `util_resources/` | The repository carries tracked assets. `readme/` holds every image the repository embeds (a logo, screenshots, README figures), and nothing references an image from anywhere else. Further purpose-named subfolders may be added as new asset kinds arise, each under the same trigger logic: it exists only while something uses it. |
+| `edition/` | The project publishes editions and has something of its own for them, a path to withhold listed in `withheld.txt` or a file the public receives in another form under `overlay/`. The editions document governs both. |
 
 ## Never tracked
 

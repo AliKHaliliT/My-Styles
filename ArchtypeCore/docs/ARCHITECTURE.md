@@ -79,6 +79,9 @@ my_project/
 │       ├── facade/             # The engine's public surface (the only part app imports)
 │       └── tests/              # The engine's own tests, so it travels as one unit
 │
+├── edition/                    # What the project's editions need of their own (docs/EDITIONS.md)
+│   └── overlay/                # Files the public receives in another form, the plain workflow first
+│
 ├── local_util_resources/       # Internal development and repository management scripts
 │
 ├── main.py                     # Entrypoint for the FastAPI application (hooks up routers and middlewares)
@@ -87,6 +90,7 @@ my_project/
 │
 ├── scripts/                    # Background jobs, CLI commands, and operational scripts
 │   ├── audit_docs.py           # The docs audit; the gate's Docs command
+│   ├── cut_edition.py          # The edition tool; cuts the tree a public repository receives
 │   ├── backup.sh               # Shell script for automated backups
 │   ├── create_admin.py         # CLI tool to securely bootstrap an admin user
 │   ├── peer_sync.py            # Cron job to sync VPN interface peers with the DB

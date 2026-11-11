@@ -13,3 +13,5 @@ What must stay true about this product, one row per claim, each bound to the hol
 | On the experiment's grid, half up drifts half a cent per tie while half even cancels. | `tests/src/coinwise/facade/experiment/test_drift.py` "test_half_up_drifts_half_a_cent_per_tie_while_half_even_cancels" | listed cases |
 | No suite replaces a collaborator by patching a module's internals. | `.github/workflows/ci.yml` "Module mocking is banned" | impossible |
 | An upstream entry carries no address, URL, email or absolute path. | `scripts/audit_docs.py` "check_upstream_entry" | impossible |
+| An edition below the snapshot holds no path the workshop withholds, and its silent version names nothing of the style. | `scripts/cut_edition.py` "prove_silent" | listed cases |
+| A file stripped for an edition differs from its source in comments and docstrings alone. | `scripts/cut_edition.py` "prove_strips" | listed cases |

@@ -23,8 +23,12 @@ coinwise/
 │   ├── decisions/              # This arrow's own immutable decision records
 │   └── inherited/              # Keel's decision records, carried whole and byte-identical at the pin
 │
+├── edition/                    # What the project's editions need of their own (docs/EDITIONS.md)
+│   └── overlay/                # Files the public receives in another form, the plain workflow first
+│
 ├── scripts/
-│   └── audit_docs.py           # The Docs command; checks the living documents mechanically
+│   ├── audit_docs.py           # The Docs command; checks the living documents mechanically
+│   └── cut_edition.py          # The edition tool; cuts the tree a public repository receives
 │
 ├── src/                        # The src layout; prevents importing the uninstalled tree
 │   └── coinwise/               # The installable package

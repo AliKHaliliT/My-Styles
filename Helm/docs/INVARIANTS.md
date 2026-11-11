@@ -15,3 +15,5 @@ What must stay true about this product, one row per claim, each bound to the hol
 | No suite replaces a collaborator by patching a module's internals. | `.github/workflows/ci.yml` "Module mocking is banned" | impossible |
 | An upstream entry carries no address, URL, email or absolute path. | `scripts/audit-docs.mjs` "checkUpstream" | impossible |
 | Every theme's tokens clear the contrast floors, text at 4.5:1 and a control's edge at 3:1, against the surface and the card. | `tests/src/app/styles/tokens.test.ts` "clears the contrast floors" | listed cases |
+| An edition below the snapshot holds no path the workshop withholds, and its silent version names nothing of the style. | `scripts/cut-edition.mjs` "proveSilent" | listed cases |
+| A file stripped for an edition differs from its source in comments and docstrings alone. | `scripts/cut-edition.mjs` "proveStrips" | listed cases |

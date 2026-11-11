@@ -1135,12 +1135,17 @@ PINNED_USES = re.compile(r"^[^@]+@[0-9a-f]{40}$")
 VERSION_COMMENT = re.compile(r"^\s+#\s*v?\d")
 
 
+# Where a tree keeps workflows: its own, and the one its editions carry to the public, which runs there under the same law.
+WORKFLOW_FOLDERS = (".github/workflows", "edition/overlay/.github/workflows")
+
+
 def workflow_files(root: Path) -> list[Path]:
-    """Every workflow file in the tree's .github/workflows folder, in name order."""
-    folder = root / ".github/workflows"
-    if not folder.is_dir():
-        return []
-    return sorted(path for path in folder.iterdir() if path.suffix in (".yml", ".yaml") and path.is_file())
+    """Every workflow file the tree holds, its own and the one its editions carry, each folder in name order."""
+    found: list[Path] = []
+    for folder in (root / name for name in WORKFLOW_FOLDERS):
+        if folder.is_dir():
+            found.extend(sorted(path for path in folder.iterdir() if path.suffix in (".yml", ".yaml") and path.is_file()))
+    return found
 
 
 def check_action_pins(problems: list[str]) -> None:
@@ -1696,6 +1701,7 @@ FILE_PLANTS = [
     ),
     (".github/workflows/PLANTED.yml", "on: push\njobs:\n  planted:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v7\n", ".github/workflows/PLANTED.yml:6: actions/checkout@v7 is pinned by a name that can move"),
     (".github/workflows/PLANTED.yml", "on: push\njobs:\n  planted:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1\n", ".github/workflows/PLANTED.yml:6: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 names its commit and not its version"),
+    ("edition/overlay/.github/workflows/PLANTED.yml", "on: push\njobs:\n  planted:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v7\n", "edition/overlay/.github/workflows/PLANTED.yml:6: actions/checkout@v7 is pinned by a name that can move"),
 ]
 
 # Plants appended to a living document, whose bytes are restored afterwards.

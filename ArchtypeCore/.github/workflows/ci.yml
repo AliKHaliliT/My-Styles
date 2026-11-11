@@ -75,6 +75,8 @@ jobs:
           "$RUNNER_TEMP/audit/bin/pip-audit" --progress-spinner off -r requirements-dev.txt
       - name: Audit selftest
         run: python scripts/audit_docs.py --selftest
+      - name: Edition selftest
+        run: python scripts/cut_edition.py --selftest
       - name: Docs
         run: python scripts/audit_docs.py
       - name: Seams

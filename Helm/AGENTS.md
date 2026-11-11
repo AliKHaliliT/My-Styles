@@ -15,6 +15,7 @@ This is the single index of the project's technical documentation. A document th
 | [docs/GATE.md](docs/GATE.md) | The delivery gate, the closed list a change is weighed against before it is delivered. Frozen; do not edit. Read before delivering any change. |
 | [docs/ADOPTION.md](docs/ADOPTION.md) | Adopting this style, how an existing repository comes under the law and how a child re-aligns. Frozen; do not edit. Read when adopting or re-aligning. |
 | [docs/REPORTING.md](docs/REPORTING.md) | The upstream report, what a project sends its template, in what shape, and how an entry is resolved. Frozen; do not edit. Read before writing an upstream entry. |
+| [docs/EDITIONS.md](docs/EDITIONS.md) | Editions, the tiers a project is published at and the two versions of a tier, with the style named or not. Frozen; do not edit. Read before any part of the project is made public. |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | The annotated map of the whole template. Read before any structural change. |
 | [docs/INVARIANTS.md](docs/INVARIANTS.md) | What must stay true about the client, one row per claim with the holder that refuses a violation and the rung that says what its green is worth. Read before changing what the product promises; a change to a claim changes its row. |
 | [docs/CONVENTIONS.md](docs/CONVENTIONS.md) | The documentation rulebook's core: document species, the spine, the index contract, naming and code-level documentation; its parts are the rows below. Frozen; do not edit. Read before writing or changing any documentation. |
@@ -35,6 +36,8 @@ There are no assistant-specific instruction files. Every assistant reads this fi
 - Type-check: `npm run typecheck` (it runs `tsc -b`, because the root tsconfig is solution-style and a plain `tsc --noEmit` would check nothing)
 - Docs: `npm run docs` (the living documents against the tree and the calendar)
 - Prove the audit itself: `npm run docs:selftest` (every rule against a planted defect, because a check that never fires and a check that cannot fire look identical)
+- Cut an edition: `npm run edition -- hand-made <destination>` (the tree a public repository receives, at a tier and in a version the editions document defines; `--silent` cuts the version that names nothing of the style)
+- Prove the edition tool: `npm run edition:selftest` (every tier and version cut from a project of the tool's own making)
 - Build: `npm run build`
 - Preview the build: `npm run preview`
 

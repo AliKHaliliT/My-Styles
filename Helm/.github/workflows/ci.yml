@@ -74,6 +74,8 @@ jobs:
         run: npm audit
       - name: Audit selftest
         run: node scripts/audit-docs-selftest.mjs
+      - name: Edition selftest
+        run: node scripts/cut-edition.mjs --selftest
       - name: Docs
         run: node scripts/audit-docs.mjs
       - name: Seams

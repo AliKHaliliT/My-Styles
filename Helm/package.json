@@ -14,7 +14,9 @@
     "lint": "eslint .",
     "typecheck": "tsc -b",
     "docs": "node scripts/audit-docs.mjs",
-    "docs:selftest": "node scripts/audit-docs-selftest.mjs"
+    "docs:selftest": "node scripts/audit-docs-selftest.mjs",
+    "edition": "node scripts/cut-edition.mjs",
+    "edition:selftest": "node scripts/cut-edition.mjs --selftest"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.7.1",

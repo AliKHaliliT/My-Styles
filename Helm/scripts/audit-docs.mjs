@@ -967,10 +967,13 @@ const PINNED_USES = /^[^@]+@[0-9a-f]{40}$/;
 const VERSION_COMMENT = /^\s+#\s*v?\d/;
 
 // Every workflow file in the tree's .github/workflows folder, in name order.
+/** Where a tree keeps workflows: its own, and the one its editions carry to the public, which runs there under the same law. */
+const WORKFLOW_FOLDERS = [".github/workflows", "edition/overlay/.github/workflows"];
+
 function workflowFiles() {
-  const folder = join(ROOT, ".github", "workflows");
-  if (!existsSync(folder) || !statSync(folder).isDirectory()) return [];
-  return readdirSync(folder).filter((name) => /\.ya?ml$/.test(name)).sort().map((name) => join(folder, name));
+  return WORKFLOW_FOLDERS.map((name) => join(ROOT, name))
+    .filter((folder) => existsSync(folder) && statSync(folder).isDirectory())
+    .flatMap((folder) => readdirSync(folder).filter((name) => /\.ya?ml$/.test(name)).sort().map((name) => join(folder, name)));
 }
 
 // Every action a workflow uses from another repository is pinned to a commit, with its version named beside it.

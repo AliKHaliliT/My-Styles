@@ -1,0 +1,2 @@
+# The raw exports a pass kept of its searches, which are the inquiry's records and not its code.
+util_resources/searches/

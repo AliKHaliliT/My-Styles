@@ -95,6 +95,18 @@ BLOCKS = [
         None,
         None,
     ),
+    (
+        "the editions document",
+        ["ArchtypeCore/docs/EDITIONS.md", "Keel/docs/EDITIONS.md", "Helm/docs/EDITIONS.md", "Quiver/docs/EDITIONS.md"],
+        None,
+        None,
+    ),
+    (
+        "the edition tool",
+        ["ArchtypeCore/scripts/cut_edition.py", "Keel/scripts/cut_edition.py", "Quiver/scripts/cut_edition.py"],
+        None,
+        None,
+    ),
 ]
 
 # What each arrow carries verbatim from its style: (name, original, copy, start
@@ -213,6 +225,27 @@ CARRIES = [
         "inert workflow",
         "Keel/.github/workflows/ci.yml",
         "Quiver/arrows/coinwise/.github/workflows/ci.yml",
+        None,
+        None,
+    ),
+    (
+        "editions document",
+        "Keel/docs/EDITIONS.md",
+        "Quiver/arrows/coinwise/docs/EDITIONS.md",
+        None,
+        None,
+    ),
+    (
+        "edition tool",
+        "Keel/scripts/cut_edition.py",
+        "Quiver/arrows/coinwise/scripts/cut_edition.py",
+        None,
+        None,
+    ),
+    (
+        "edition workflow",
+        "Keel/edition/overlay/.github/workflows/ci.yml",
+        "Quiver/arrows/coinwise/edition/overlay/.github/workflows/ci.yml",
         None,
         None,
     ),

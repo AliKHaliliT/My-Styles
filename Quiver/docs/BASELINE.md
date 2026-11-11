@@ -48,6 +48,7 @@ when the trigger disappears.
 | `.codespellignore` | The spelling advisory names a real term of this project's domain. One word per line, the project's own list from adoption on and never recopied at re-alignment; the docs audit passes it to codespell when it exists. |
 | `.github/workflows/` | The project runs its checks on a hosted runner. `ci.yml` runs the commands AGENTS.md documents. GitHub reads workflows only from a repository root, so a copy nested inside another repository carries the file inertly. |
 | `util_resources/` | The repository carries tracked assets, each kind in a purpose-named subfolder. |
+| `edition/` | The project publishes editions and has something of its own for them, a path to withhold listed in `withheld.txt` or a file the public receives in another form under `overlay/`. The editions document governs both. |
 | Arrow manifests and toolchains | Each arrow brings its own conditional files per its own style's baseline; Quiver adds none inside an arrow. |
 
 ## Never tracked
