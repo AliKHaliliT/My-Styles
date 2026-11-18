@@ -15,6 +15,7 @@ destination as it was. Nothing here commits, pushes or deletes, because publishi
 import ast
 import configparser
 import io
+import os
 import posixpath
 import re
 import subprocess
@@ -676,7 +677,8 @@ def refusal(destination: Path) -> str:
 def overlong(destination: Path, paths: list[str], limit: int = PATH_LIMIT) -> str:
     """Why a destination cannot hold these paths, or the empty string: a path past what the system writes would stop the cut halfway, and a cut is whole or it is nothing."""
     longest = max(paths, key=len, default="")
-    length = len(str(destination.resolve())) + 1 + len(longest)
+    # Measured as written, since the system counts the spelling it is handed and never the folder a link leads to.
+    length = len(os.path.abspath(destination)) + 1 + len(longest)
     if length < limit:
         return ""
     return f"under this destination {longest} would run to {length} characters, past the {limit} this system is sure to write; cut into a folder with a shorter path"
@@ -975,6 +977,29 @@ def prove_refusals(root: Path, told: Path, out: Path) -> int:
     return failures + expect("arrows/inner/: carries a guide of its own and no edition tool" in said, "a nested project with no tool was passed over")
 
 
+def linked(door: Path, folder: Path) -> bool:
+    """Whether a link to the folder beside it now stands at a path, a symbolic link, or a junction on Windows, where a symbolic link takes a privilege."""
+    if sys.platform != "win32":
+        try:
+            door.symlink_to(folder, target_is_directory=True)
+        except OSError:
+            return False
+        return True
+    # The two names are this script's own, and mklink is the command the system gives for the purpose.
+    made = subprocess.run(["cmd", "/c", "mklink", "/J", door.name, folder.name], cwd=door.parent, capture_output=True, check=False)  # noqa: S603, S607
+    return made.returncode == 0
+
+
+def prove_links(root: Path, door: Path) -> int:
+    """A destination is read as the system reads it, judged where the filesystem holds it, so that a link into the repository is refused like the folder it leads to, and measured as it is written."""
+    if not linked(door, root):
+        print("the refusal of a destination behind a link was not proven: this system made no link to prove it on")
+        return 0
+    edge = len(os.path.abspath(door / "e")) + 1 + len("a.txt")
+    failures = expect(overlong(door / "e", ["a.txt"], limit=edge) != "" and not overlong(door / "e", ["a.txt"], limit=edge + 1), "a destination behind a link was measured by a spelling the cut does not write under")
+    return failures + expect(cut_fixture(root, door / "inside", "hand-made")[0] == 1 and not (root / "inside").exists(), "a destination inside the repository was accepted when a link led to it")
+
+
 def prove_strips() -> int:
     """A strip is trusted only through its proof: a text changed beyond its comments is refused, and a comment the line reader cannot place is left where it is."""
     failures = expect(not proven_python("x = 1  # c\n", "x = 2\n", None), "the proof passed a strip that changed a value")
@@ -993,7 +1018,7 @@ def selftest() -> int:
         build_fixture(told, FIXTURE | FIXTURE_TOLD, nested_tool=False)
         failures = prove_snapshot(root, out / "snapshot") + prove_hand_made(root, out / "hand-made")
         failures += prove_silent(root, out / "silent") + prove_bare(root, out / "bare")
-        failures += prove_refusals(root, told, out) + prove_strips()
+        failures += prove_refusals(root, told, out) + prove_links(root, Path(scratch) / "door") + prove_strips()
     if failures:
         print(f"\n{failures} proof(s) failed. The tool does not cut what its law says.")
         return 1

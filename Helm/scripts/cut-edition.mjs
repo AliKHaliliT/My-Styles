@@ -16,10 +16,10 @@
  */
 
 import { execFileSync, spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync, statSync, symlinkSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
-import { dirname, join, posix, resolve, sep } from "node:path";
+import { dirname, join, posix, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const SELF = fileURLToPath(import.meta.url);
@@ -687,10 +687,25 @@ function assemble(cut) {
   }
 }
 
-/** One path as the machine compares it, whatever case and slashes it was written in. */
+/** A folder as the filesystem holds it, every link on the way to it followed. The system's own answer comes first, since it alone undoes a short name, then each link read in turn, and where neither answers the path stands as written. */
+function followed(path, native = realpathSync.native) {
+  for (const ask of [native, realpathSync]) {
+    try {
+      return ask(path);
+    } catch {
+      // The next way of asking is tried.
+    }
+  }
+  return path;
+}
+
+/** One path as the machine compares it, its closest folder that exists as the filesystem holds it and the part not made yet under it, whatever case and slashes it was written in. */
 function settled(path) {
   const whole = resolve(path);
-  return process.platform === "win32" ? whole.toLowerCase() : whole;
+  let held = whole;
+  while (!existsSync(held) && dirname(held) !== held) held = dirname(held);
+  const real = join(followed(held), relative(held, whole));
+  return process.platform === "win32" ? real.toLowerCase() : real;
 }
 
 /** Why a cut cannot start, or the empty string: an edition is written outside the repository, into a folder that holds nothing, from a tree every change of which a commit holds. */
@@ -712,6 +727,7 @@ function refusal(destination) {
 /** Why a destination cannot hold these paths, or the empty string: a path past what the system writes would stop the cut halfway, and a cut is whole or it is nothing. */
 function overlong(destination, paths, limit = PATH_LIMIT) {
   const longest = paths.reduce((kept, path) => (path.length > kept.length ? path : kept), "");
+  // Measured as written, since the system counts the spelling it is handed and never the folder a link leads to.
   const length = resolve(destination).length + 1 + longest.length;
   if (length < limit) return "";
   return `under this destination ${longest} would run to ${length} characters, past the ${limit} this system is sure to write; cut into a folder with a shorter path`;
@@ -998,6 +1014,27 @@ function proveRefusals(root, told, out) {
   return failures + expect(said.includes("web/inner/: carries a guide of its own and no edition tool"), "a nested project with no tool was passed over");
 }
 
+/** A way of asking the system that gives no answer, for proving what the tool does without one. */
+function unanswered() {
+  throw new Error("no answer");
+}
+
+/** A destination is read as the system reads it, judged where the filesystem holds it, so that a link into the repository is refused like the folder it leads to, and measured as it is written. */
+function proveLinks(root, door) {
+  let failures = expect(followed(root, () => "the system's answer") === "the system's answer", "the system's own answer for a folder was passed over");
+  failures += expect(followed(join(root, "nowhere"), unanswered) === join(root, "nowhere"), "a path nothing can read was not left as written");
+  try {
+    symlinkSync(root, door, "junction");
+  } catch {
+    console.log("the refusal of a destination behind a link was not proven: this system made no link to prove it on");
+    return failures;
+  }
+  failures += expect(followed(door, unanswered) === realpathSync(root), "a link was not read where the system gave no answer of its own");
+  const edge = resolve(door, "e").length + 1 + "a.txt".length;
+  failures += expect(overlong(join(door, "e"), ["a.txt"], edge) !== "" && overlong(join(door, "e"), ["a.txt"], edge + 1) === "", "a destination behind a link was measured by a spelling the cut does not write under");
+  return failures + expect(cutFixture(root, join(door, "inside"), "hand-made")[0] === 1 && !existsSync(join(root, "inside")), "a destination inside the repository was accepted when a link led to it");
+}
+
 /** A strip is trusted only through its proof: a text changed beyond its comments is refused, and words that only look like a comment stay where they are. */
 function proveStrips() {
   let failures = expect(tokensOf("const x = 1; // c\n", "a.ts") !== tokensOf("const x = 2;\n", "a.ts"), "the proof passed a strip that changed a value");
@@ -1022,7 +1059,7 @@ function selftest() {
     buildFixture(told, { ...FIXTURE, ...FIXTURE_TOLD }, false);
     failures += proveSnapshot(root, join(out, "snapshot")) + proveHandMade(root, join(out, "hand-made"));
     failures += proveSilent(root, join(out, "silent")) + proveBare(root, join(out, "bare"));
-    failures += proveRefusals(root, told, out) + proveStrips();
+    failures += proveRefusals(root, told, out) + proveLinks(root, join(scratch, "door")) + proveStrips();
   } finally {
     rmSync(scratch, { recursive: true, force: true });
   }
