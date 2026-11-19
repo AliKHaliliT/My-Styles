@@ -4,7 +4,8 @@ name: CI
 # enforce is actually enforced rather than remembered. This file sits inert
 # while the template is nested inside another repository and activates when it
 # becomes a repository root.
-# Actions ride major-version tags so a child of this template starts current; pin them to commit digests when your threat model warrants hardening.
+# Every action is pinned to the commit it runs, with its version named beside it, because a tag is a
+# name that moves, and the docs audit refuses a tag or a pin without its version.
 
 # A push to a branch of this repository is that branch's run, so a job runs on a pull request only
 # when the request comes from a fork, whose push never reaches this repository.

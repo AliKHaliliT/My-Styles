@@ -1,6 +1,6 @@
 # 0008. Ship template workflows on tags and pin the live one
 
-Status: Accepted
+Status: Superseded by 0065
 Date: 2026-08-28
 
 ## Context
