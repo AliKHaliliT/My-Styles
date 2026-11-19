@@ -10,6 +10,7 @@ What must stay true about this product, one row per claim, each bound to the hol
 | The domain and the services never import the web framework, the database layer, or the outer layers. | `pyproject.toml` "The core is framework-free" | impossible |
 | A duplicate username is refused before the provider is touched. | `tests/app/services/test_user_service.py` "test_a_duplicate_username_is_refused_before_the_provider_is_touched" | listed cases |
 | A malformed request is refused in the standard error shape. | `tests/test_main.py` "test_a_malformed_request_is_refused_in_the_standard_error_shape" | listed cases |
+| A constraint a model declares stands on its table and never inside a column, where a generated migration would pass over it. | `tests/db/test_base.py` "test_no_column_holds_a_constraint_a_generated_migration_would_pass_over" | listed cases |
 | The core never learns which provider implementation it drives. | review | review |
 | No suite replaces a collaborator by patching a module's internals. | `.github/workflows/ci.yml` "Module mocking is banned" | impossible |
 | An upstream entry carries no address, URL, email or absolute path. | `scripts/audit_docs.py` "check_upstream_entry" | impossible |

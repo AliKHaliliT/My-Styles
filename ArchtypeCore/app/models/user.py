@@ -23,12 +23,14 @@ class User(Base, TimestampMixin):
     """
 
     __tablename__ = "users"
+    # The constraint stands on the table under a name, because the migration generator carries
+    # a table's constraints and passes over one declared inside a column.
+    __table_args__ = (CheckConstraint("status IN ('enabled', 'disabled')", name="ck_users_status"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     username: Mapped[str] = mapped_column(Text, unique=True, nullable=False)
     status: Mapped[str] = mapped_column(
         String,
-        CheckConstraint("status IN ('enabled', 'disabled')"),
         default="enabled",
         nullable=False,
     )

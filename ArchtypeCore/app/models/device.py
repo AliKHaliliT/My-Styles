@@ -23,6 +23,9 @@ class Device(Base, TimestampMixin):
     """
 
     __tablename__ = "devices"
+    # The constraint stands on the table under a name, because the migration generator carries
+    # a table's constraints and passes over one declared inside a column.
+    __table_args__ = (CheckConstraint("status IN ('enabled', 'disabled')", name="ck_devices_status"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
@@ -35,7 +38,6 @@ class Device(Base, TimestampMixin):
     
     status: Mapped[str] = mapped_column(
         String,
-        CheckConstraint("status IN ('enabled', 'disabled')"),
         default="enabled",
         nullable=False,
     )
