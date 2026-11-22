@@ -222,6 +222,68 @@ function proveDeclaredDashes() {
   }
 }
 
+// What the proof plants for a run: a project's guide, an audit of its own, a file carrying every defect the
+// prose checks hold, one to a line after the first, a project of its own keeping, which is its audit's to
+// hold and never this one's, and a file beside the folder whose name opens as the folder's does.
+const NESTED_PLANT = "nested-planted";
+const NESTED_PARTS = {
+  guide: [`${NESTED_PLANT}/AGENTS.md`, "# Planted guide\n"],
+  audit: [`${NESTED_PLANT}/scripts/audit-docs.mjs`, "// Planted\n"],
+  notes: [`${NESTED_PLANT}/notes.md`, "\u2014 \u2014 \u2014 \u200b\nSee decision 0001 in passing.\nWe delve into it here.\nThe reciever waits here.\n"], // codespell:ignore reciever
+  inner: [`${NESTED_PLANT}/inner/AGENTS.md`, "# Planted inner guide\n"],
+  beside: [`${NESTED_PLANT}.md`, "\u2014 \u2014 \u2014\n"],
+};
+
+/** The audit's lines that name the plant, with the named parts planted and tracked for one run. */
+function plantedNest(parts) {
+  const plants = parts.map((part) => NESTED_PARTS[part]);
+  for (const [rel, content] of plants) {
+    plant(rel, content);
+    git("add", "-N", "--", rel);
+  }
+  try {
+    return audit().filter((line) => line.includes(NESTED_PLANT));
+  } finally {
+    for (const [rel] of plants) {
+      git("rm", "--cached", "-q", "--", rel);
+      unplant(rel);
+    }
+  }
+}
+
+/** Under a guide and an audit of its own a planted project's file raises nothing here, and neither does a project it keeps, while its folder still needs a room and a file beside it is still read; a guide with no audit beside it fails; and the same file under no guide is read. */
+function proveNestedProject() {
+  let lines = plantedNest(["guide", "audit", "notes", "inner", "beside"]);
+  const noise = lines.filter((line) => line.includes("notes.md") || line.includes("/inner/") || line.includes("carries a guide of its own"));
+  if (noise.length > 0) wrong(`a project kept inside this one was read past its folder or asked for the audit it carries: ${noise.join("; ")}`);
+  expect(lines, `${NESTED_PLANT}/: exists in the tree but has no room`, "the folder of a project kept inside this one");
+  expect(lines, `${NESTED_PLANT}.md carries 3 em dashes`, "a file beside a project kept inside this one");
+  expect(plantedNest(["guide", "notes"]), `${NESTED_PLANT}/: carries a guide of its own and no docs audit`, "a guide with no audit beside it");
+  lines = plantedNest(["notes"]);
+  for (const needle of ["notes.md carries 3 em dashes", "notes.md:1: carries U+200B", "notes.md:2: cites record 0001 by bare number", "notes.md:3: inflated vocabulary"]) expect(lines, needle, "a file under no guide");
+  if (spawnSync("codespell", ["--version"], { encoding: "utf-8" }).status !== 0) console.log("kept project spelling case skipped: codespell is not on PATH");
+  else expect(lines, "reciever ==> receiver", "a file under no guide"); // codespell:ignore reciever
+}
+
+/** A guide the editions lay over a cut makes no project of the overlay folder, so it is read as this project's own file and no audit is asked of it. */
+function proveOverlayGuide() {
+  const rel = "edition/overlay/AGENTS.md";
+  if (existsSync(join(ROOT, rel))) {
+    console.log("overlay guide plant skipped: this project's editions already lay a guide");
+    return;
+  }
+  plant(rel, "# A public guide\n\n\u2014 \u2014 \u2014\n");
+  git("add", "-N", "--", rel);
+  try {
+    const lines = audit();
+    expect(lines, `${rel} carries 3 em dashes`, "a guide in the overlay folder");
+    if (lines.some((line) => line.includes("carries a guide of its own"))) wrong("the overlay folder was read as a project kept inside this one");
+  } finally {
+    git("rm", "--cached", "-q", "--", rel);
+    unplant(rel);
+  }
+}
+
 /** A record over the budget born in this working tree is judged; one born before the rule arrived is left to history, so the rehearsal proves that half. */
 function proveRecordDashes() {
   const number = freeNumber();
@@ -782,7 +844,7 @@ if (baseline.length > 0) {
   for (const p of baseline.slice(0, 5)) console.log(`  ${p}`);
   process.exit(1);
 }
-for (const proof of [proveFilePlants, proveTrackedPlants, proveRecordDashes, proveDeclaredDashes, proveAppendedPlants, proveInvariantPlants, proveStatePlants, proveUpstreamPlants, provePalettePlant, proveCitationPlant, proveDensePlant, proveVocabularyPlant, proveSpliceAdvice, proveActionPins, proveSpellingPlant, proveUntrackedSpelling, proveIgnoredTerm, proveImmutability, proveBulletEdit, proveLinkRepair, proveIgnoredPath, proveRecordLinkPlant, proveAnchors, proveTemplateCopy, proveDisposition, proveIgnorePlant, proveStaleBranch, proveNoRemoteReport, proveUnrunReport, proveOwnedCitationLine]) {
+for (const proof of [proveFilePlants, proveTrackedPlants, proveRecordDashes, proveDeclaredDashes, proveNestedProject, proveOverlayGuide, proveAppendedPlants, proveInvariantPlants, proveStatePlants, proveUpstreamPlants, provePalettePlant, proveCitationPlant, proveDensePlant, proveVocabularyPlant, proveSpliceAdvice, proveActionPins, proveSpellingPlant, proveUntrackedSpelling, proveIgnoredTerm, proveImmutability, proveBulletEdit, proveLinkRepair, proveIgnoredPath, proveRecordLinkPlant, proveAnchors, proveTemplateCopy, proveDisposition, proveIgnorePlant, proveStaleBranch, proveNoRemoteReport, proveUnrunReport, proveOwnedCitationLine]) {
   proof();
 }
 console.log(failures === 0 ? "every rule fires" : `${failures} rule(s) do not work`);

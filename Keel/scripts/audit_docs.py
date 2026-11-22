@@ -165,6 +165,14 @@ BARE_CITATION = re.compile(r"(?<!\[)(?<!'s )(?<!inherited )(?<!own )\b(?:decisio
 # A line that names the same record with its owner clears a bare mention on that line, so a form kept
 # byte for byte, a serialized string compared as written, keeps its bytes and the comment beside it answers.
 OWNED_CITATION = re.compile(r"(?:'s |inherited |own )(?:decision|record)s? (0\d{3})\b")
+# A project kept inside this one, a folder below the root that carries a guide of its own, is governed by
+# its own style and read by its own audit, so the checks that walk every tracked file stop at its folder.
+# A guide with no audit beside it fails, because a file this audit leaves alone must be one another audit
+# reads. The style's own folders hold documents and overlays and never a project, as the edition tool
+# reads them.
+GUIDE = "AGENTS.md"
+NESTED_AUDITS = ("scripts/audit_docs.py", "scripts/audit-docs.mjs", "scripts/audit_inquiry.py")
+STYLE_FOLDERS = ("docs/", "edition/")
 # The invariants ledger's header row, the words a rung may be, and the shape of a holder: a tracked
 # path in backticks with an optional quoted needle the file must contain, or the word review, which
 # pairs only with the review rung. Every review row is advised on every run, so a claim nothing
@@ -240,6 +248,19 @@ def git(*args: str, stdin: str = "") -> str:
 def tracked_files() -> list[str]:
     """Every tracked path, posix and relative to the root, so untracked local clutter never fires a check."""
     return [p for p in git("ls-files", "-z").split("\0") if p]
+
+
+def nested_roots() -> list[str]:
+    """The projects kept inside this one, each a folder below the root that carries a guide of its own, the outermost alone."""
+    guides = [path for path in tracked_files() if path.endswith(f"/{GUIDE}") and not path.startswith(STYLE_FOLDERS)]
+    roots = sorted(path[: -len(f"/{GUIDE}")] for path in guides)
+    return [root for root in roots if not any(root.startswith(f"{other}/") for other in roots)]
+
+
+def own_files() -> list[str]:
+    """Every tracked path the prose checks read, the tree without the projects kept inside it, each of which its own audit reads."""
+    nests = tuple(f"{root}/" for root in nested_roots())
+    return [path for path in tracked_files() if not path.startswith(nests)]
 
 
 def declared_generated() -> set[str]:
@@ -443,7 +464,7 @@ def check_em_dashes(problems: list[str]) -> None:
     """Every tracked text file stays within the em dash budget, a record from the rule's arrival on, since a record admits no edit that could bring it under."""
     over: list[tuple[str, int]] = []
     declared = declared_generated()
-    for rel in tracked_files():
+    for rel in own_files():
         path = ROOT / rel
         if rel.startswith("docs/inherited/") or rel in declared or not path.is_file():
             continue
@@ -465,7 +486,7 @@ def check_em_dashes(problems: list[str]) -> None:
 def check_invisible(problems: list[str]) -> None:
     """No tracked text file carries an invisible character, because what a reader cannot see still changes what a compiler, a reviewer or a model reads; a generated file is kept as written."""
     declared = declared_generated()
-    for rel in tracked_files():
+    for rel in own_files():
         path = ROOT / rel
         if rel.startswith("docs/inherited/") or rel in declared or not path.is_file():
             continue
@@ -628,7 +649,7 @@ def advise_splices(advice: list[str]) -> None:
 def advise_vocabulary(advice: list[str]) -> None:
     """The prose law's banned vocabulary in living prose and code, advised because an honest term reads like a tell; a declared generated file is a machine's words and is left alone."""
     generated = declared_generated()
-    for rel in tracked_files():
+    for rel in own_files():
         path = ROOT / rel
         if rel in generated or rel.startswith(VOCABULARY_SKIP) or (rel.startswith("docs/") and rel.count("/") >= 2) or not path.is_file():
             continue
@@ -644,7 +665,7 @@ def advise_vocabulary(advice: list[str]) -> None:
 def check_bare_citations(problems: list[str]) -> None:
     """No living document or tracked configuration cites a record by its number alone; a declared generated file is left alone."""
     generated = declared_generated()
-    for rel in tracked_files():
+    for rel in own_files():
         path = ROOT / rel
         if rel in generated or rel.startswith(VOCABULARY_SKIP) or (rel.startswith("docs/") and rel.count("/") >= 2) or not path.is_file():
             continue
@@ -660,6 +681,16 @@ def check_bare_citations(problems: list[str]) -> None:
             )
 
 
+def check_nested(problems: list[str]) -> None:
+    """Every project kept inside this one carries a docs audit of its own, so a file the prose checks leave alone is one another audit reads."""
+    tracked = set(tracked_files())
+    problems.extend(
+        f"{root}/: carries a guide of its own and no docs audit, so no audit reads it; adopt a style in the folder, whose audit comes with it, or remove the guide, which returns the folder to this project"
+        for root in nested_roots()
+        if not any(f"{root}/{audit}" in tracked for audit in NESTED_AUDITS)
+    )
+
+
 def advise_spelling(advice: list[str]) -> None:
     """Misspellings in the files git tracks, advised where codespell is installed and named as not run elsewhere; a finding on a path git does not track is dropped, because the law binds a tracked byte.
 
@@ -673,7 +704,7 @@ def advise_spelling(advice: list[str]) -> None:
     # and the project's own list of terms, which lives beside the check and is never recopied.
     own_terms = ["--ignore-words", IGNORE_FILE] if (ROOT / IGNORE_FILE).is_file() else []
     done = subprocess.run([tool, "--builtin", CODESPELL_BUILTIN, "--skip", CODESPELL_SKIP, *own_terms, "."], cwd=ROOT, capture_output=True, text=True, check=False)  # noqa: S603
-    tracked = set(tracked_files()) - declared_generated()
+    tracked = set(own_files()) - declared_generated()
     advice.extend(
         f"{line.strip()}; correct it, or name a real term of the domain in {IGNORE_FILE}, one word per line"
         for line in done.stdout.splitlines()
@@ -1676,6 +1707,7 @@ def audit_once() -> tuple[list[str], list[str], list[Path]]:
     check_em_dashes(problems)
     check_invisible(problems)
     check_bare_citations(problems)
+    check_nested(problems)
     check_rooms(problems)
     check_ignored_working_trees(problems)
     check_action_pins(problems)
@@ -1925,6 +1957,78 @@ def prove_declared_dashes() -> int:
         git("rm", "--cached", "-q", "--", rel)
         remove_planted(target, ROOT)
         restore(attributes, original)
+
+
+# What the proof plants for a run: a project's guide, an audit of its own, a file carrying every defect the
+# prose checks hold, one to a line after the first, a project of its own keeping, which is its audit's to
+# hold and never this one's, and a file beside the folder whose name opens as the folder's does.
+NESTED_PLANT = "nested-planted"
+NESTED_PARTS = {
+    "guide": (f"{NESTED_PLANT}/AGENTS.md", "# Planted guide\n"),
+    "audit": (f"{NESTED_PLANT}/scripts/audit_docs.py", "# Planted\n"),
+    "notes": (f"{NESTED_PLANT}/notes.md", "\u2014 \u2014 \u2014 \u200b\nSee decision 0001 in passing.\nWe delve into it here.\nThe reciever waits here.\n"),  # codespell:ignore reciever
+    "inner": (f"{NESTED_PLANT}/inner/AGENTS.md", "# Planted inner guide\n"),
+    "beside": (f"{NESTED_PLANT}.md", "\u2014 \u2014 \u2014\n"),
+}
+
+
+def planted_nest(parts: tuple[str, ...]) -> tuple[list[str], list[str]]:
+    """The findings and the advice that name the plant, with the named parts planted and tracked for one run."""
+    rels = [NESTED_PARTS[part][0] for part in parts]
+    for part, rel in zip(parts, rels, strict=True):
+        target = ROOT / rel
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(NESTED_PARTS[part][1], encoding="utf-8")
+        git("add", "-N", "--", rel)
+    try:
+        with run_memory():
+            problems, advice, _ = run()
+            advise_spelling(advice)
+    finally:
+        for rel in rels:
+            git("rm", "--cached", "-q", "--", rel)
+            remove_planted(ROOT / rel, ROOT)
+    return [p for p in problems if NESTED_PLANT in p], [a for a in advice if NESTED_PLANT in a]
+
+
+def prove_nested_project() -> int:
+    """Under a guide and an audit of its own a planted project's file raises nothing here, and neither does a project it keeps, while its folder still needs a room and a file beside it is still read; a guide with no audit beside it fails; and the same file under no guide is read."""
+    problems, advice = planted_nest(("guide", "audit", "notes", "inner", "beside"))
+    noise = [line for line in problems + advice if "notes.md" in line or "/inner/" in line or "carries a guide of its own" in line]
+    failures = wrong(f"a project kept inside this one was read past its folder or asked for the audit it carries: {noise}") if noise else 0
+    failures += expect(problems, f"{NESTED_PLANT}/: exists in the tree but has no room", "the folder of a project kept inside this one")
+    failures += expect(problems, f"{NESTED_PLANT}.md carries 3 em dashes", "a file beside a project kept inside this one")
+    problems, _ = planted_nest(("guide", "notes"))
+    failures += expect(problems, f"{NESTED_PLANT}/: carries a guide of its own and no docs audit", "a guide with no audit beside it")
+    problems, advice = planted_nest(("notes",))
+    for needle in ("notes.md carries 3 em dashes", "notes.md:1: carries U+200B", "notes.md:2: cites record 0001 by bare number"):
+        failures += expect(problems, needle, "a file under no guide")
+    failures += expect(advice, "notes.md:3: inflated vocabulary", "a file under no guide")
+    if shutil.which("codespell") is None:
+        print("kept project spelling case skipped: codespell is not on PATH")
+        return failures
+    return failures + expect(advice, "reciever ==> receiver", "a file under no guide")  # codespell:ignore reciever
+
+
+def prove_overlay_guide() -> int:
+    """A guide the editions lay over a cut makes no project of the overlay folder, so it is read as this project's own file and no audit is asked of it."""
+    rel = "edition/overlay/AGENTS.md"
+    target = ROOT / rel
+    if target.exists():
+        print("overlay guide plant skipped: this project's editions already lay a guide")
+        return 0
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text("# A public guide\n\n\u2014 \u2014 \u2014\n", encoding="utf-8")
+    git("add", "-N", "--", rel)
+    try:
+        problems = run()[0]
+    finally:
+        git("rm", "--cached", "-q", "--", rel)
+        remove_planted(target, ROOT)
+    failures = expect(problems, f"{rel} carries 3 em dashes", "a guide in the overlay folder")
+    if any("carries a guide of its own" in p for p in problems):
+        failures += wrong("the overlay folder was read as a project kept inside this one")
+    return failures
 
 
 def prove_record_dashes() -> int:
@@ -2675,6 +2779,8 @@ def selftest() -> int:
         prove_owned_citation_line,
         prove_record_dashes,
         prove_declared_dashes,
+        prove_nested_project,
+        prove_overlay_guide,
         prove_twin_numbers,
         prove_state_plants,
         prove_upstream_plants,
@@ -2718,6 +2824,7 @@ def main() -> int:
         problems, advice, held = run()
         advise_spelling(advice)
         unrun = unrun_checks()
+        nests = nested_roots()
     if unrun:
         print(f"{len(unrun)} check(s) did not run on this tree, each named with what it needs:")
         for item in unrun:
@@ -2732,7 +2839,8 @@ def main() -> int:
         print(f"\n{len(problems)} problem(s). The tree disagrees with its own conventions.")
         return 1
     over = ", ".join(r.relative_to(ROOT).as_posix() for r in held) or "no package tree"
-    print(f"The tree agrees with its own conventions (layout held over {over}).")
+    unread = "".join(f"; {root}/ not read, a project of its own under its own audit" for root in nests)
+    print(f"The tree agrees with its own conventions (layout held over {over}{unread}).")
     return 0
 
 

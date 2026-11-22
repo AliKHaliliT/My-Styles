@@ -170,6 +170,14 @@ const DENSE_PARAGRAPH = 8;
 const REFERENCE = /`[^`\n]+`|\[[^\]]*\]\([^)\s]+\)/g;
 const NOT_PROSE = ["#", "- ", "* ", "|", ">"];
 
+// A project kept inside this one, a folder below the root that carries a guide of its own, is governed by its
+// own style and read by its own audit, so the checks that walk every tracked file stop at its folder. A guide
+// with no audit beside it fails, because a file this audit leaves alone must be one another audit reads. The
+// style's own folders hold documents and overlays and never a project, as the edition tool reads them.
+const GUIDE = "AGENTS.md";
+const NESTED_AUDITS = ["scripts/audit_docs.py", "scripts/audit-docs.mjs", "scripts/audit_inquiry.py"];
+const STYLE_FOLDERS = ["docs/", "edition/"];
+
 // Every answer git gives is remembered for the life of this process, which is the life of one
 // run: a run changes nothing git reads, history, index, tree or refs, and the selftest plants
 // between runs, each run a process of its own. So a question is asked once, the same arguments
@@ -196,6 +204,19 @@ function git(...args) {
 /** Every tracked path, posix and relative to the root, so untracked local clutter never fires a check. */
 function trackedFiles() {
   return git("ls-files", "-z").split("\0").filter(Boolean);
+}
+
+/** The projects kept inside this one, each a folder below the root that carries a guide of its own, the outermost alone. */
+function nestedRoots() {
+  const guides = trackedFiles().filter((path) => path.endsWith(`/${GUIDE}`) && !STYLE_FOLDERS.some((folder) => path.startsWith(folder)));
+  const roots = guides.map((path) => path.slice(0, -`/${GUIDE}`.length)).sort();
+  return roots.filter((root) => !roots.some((other) => root.startsWith(`${other}/`)));
+}
+
+/** Every tracked path the prose checks read, the tree without the projects kept inside it, each of which its own audit reads. */
+function ownFiles() {
+  const nests = nestedRoots().map((root) => `${root}/`);
+  return trackedFiles().filter((path) => !nests.some((nest) => path.startsWith(nest)));
 }
 
 /** Every name drawn in a document's tree diagrams, directories without their trailing slash. */
@@ -762,7 +783,7 @@ function declaredGenerated() {
 function checkEmDashes() {
   const over = [];
   const declared = declaredGenerated();
-  for (const rel of trackedFiles()) {
+  for (const rel of ownFiles()) {
     const path = join(ROOT, rel);
     if (rel.startsWith("docs/inherited/") || declared.has(rel) || !existsSync(path) || statSync(path).isDirectory()) continue;
     const count = emDashCount(readFileSync(path));
@@ -783,7 +804,7 @@ checkEmDashes();
 const INVISIBLE = /[\u200b-\u200f\u202a-\u202e\u2060-\u2064\u2066-\u2069\ufeff]/;
 function checkInvisible() {
   const declared = declaredGenerated();
-  for (const rel of trackedFiles()) {
+  for (const rel of ownFiles()) {
     const path = join(ROOT, rel);
     if (rel.startsWith("docs/inherited/") || declared.has(rel) || !existsSync(path) || statSync(path).isDirectory()) continue;
     const bytes = readFileSync(path);
@@ -825,7 +846,7 @@ function readForVocabulary(rel, declared) {
 // The prose law's banned vocabulary in living prose and code, advised because an honest term reads like a tell; a declared generated file is a machine's words and is left alone.
 function adviseVocabulary() {
   const declared = new Set(declaredGenerated());
-  for (const rel of trackedFiles().filter((rel) => readForVocabulary(rel, declared))) {
+  for (const rel of ownFiles().filter((rel) => readForVocabulary(rel, declared))) {
     const bytes = readFileSync(join(ROOT, rel));
     if (bytes.includes(0)) continue;
     bytes.toString("utf-8").split("\n").forEach((line, index) => {
@@ -838,7 +859,7 @@ function adviseVocabulary() {
 // No living document or tracked configuration cites a record by its number alone; a declared generated file is left alone.
 function checkBareCitations() {
   const declared = new Set(declaredGenerated());
-  for (const rel of trackedFiles().filter((rel) => readForVocabulary(rel, declared))) {
+  for (const rel of ownFiles().filter((rel) => readForVocabulary(rel, declared))) {
     const bytes = readFileSync(join(ROOT, rel));
     if (bytes.includes(0)) continue;
     bytes.toString("utf-8").split("\n").forEach((line, index) => {
@@ -934,14 +955,22 @@ function adviseSpelling() {
   if (!codespellPresent()) return;
   const ownTerms = existsSync(join(ROOT, IGNORE_FILE)) ? ["--ignore-words", IGNORE_FILE] : [];
   const done = spawnSync("codespell", ["--builtin", CODESPELL_BUILTIN, "--skip", CODESPELL_SKIP, ...ownTerms, "."], { cwd: ROOT, encoding: "utf-8" });
-  const tracked = new Set(trackedFiles());
+  const tracked = new Set(ownFiles());
   for (const rel of declaredGenerated()) tracked.delete(rel);
   for (const line of `${done.stdout}`.split("\n")) {
     if (line.trim() && tracked.has(spelledPath(line))) advice.push(`${line.trim()}; correct it, or name a real term of the domain in ${IGNORE_FILE}, one word per line`);
   }
 }
+// Every project kept inside this one carries a docs audit of its own, so a file the prose checks leave alone is one another audit reads.
+function checkNested() {
+  const tracked = new Set(trackedFiles());
+  for (const root of nestedRoots()) {
+    if (!NESTED_AUDITS.some((audit) => tracked.has(`${root}/${audit}`))) problems.push(`${root}/: carries a guide of its own and no docs audit, so no audit reads it; adopt a style in the folder, whose audit comes with it, or remove the guide, which returns the folder to this project`);
+  }
+}
 adviseVocabulary();
 checkBareCitations();
+checkNested();
 adviseSplices();
 adviseSpelling();
 
@@ -1205,4 +1234,5 @@ if (problems.length > 0) {
   console.log(`\n${problems.length} problem(s). The tree disagrees with its own conventions.`);
   process.exit(1);
 }
-console.log("The tree agrees with its own conventions.");
+const unread = nestedRoots().map((root) => `${root}/ not read, a project of its own under its own audit`).join("; ");
+console.log(unread ? `The tree agrees with its own conventions (${unread}).` : "The tree agrees with its own conventions.");

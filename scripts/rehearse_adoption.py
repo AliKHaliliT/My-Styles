@@ -5,7 +5,10 @@ carries no inherited folder, no upstream file, its own records from 0001, files 
 line feeds, and no commit older than the rule under test. A project built from it has the opposite
 of every one of those, so this script builds one per seat in a temporary repository and requires
 its docs audit to pass, its selftest where it has one to report every rule firing, and its tree to
-be unchanged afterwards. The family workflow runs it on every change.
+be unchanged afterwards. It then builds a project kept inside another, a client child in a folder
+of a server child, and requires the same of each gate where it lives, the server's at the root and
+the client's in its folder, because an audit that reads a project kept inside its own holds that
+project to a law it never adopted. The family workflow runs it on every change.
 """
 
 import shutil
@@ -31,6 +34,8 @@ SEATS: list[tuple[str, list[str], list[str] | None, str]] = [
 # What a copy of a seat leaves behind: nothing tracked lives in these.
 UNTRACKED_CLUTTER = (".git", "node_modules", "__pycache__", ".hypothesis", "dist", ".mypy_cache", ".ruff_cache", ".pytest_cache")
 LONG_TITLE = "a-record-whose-title-runs-well-past-the-cap-of-seventy-two-characters"
+# A project kept inside another: the seat at the root, the seat kept inside it, and the folder that keeps it.
+NESTED = ("ArchtypeCore", "Helm", "web")
 
 
 def run(args: list[str], cwd: Path) -> subprocess.CompletedProcess[str]:
@@ -183,17 +188,19 @@ def strip_demo_inquiry(child: Path, today: str) -> None:
     architecture.write_text("\n".join(lines), encoding="utf-8")
 
 
-def build_history(child: Path) -> None:
-    """Two commits on main, the audit arriving in the second, then a checkout with Windows line endings.
+def build_history(child: Path, audits: tuple[str, ...] = ("scripts",)) -> None:
+    """Two commits on main, every audit arriving in the second, then a checkout with Windows line endings.
 
     The child names no remote, as a project that has not pushed anywhere does, so the audit's
-    report of the workflow's unrun check is proven here.
+    report of the workflow's unrun check is proven here. A project kept inside the child holds
+    its own audit back to the second commit too, or it would arrive with the records it must
+    leave alone and judge them.
     """
     git(child, "init", "-q", "-b", "main")
     git(child, "config", "user.email", "rehearsal@example.invalid")
     git(child, "config", "user.name", "Rehearsal")
     git(child, "config", "core.longpaths", "true")
-    git(child, "add", "-A", "--", ".", ":!scripts")
+    git(child, "add", "-A", "--", ".", *(f":!{folder}" for folder in audits))
     git(child, "commit", "-q", "-m", "Adopt the style, records and all, before its audit arrives")
     git(child, "add", "-A")
     git(child, "commit", "-q", "-m", "The audit arrives")
@@ -211,20 +218,54 @@ def rehearse(seat: str, audit: list[str], selftest: list[str] | None, style: str
         strip_demo_inquiry(child, today)
     shape_child(child, style, pin, today)
     build_history(child)
+    return gate_findings(seat, child, audit, selftest)
+
+
+def gate_findings(label: str, child: Path, audit: list[str], selftest: list[str] | None, unread: str | None = None) -> list[str]:
+    """Every way one gate disagreed with the rehearsal in the folder it was run in, empty when it agreed; unread names a folder the audit must say it left alone."""
     findings: list[str] = []
     audited = run(audit, child)
     if "names no remote" not in audited.stdout:
-        findings.append(f"{seat}: the child's audit did not name the missing remote:\n{audited.stdout}")
+        findings.append(f"{label}: the child's audit did not name the missing remote:\n{audited.stdout}")
+    if unread is not None and f"{unread}/ not read" not in audited.stdout:
+        findings.append(f"{label}: the child's audit did not name {unread}/ as a project it left alone:\n{audited.stdout}")
     if audited.returncode != 0:
-        findings.append(f"{seat}: the child's audit failed:\n{audited.stdout}{audited.stderr}")
+        findings.append(f"{label}: the child's audit failed:\n{audited.stdout}{audited.stderr}")
     if selftest is not None:
         proven = run(selftest, child)
         if proven.returncode != 0 or "every rule fires" not in proven.stdout:
-            findings.append(f"{seat}: the child's selftest did not prove every rule:\n{proven.stdout}{proven.stderr}")
+            findings.append(f"{label}: the child's selftest did not prove every rule:\n{proven.stdout}{proven.stderr}")
         leftovers = git(child, "status", "--porcelain")
         if leftovers:
-            findings.append(f"{seat}: the selftest left the child's tree changed:\n{leftovers}")
+            findings.append(f"{label}: the selftest left the child's tree changed:\n{leftovers}")
     return findings
+
+
+def rehearse_nested(pin: str, workspace: Path) -> list[str]:
+    """Every way a project kept inside another disagreed with the rehearsal, each gate run where it lives.
+
+    The client child stands whole in a folder of the server child, its records in its own inherited
+    folder and its own decisions beside them, and the server's map draws the folder as one room.
+    The server's audit must leave the folder alone and say so, and the client's own gate must pass
+    inside it.
+    """
+    outer, inner, folder = NESTED
+    gates = {seat: (audit, selftest, style) for seat, audit, selftest, style in SEATS}
+    child = workspace / "nested"
+    today = datetime.now(UTC).date().isoformat()
+    shutil.copytree(ROOT / outer, child, ignore=shutil.ignore_patterns(*UNTRACKED_CLUTTER))
+    shape_child(child, gates[outer][2], pin, today)
+    shutil.copytree(ROOT / inner, child / folder, ignore=shutil.ignore_patterns(*UNTRACKED_CLUTTER))
+    shape_child(child / folder, gates[inner][2], pin, today)
+    architecture = child / "docs/ARCHITECTURE.md"
+    architecture.write_text(
+        architecture.read_text(encoding="utf-8")
+        + f"\n```text\nmy_project/\n└── {folder}/    # The client, a project of its own under its own guide\n```\n",
+        encoding="utf-8",
+    )
+    build_history(child, ("scripts", f"{folder}/scripts"))
+    findings = gate_findings(f"{outer} with {inner} kept inside it", child, gates[outer][0], gates[outer][1], folder)
+    return findings + gate_findings(f"{inner} kept inside {outer}", child / folder, gates[inner][0], gates[inner][1])
 
 
 def main() -> int:
@@ -238,6 +279,10 @@ def main() -> int:
             findings.extend(seat_findings)
             verdict = "did not pass" if seat_findings else "passed"
             print(f"rehearsed {seat} as a child: its gate {verdict}")
+        nested_findings = rehearse_nested(pin, workspace)
+        findings.extend(nested_findings)
+        verdict = "did not pass" if nested_findings else "passed"
+        print(f"rehearsed {NESTED[1]} kept inside {NESTED[0]}: both gates {verdict}")
     for finding in findings:
         print(finding)
     if findings:
