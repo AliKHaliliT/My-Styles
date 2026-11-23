@@ -73,6 +73,8 @@ All HTTP goes through `shared/api`'s `request`. A refusal's readable reason is r
 3. It validates every response body against a zod schema.
 4. It turns a payload that does not match into a `WireContractError`, instead of a mystery crash three components later.
 
+A failed query is asked again only when its failure carried no answer. A refusal under 500 and a broken contract are answers, so `shouldRetry` in `shared/api` never retries them, while a lost connection or the server's own error is asked again three times, the cache's default. The app's query client takes the rule for every query, so a refusal reaches its page and a 401 its sign-out on the first reply, and the test client turns retries off so a suite meets every failure at once.
+
 Each entity keeps the boundary in three segments, and outbound requests run the same path in reverse through the translators.
 
 | Segment | Holds |

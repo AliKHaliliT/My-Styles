@@ -8,7 +8,7 @@
 import { MutationCache, QueryCache, QueryClient } from "@tanstack/react-query"
 
 import { useAuthStore } from "@/features/auth"
-import { ApiError, setTokenProvider } from "@/shared/api"
+import { ApiError, setTokenProvider, shouldRetry } from "@/shared/api"
 
 /**
  * Signs the user out when the backend rejects a call as unauthenticated.
@@ -27,11 +27,14 @@ function signOutOn401(error: unknown): void {
  * The application QueryClient.
  *
  * A 401 from any query or mutation means the session died server-side, so
- * both cache error hooks sign the user out.
+ * both cache error hooks sign the user out. A query is asked again only when
+ * its failure carried no answer, so a refusal reaches its page, and a 401
+ * its sign-out, on the first reply.
  */
 export const queryClient = new QueryClient({
   queryCache: new QueryCache({ onError: signOutOn401 }),
   mutationCache: new MutationCache({ onError: signOutOn401 }),
+  defaultOptions: { queries: { retry: shouldRetry } },
 })
 
 /**
