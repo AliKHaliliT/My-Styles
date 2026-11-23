@@ -23,16 +23,31 @@ function Row({ label, children }: RowProps) {
   )
 }
 
-/** One vessel's full record, with the departure action when it applies. */
+/**
+ * One vessel's full record, with the departure action when it applies.
+ *
+ * The page reads the id before anything fetches, so an address without one
+ * asks the backend nothing, and the part that fetches takes an id it can use.
+ */
 export function VesselDetailPage() {
   const params = useParams<{ id: string }>()
   const vesselId = params.id ?? ""
-  const query = useVessel(vesselId)
-  const berthsQuery = useBerths()
 
   if (vesselId === "") {
     return <ErrorState message="No vessel id in the address." />
   }
+
+  return <VesselDossier vesselId={vesselId} />
+}
+
+interface VesselDossierProps {
+  vesselId: string
+}
+
+/** The record of the vessel the address names, fetched once the page holds its id. */
+function VesselDossier({ vesselId }: VesselDossierProps) {
+  const query = useVessel(vesselId)
+  const berthsQuery = useBerths()
 
   return (
     <QueryState query={query} pendingLabel="Fetching the vessel's record">
