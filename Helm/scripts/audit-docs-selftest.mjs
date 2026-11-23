@@ -509,6 +509,25 @@ function proveSpliceAdvice() {
   }
 }
 
+/** An install script approved for a package the lock installs at another version fails, so does one for a package the lock never installs, and the manifest's bytes come back. */
+function proveApprovalPlant() {
+  const path = join(ROOT, "package.json");
+  const lock = join(ROOT, "package-lock.json");
+  if (!existsSync(path) || !existsSync(lock)) {
+    console.log("approval plant skipped: no package.json and package-lock.json in this tree");
+    return;
+  }
+  // A package the lock installs, so a check that read the name and not the version would pass the plant.
+  const installed = Object.keys(JSON.parse(readFileSync(lock, "utf-8")).packages ?? {}).find((key) => key.startsWith("node_modules/"));
+  const name = installed?.slice("node_modules/".length) ?? "planted-package";
+  const manifest = JSON.parse(readFileSync(path, "utf-8"));
+  manifest.allowScripts = { ...manifest.allowScripts, [`${name}@0.0.0-planted`]: true, "planted-unversioned": true };
+  proveReplaced("an approval the lock does not install", "package.json", `${JSON.stringify(manifest, null, 2)}\n`, [
+    `package.json: allowScripts approves ${name} at 0.0.0-planted, which package-lock.json does not install`,
+    "package.json: allowScripts approves planted-unversioned, which package-lock.json does not install",
+  ]);
+}
+
 /** A misspelling appended to the README is advised where codespell is installed, and the bytes come back. */
 function proveSpellingPlant() {
   if (spawnSync("codespell", ["--version"], { encoding: "utf-8" }).status !== 0) {
@@ -846,7 +865,7 @@ if (baseline.length > 0) {
   for (const p of baseline.slice(0, 5)) console.log(`  ${p}`);
   process.exit(1);
 }
-for (const proof of [proveFilePlants, proveTrackedPlants, proveRecordDashes, proveDeclaredDashes, proveNestedProject, proveOverlayGuide, proveAppendedPlants, proveInvariantPlants, proveStatePlants, proveUpstreamPlants, provePalettePlant, proveCitationPlant, proveDensePlant, proveVocabularyPlant, proveSpliceAdvice, proveActionPins, proveSpellingPlant, proveUntrackedSpelling, proveIgnoredTerm, proveImmutability, proveBulletEdit, proveLinkRepair, proveIgnoredPath, proveRecordLinkPlant, proveAnchors, proveTemplateCopy, proveDisposition, proveIgnorePlant, proveStaleBranch, proveNoRemoteReport, proveUnrunReport, proveOwnedCitationLine]) {
+for (const proof of [proveFilePlants, proveTrackedPlants, proveRecordDashes, proveDeclaredDashes, proveNestedProject, proveOverlayGuide, proveAppendedPlants, proveInvariantPlants, proveStatePlants, proveUpstreamPlants, provePalettePlant, proveCitationPlant, proveDensePlant, proveVocabularyPlant, proveSpliceAdvice, proveActionPins, proveApprovalPlant, proveSpellingPlant, proveUntrackedSpelling, proveIgnoredTerm, proveImmutability, proveBulletEdit, proveLinkRepair, proveIgnoredPath, proveRecordLinkPlant, proveAnchors, proveTemplateCopy, proveDisposition, proveIgnorePlant, proveStaleBranch, proveNoRemoteReport, proveUnrunReport, proveOwnedCitationLine]) {
   proof();
 }
 console.log(failures === 0 ? "every rule fires" : `${failures} rule(s) do not work`);

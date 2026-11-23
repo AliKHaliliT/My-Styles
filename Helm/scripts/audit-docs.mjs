@@ -1202,6 +1202,36 @@ if (existsSync(pkg)) {
   }
 }
 
+// Every install script the manifest approves names a package the lock installs, at the version the lock installs
+// where the approval names one, because an approval written for a version the lock has moved past approves nothing
+// and the install script of the version that replaced it runs unapproved. A script the list never decided is npm's
+// own warning to give, since which packages carry one depends on the system that installs them.
+function lockedPackages(lock) {
+  const names = new Set();
+  const versions = new Set();
+  for (const [path, entry] of Object.entries(JSON.parse(readFileSync(lock, "utf-8")).packages ?? {})) {
+    const at = path.lastIndexOf("node_modules/");
+    if (at === -1) continue;
+    const name = path.slice(at + "node_modules/".length);
+    names.add(name);
+    versions.add(`${name}@${entry.version}`);
+  }
+  return { names, versions };
+}
+
+function checkApprovedScripts() {
+  const lock = join(ROOT, "package-lock.json");
+  if (!existsSync(pkg) || !existsSync(lock)) return;
+  const { names, versions } = lockedPackages(lock);
+  for (const approval of Object.keys(JSON.parse(readFileSync(pkg, "utf-8")).allowScripts ?? {})) {
+    const split = approval.lastIndexOf("@");
+    if (split <= 0 ? names.has(approval) : versions.has(approval)) continue;
+    const what = split <= 0 ? approval : `${approval.slice(0, split)} at ${approval.slice(split + 1)}`;
+    problems.push(`package.json: allowScripts approves ${what}, which package-lock.json does not install; approve the version the lock resolves`);
+  }
+}
+checkApprovedScripts();
+
 // What a check needs before it can run. A check whose need is absent is reported as not run,
 // with the need named, so a clean verdict never hides a check the tree gave nothing to check.
 const CHECK_NEEDS = [
@@ -1214,6 +1244,7 @@ const CHECK_NEEDS = [
   ["the docs-zone checks", "docs"],
   ["the record-link check", "docs"],
   ["the action pin check", ".github/workflows"],
+  ["the approval check", "package-lock.json"],
 ];
 const unrun = CHECK_NEEDS.filter(([, need]) => !existsSync(join(ROOT, need))).map(([name, need]) => `${name} did not run: ${need} is absent from this tree`);
 if (existsSync(join(ROOT, "docs", "inherited")) && alignedAtHost()) unrun.push("the disposition check did not run: docs/UPSTREAM.md aligns this arrow at the host's own commit, so the family audit holds its inherited folder and no re-alignment gains it a record");
