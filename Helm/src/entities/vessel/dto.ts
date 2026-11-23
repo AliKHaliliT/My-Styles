@@ -3,7 +3,8 @@
  *
  * These schemas describe what the backend actually sends, snake_case and
  * ISO strings included. They are parsed at the boundary and never leak past
- * the translators.
+ * the translators. A moment carries its offset, because a browser reads a
+ * stamp without one as its own local time, so one without is refused here.
  */
 import { z } from "zod"
 
@@ -13,7 +14,7 @@ export const vesselDtoSchema = z.object({
   name: z.string(),
   flag: z.string(),
   status: z.enum(["due", "moored", "departed"]),
-  eta: z.string().nullable(),
+  eta: z.iso.datetime({ offset: true }).nullable(),
   berth_id: z.string().nullable(),
   cargo: z.string().nullable(),
 })
