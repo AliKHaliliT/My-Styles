@@ -1,6 +1,4 @@
-from datetime import datetime
-
-from pydantic import BaseModel
+from pydantic import AwareDatetime, BaseModel
 
 
 class IDMixin(BaseModel):
@@ -18,12 +16,12 @@ class TimeStampMixin(BaseModel):
 
     """
     
-    Adds created_at and updated_at fields to a schema.
-    
+    Adds created_at and updated_at fields to a schema, each a moment that carries its offset.
+
     """
 
-    created_at: datetime
-    updated_at: datetime
+    created_at: AwareDatetime
+    updated_at: AwareDatetime
 
 
 class UserIDMixin(BaseModel):
