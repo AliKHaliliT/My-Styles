@@ -173,6 +173,7 @@ function proveTrackedPlants() {
       ["docs/PLANTED-DASHES.md", "\u2014 \u2014 \u2014\n"],
       ["docs/PLANTED-INVISIBLE.md", "a\u200bb\n"],
       ["docs/PLANTED-CITED.md", "# Planted\n\nSee decision 0001 in passing.\n"],
+      ["tests/planted-seam.ts", 'vi.mock("@/shared/api")\n'],
     ],
     [
       "stray-planted/: exists in the tree but has no room",
@@ -184,6 +185,7 @@ function proveTrackedPlants() {
       "docs/PLANTED-DASHES.md carries 3 em dashes; the budget is 2 per file",
       "docs/PLANTED-INVISIBLE.md:1: carries U+200B, an invisible character",
       "docs/PLANTED-CITED.md:3: cites record 0001 by bare number",
+      "tests/planted-seam.ts:1: patches a module with 'vi.mock('; module mocking is banned",
     ],
     true,
   );

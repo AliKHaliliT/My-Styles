@@ -13,7 +13,7 @@ What must stay true about this product, one row per claim, each bound to the hol
 | A constraint a model declares stands on its table and never inside a column, where a generated migration would pass over it. | `tests/db/test_base.py` "test_no_column_holds_a_constraint_a_generated_migration_would_pass_over" | listed cases |
 | Every timestamp the API sends carries its offset. | `tests/app/api/v1/schemas/common/test_mixins.py` "test_a_stamp_the_database_wrote_crosses_the_wire_with_its_offset" | listed cases |
 | The core never learns which provider implementation it drives. | review | review |
-| No suite replaces a collaborator by patching a module's internals. | `.github/workflows/ci.yml` "Module mocking is banned" | impossible |
+| No suite replaces a collaborator by patching a module's internals. | `scripts/audit_docs.py` "module mocking is banned" | impossible |
 | An upstream entry carries no address, URL, email or absolute path. | `scripts/audit_docs.py` "check_upstream_entry" | impossible |
 | A token is accepted only under the configured algorithm, so one signed with the right secret under another algorithm is refused. | `tests/app/core/security/test_local_auth.py` "test_a_token_signed_under_another_algorithm_is_refused" | listed cases |
 | A token signed with another secret, or not signed at all, is refused. | `tests/app/core/security/test_local_auth.py` "test_an_unsigned_token_is_refused_whatever_its_claims_say" | listed cases |

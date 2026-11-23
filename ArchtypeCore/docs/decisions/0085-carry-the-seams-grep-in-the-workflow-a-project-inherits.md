@@ -1,6 +1,6 @@
 # 0085. Carry the seams grep in the workflow a project inherits
 
-Status: Accepted
+Status: Superseded by [0140](0140-hold-the-seams-rule-in-the-docs-audit.md)
 Date: 2026-10-05
 
 ## Context

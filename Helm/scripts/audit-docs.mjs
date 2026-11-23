@@ -970,9 +970,26 @@ function checkNested() {
     if (!NESTED_AUDITS.some((audit) => tracked.has(`${root}/${audit}`))) problems.push(`${root}/: carries a guide of its own and no docs audit, so no audit reads it; adopt a style in the folder, whose audit comes with it, or remove the guide, which returns the folder to this project`);
   }
 }
+// A suite replaces a collaborator only at a declared seam, by a hand-written fake, so nothing tracked under tests/
+// mocks a module. The check stood in the workflow, which runs only where the tree is a repository's root and the
+// repository names a remote, and stands here so every run of the gate's Docs command holds it.
+const SEAMS = /vi\.mock\(/;
+function checkSeams() {
+  for (const rel of ownFiles().filter((path) => path.startsWith("tests/"))) {
+    const path = join(ROOT, rel);
+    if (!existsSync(path) || statSync(path).isDirectory()) continue;
+    const bytes = readFileSync(path);
+    if (bytes.includes(0)) continue;
+    bytes.toString("utf-8").split("\n").forEach((line, index) => {
+      const hit = SEAMS.exec(line);
+      if (hit) problems.push(`${rel}:${index + 1}: patches a module with '${hit[0]}'; module mocking is banned, so substitute only at a declared seam`);
+    });
+  }
+}
 adviseVocabulary();
 checkBareCitations();
 checkNested();
+checkSeams();
 adviseSplices();
 adviseSpelling();
 
@@ -1245,6 +1262,7 @@ const CHECK_NEEDS = [
   ["the record-link check", "docs"],
   ["the action pin check", ".github/workflows"],
   ["the approval check", "package-lock.json"],
+  ["the seams check", "tests"],
 ];
 const unrun = CHECK_NEEDS.filter(([, need]) => !existsSync(join(ROOT, need))).map(([name, need]) => `${name} did not run: ${need} is absent from this tree`);
 if (existsSync(join(ROOT, "docs", "inherited")) && alignedAtHost()) unrun.push("the disposition check did not run: docs/UPSTREAM.md aligns this arrow at the host's own commit, so the family audit holds its inherited folder and no re-alignment gains it a record");

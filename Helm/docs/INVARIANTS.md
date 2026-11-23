@@ -14,7 +14,7 @@ What must stay true about this product, one row per claim, each bound to the hol
 | A query the backend refused is asked once, so its reason reaches the page on the first reply. | `tests/src/app/providers.test.ts` "asks a refused query once" | listed cases |
 | The mock backend is wired only when the build is not for production. | review | review |
 | No request from a suite leaves the loopback, through fetch or through a Node HTTP function imported by name. | `tests/src/mocks/node.test.ts` "imported by name" | listed cases |
-| No suite replaces a collaborator by patching a module's internals. | `.github/workflows/ci.yml` "Module mocking is banned" | impossible |
+| No suite replaces a collaborator by patching a module's internals. | `scripts/audit-docs.mjs` "module mocking is banned" | impossible |
 | An upstream entry carries no address, URL, email or absolute path. | `scripts/audit-docs.mjs` "checkUpstream" | impossible |
 | Every install script the manifest approves belongs to a package the lock installs, at the version the lock installs. | `scripts/audit-docs.mjs` "checkApprovedScripts" | impossible |
 | Every theme's tokens clear the contrast floors, text at 4.5:1 and a control's edge at 3:1, against the surface and the card. | `tests/src/app/styles/tokens.test.ts` "clears the contrast floors" | listed cases |

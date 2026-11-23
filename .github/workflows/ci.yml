@@ -212,12 +212,6 @@ jobs:
         run: python scripts/cut_edition.py --selftest
       - name: Docs
         run: python scripts/audit_docs.py
-      - name: Seams
-        run: |
-          if git grep -nE "monkeypatch|unittest\.mock|mock\.patch|MonkeyPatch" -- tests; then
-            echo "Module mocking is banned; substitute only at a declared seam."
-            exit 1
-          fi
       - name: Lint
         run: ruff check . && lint-imports
       - name: Credential heuristics, advisory
@@ -265,12 +259,6 @@ jobs:
         run: python scripts/cut_edition.py --selftest
       - name: Docs
         run: python scripts/audit_docs.py
-      - name: Seams
-        run: |
-          if git grep -nE "monkeypatch|unittest\.mock|mock\.patch|MonkeyPatch" -- tests; then
-            echo "Module mocking is banned; substitute only at a declared seam."
-            exit 1
-          fi
       - name: Lint
         run: ruff check . && lint-imports
       - name: Credential heuristics, advisory
@@ -339,12 +327,6 @@ jobs:
         run: cd arrows/coinwise && python scripts/audit_docs.py --selftest
       - name: Arrow docs
         run: cd arrows/coinwise && python scripts/audit_docs.py
-      - name: Arrow seams
-        run: |
-          if git grep -nE "monkeypatch|unittest\.mock|mock\.patch|MonkeyPatch" -- arrows/coinwise/tests; then
-            echo "Module mocking is banned; substitute only at a declared seam."
-            exit 1
-          fi
       - name: Arrow lint
         run: cd arrows/coinwise && ruff check . && lint-imports
       - name: Arrow credential heuristics, advisory
@@ -385,12 +367,6 @@ jobs:
         run: node scripts/audit-docs-selftest.mjs
       - name: Docs
         run: node scripts/audit-docs.mjs
-      - name: Seams
-        run: |
-          if git grep -nE "vi\.mock\(" -- tests; then
-            echo "Module mocking is banned; substitute only at a declared seam."
-            exit 1
-          fi
       - name: Install
         run: |
           npm ci

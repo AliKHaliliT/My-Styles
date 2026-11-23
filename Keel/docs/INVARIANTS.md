@@ -11,7 +11,7 @@ What must stay true about this product, one row per claim, each bound to the hol
 | A step report carries its record across the facade boundary without loss or invention. | `tests/src/keel/facade/translators/test_domain_to_facade.py` "test_property_a_step_report_carries_its_record_without_loss" | generated cases |
 | The step budget bounds a reasoner that never finishes. | `tests/src/keel/services/execution/test_agent_runner.py` "test_the_step_budget_bounds_a_reasoner_that_never_finishes" | listed cases |
 | A broken plugin found at build time is logged and skipped, never fatal. | review | review |
-| No suite replaces a collaborator by patching a module's internals. | `.github/workflows/ci.yml` "Module mocking is banned" | impossible |
+| No suite replaces a collaborator by patching a module's internals. | `scripts/audit_docs.py` "module mocking is banned" | impossible |
 | An upstream entry carries no address, URL, email or absolute path. | `scripts/audit_docs.py` "check_upstream_entry" | impossible |
 | An edition below the snapshot holds no path the workshop withholds, and its silent version names nothing of the style. | `scripts/cut_edition.py` "prove_silent" | listed cases |
 | A file stripped for an edition differs from its source in comments and docstrings alone. | `scripts/cut_edition.py` "prove_strips" | listed cases |

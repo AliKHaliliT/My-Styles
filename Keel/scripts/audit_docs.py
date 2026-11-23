@@ -693,6 +693,27 @@ def check_nested(problems: list[str]) -> None:
     )
 
 
+# A suite replaces a collaborator only at a declared seam, by a hand-written fake, so nothing tracked under tests/
+# patches a module's internals. The check stood in the workflow, which runs only where the tree is a repository's
+# root and the repository names a remote, and stands here so every run of the gate's Docs command holds it.
+SEAMS = re.compile(r"monkeypatch|unittest\.mock|mock\.patch|MonkeyPatch")
+
+
+def check_seams(problems: list[str]) -> None:
+    """No tracked file under tests/ replaces a collaborator by patching a module, because a test bound to an implementation voids the substitution a seam provides."""
+    for rel in own_files():
+        path = ROOT / rel
+        if not rel.startswith("tests/") or not path.is_file():
+            continue
+        data = path.read_bytes()
+        if b"\0" in data:
+            continue
+        for number, line in enumerate(data.decode("utf-8", errors="replace").splitlines(), 1):
+            hit = SEAMS.search(line)
+            if hit:
+                problems.append(f"{rel}:{number}: patches a module with {hit.group(0)!r}; module mocking is banned, so substitute only at a declared seam")
+
+
 def advise_spelling(advice: list[str]) -> None:
     """Misspellings in the files git tracks, advised where codespell is installed and named as not run elsewhere; a finding on a path git does not track is dropped, because the law binds a tracked byte.
 
@@ -1654,6 +1675,7 @@ CHECK_NEEDS = (
     ("check_docs_zone", "docs"),
     ("check_record_links", "docs"),
     ("check_action_pins", ".github/workflows"),
+    ("check_seams", "tests"),
 )
 
 
@@ -1710,6 +1732,7 @@ def audit_once() -> tuple[list[str], list[str], list[Path]]:
     check_invisible(problems)
     check_bare_citations(problems)
     check_nested(problems)
+    check_seams(problems)
     check_rooms(problems)
     check_ignored_working_trees(problems)
     check_action_pins(problems)
@@ -1761,6 +1784,8 @@ TRACKED_PLANTS = [
     ("docs/PLANTED-DASHES.md", "\u2014 \u2014 \u2014\n", "docs/PLANTED-DASHES.md carries 3 em dashes; the budget is 2 per file"),
     ("docs/PLANTED-INVISIBLE.md", "a\u200bb\n", "docs/PLANTED-INVISIBLE.md:1: carries U+200B, an invisible character"),
     ("docs/PLANTED-CITED.md", "# Planted\n\nSee decision 0001 in passing.\n", "docs/PLANTED-CITED.md:3: cites record 0001 by bare number"),
+    ("tests/planted_seam.py", "from unittest.mock import patch\n", "tests/planted_seam.py:1: patches a module with 'unittest.mock'; module mocking is banned"),
+    ("tests/planted_fixture.py", "def planted(monkeypatch) -> None:\n    monkeypatch.setattr('os.sep', '/')\n", "tests/planted_fixture.py:1: patches a module with 'monkeypatch'"),
 ]
 
 # A source file carrying one defect per docstring rule, planted under the first package root.
