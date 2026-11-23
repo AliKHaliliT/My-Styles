@@ -398,6 +398,7 @@ function proveUpstreamPlants() {
   withUpstreamRow(() => {
     proveReplaced("a legal UPSTREAM.md", "docs/UPSTREAM.md", `${UPSTREAM_HEAD}Nothing open.\n`, [], true);
     proveReplaced("a legal UPSTREAM.md entry", "docs/UPSTREAM.md", UPSTREAM_HEAD + entry + UPSTREAM_PARTS, [], true);
+    proveReplaced("an entry that quotes packages with their versions", "docs/UPSTREAM.md", UPSTREAM_HEAD + entry + UPSTREAM_PARTS.replace("**What it is.** x.", "**What it is.** x, as esbuild@0.28.1 and @tanstack/react-query@5.105.3 in the manifest show."), [], true);
   });
   const variants = [
     ["# Upstream\n\nEvery entry is a lead, not a verdict.\n\n## Open\n\nNothing open.\n", "no Aligned line"],
@@ -412,6 +413,7 @@ function proveUpstreamPlants() {
     [`${UPSTREAM_HEAD}${entry}${UPSTREAM_PARTS.replace("**What it is.** x.", "**What it is.** x, as https://example.invalid/private shows.")}`, "an address, a URL, an email or an absolute path"],
     [`${UPSTREAM_HEAD}${entry}${UPSTREAM_PARTS.replace("**What it is.** x.", "**What it is.** x, in /home/someone/project/app.")}`, "an address, a URL, an email or an absolute path"],
     [`${UPSTREAM_HEAD}${entry}${UPSTREAM_PARTS.replace("**What it is.** x.", "**What it is.** x, write to someone@example.invalid for the rest.")}`, "an address, a URL, an email or an absolute path"],
+    [`${UPSTREAM_HEAD}${entry}${UPSTREAM_PARTS.replace("**What it is.** x.", "**What it is.** x, write to someone@163.invalid for the rest.")}`, "an address, a URL, an email or an absolute path"],
     [`${UPSTREAM_HEAD}${entry}${UPSTREAM_PARTS.replace("**What it is.** x.", "**What it is.** x, in C:\\Users\\someone\\project.")}`, "an address, a URL, an email or an absolute path"],
     [`${UPSTREAM_HEAD}${entry}${UPSTREAM_PARTS.replace("**What it is.** x.", "**What it is.** x, in /Volumes/shared/project/app.")}`, "an address, a URL, an email or an absolute path"],
     [`${UPSTREAM_HEAD}${entry}${UPSTREAM_PARTS.replace("**What it is.** x.", "**What it is.** x, in /media/someone/disk/project.")}`, "an address, a URL, an email or an absolute path"],

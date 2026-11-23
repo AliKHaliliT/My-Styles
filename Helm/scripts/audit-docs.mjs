@@ -77,8 +77,10 @@ const UPSTREAM_PARTS = ["**What it is", "**How the work surfaced it", "**Records
 const UPSTREAM_WHY = ["**Why it is believed better", "**What was worked around"];
 const UPSTREAM_ALIGNED = /^Aligned to .+ at (`?[0-9a-f]{7,40}`?|the host's own commit)\.?$/m;
 // The leaks a tool can decide in an entry written to leave the repository: a URL, a web host, an email,
-// a drive path and an absolute path under the usual roots. A name is review's.
-const UPSTREAM_ADDRESS = /[a-z][a-z0-9+.-]*:\/\/|\bwww\.|[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+|(?<![A-Za-z0-9])[A-Za-z]:[\\/]|(?<![\w./-])\/(?:home|Users|root|mnt|media|Volumes|private|run|srv|opt|var|tmp|etc)\//;
+// a drive path and an absolute path under the usual roots. A name is review's. An email's host ends in a
+// label of letters, as every top-level domain does, so a package written with its version, a name joined
+// to dotted numbers by an at sign, is not read as one.
+const UPSTREAM_ADDRESS = /[a-z][a-z0-9+.-]*:\/\/|\bwww\.|[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}(?![A-Za-z0-9-])|(?<![A-Za-z0-9])[A-Za-z]:[\\/]|(?<![\w./-])\/(?:home|Users|root|mnt|media|Volumes|private|run|srv|opt|var|tmp|etc)\//;
 const RAW_PALETTE =
   /\b(?:bg|text|border|ring|fill|stroke|from|via|to)-(?:red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose|slate|gray|zinc|neutral|stone)-\d{2,3}\b/;
 const FENCE = /```[^\n]*\n([\s\S]*?)```/g;

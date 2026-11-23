@@ -74,9 +74,11 @@ UPSTREAM_PARTS = ("**What it is", "**How the work surfaced it", "**Records check
 UPSTREAM_WHY = ("**Why it is believed better", "**What was worked around")
 UPSTREAM_ALIGNED = re.compile(r"^Aligned to .+ at (`?[0-9a-f]{7,40}`?|the host's own commit)\.?$", re.MULTILINE)
 # The leaks a tool can decide in an entry written to leave the repository: a URL, a web host, an email,
-# a drive path and an absolute path under the usual roots. A name is review's.
+# a drive path and an absolute path under the usual roots. A name is review's. An email's host ends in a
+# label of letters, as every top-level domain does, so a package written with its version, a name joined
+# to dotted numbers by an at sign, is not read as one.
 UPSTREAM_ADDRESS = re.compile(
-    r"[a-z][a-z0-9+.-]*://|\bwww\.|[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+"
+    r"[a-z][a-z0-9+.-]*://|\bwww\.|[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}(?![A-Za-z0-9-])"
     r"|(?<![A-Za-z0-9])[A-Za-z]:[\\/]|(?<![\w./-])/(?:home|Users|root|mnt|media|Volumes|private|run|srv|opt|var|tmp|etc)/"
 )
 FENCE = re.compile(r"```[^\n]*\n(.*?)```", re.DOTALL)
@@ -2113,6 +2115,8 @@ def upstream_variants() -> list[tuple[str, str | None]]:
         (UPSTREAM_HEAD + entry + UPSTREAM_PARTS_TEXT.replace("**What it is.** x.", "**What it is.** x, as https://example.invalid/private shows."), "an address, a URL, an email or an absolute path"),
         (UPSTREAM_HEAD + entry + UPSTREAM_PARTS_TEXT.replace("**What it is.** x.", "**What it is.** x, in /home/someone/project/app."), "an address, a URL, an email or an absolute path"),
         (UPSTREAM_HEAD + entry + UPSTREAM_PARTS_TEXT.replace("**What it is.** x.", "**What it is.** x, write to someone@example.invalid for the rest."), "an address, a URL, an email or an absolute path"),
+        (UPSTREAM_HEAD + entry + UPSTREAM_PARTS_TEXT.replace("**What it is.** x.", "**What it is.** x, write to someone@163.invalid for the rest."), "an address, a URL, an email or an absolute path"),
+        (UPSTREAM_HEAD + entry + UPSTREAM_PARTS_TEXT.replace("**What it is.** x.", "**What it is.** x, as esbuild@0.28.1 and @tanstack/react-query@5.105.3 in the manifest show."), None),
         (UPSTREAM_HEAD + entry + UPSTREAM_PARTS_TEXT.replace("**What it is.** x.", "**What it is.** x, in C:\\Users\\someone\\project."), "an address, a URL, an email or an absolute path"),
         (UPSTREAM_HEAD + entry + UPSTREAM_PARTS_TEXT.replace("**What it is.** x.", "**What it is.** x, in /Volumes/shared/project/app."), "an address, a URL, an email or an absolute path"),
         (UPSTREAM_HEAD + entry + UPSTREAM_PARTS_TEXT.replace("**What it is.** x.", "**What it is.** x, in /media/someone/disk/project."), "an address, a URL, an email or an absolute path"),
