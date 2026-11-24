@@ -1,6 +1,6 @@
 # The rules of the tree
 
-The hard rules the tree itself must satisfy, read whole before any work; the rules of conduct, how a worker behaves in this tree, are in [CONDUCT.md](CONDUCT.md).
+The hard rules the tree itself must satisfy, read whole before any work; the rules of conduct, how a worker behaves in this tree, are in [CONDUCT.md](CONDUCT.md), and the rules of landing, how a change reaches main, are in [LANDING.md](LANDING.md).
 
 - The layer rule is absolute. Imports point downward through `app -> pages -> features -> entities -> shared`, never up or sideways. A slice is entered only through its `index.ts` (tests excepted), same-layer slices never import each other, and `src/mocks` is imported only by the bootstrap and by tests.
 - All HTTP goes through `shared/api`'s `request` with a zod schema; components never call `fetch`, and raw DTOs never leave their entity slice untranslated.

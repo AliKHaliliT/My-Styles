@@ -62,6 +62,12 @@ BLOCKS = [
         None,
     ),
     (
+        "the rules of landing",
+        ["ArchtypeCore/docs/LANDING.md", "Keel/docs/LANDING.md", "Helm/docs/LANDING.md", "Quiver/docs/LANDING.md"],
+        None,
+        None,
+    ),
+    (
         "the rulebook's shared core",
         [
             "ArchtypeCore/docs/CONVENTIONS.md",
@@ -134,6 +140,13 @@ CARRIES = [
         "rules of conduct",
         "Keel/docs/CONDUCT.md",
         "Quiver/arrows/coinwise/docs/CONDUCT.md",
+        None,
+        None,
+    ),
+    (
+        "rules of landing",
+        "Keel/docs/LANDING.md",
+        "Quiver/arrows/coinwise/docs/LANDING.md",
         None,
         None,
     ),

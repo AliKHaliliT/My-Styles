@@ -44,6 +44,7 @@ Quiver/
     PROSE.md             The prose law.
     RULES.md             The hard rules of the tree.
     CONDUCT.md           The hard rules of conduct.
+    LANDING.md           The hard rules of landing.
     GATE.md              The delivery gate.
     PASSES.md            Running a review pass.
     METHOD.md            The method of a pass, seed to screening.

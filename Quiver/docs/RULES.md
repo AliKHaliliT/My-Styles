@@ -1,6 +1,6 @@
 # The rules of the tree
 
-The hard rules the tree itself must satisfy, read whole before any work; the rules of conduct, how a worker behaves in this tree, are in [CONDUCT.md](CONDUCT.md).
+The hard rules the tree itself must satisfy, read whole before any work; the rules of conduct, how a worker behaves in this tree, are in [CONDUCT.md](CONDUCT.md), and the rules of landing, how a change reaches main, are in [LANDING.md](LANDING.md).
 
 - The jurisdiction split is absolute. Everything under `arrows/<name>/` is governed by that arrow's own style, gate, and conventions, and Quiver's law binds the inquiry layer only. Never write into an arrow to satisfy a Quiver rule, and never waive an arrow's own gate because the change came from the inquiry. An arrow's `UPSTREAM.md` lives in the arrow, under its own `docs/`, and the host's covers the inquiry layer alone.
 - A claim is the only place the inquiry holds a truth. Its evidence quotes results in full and pins the host commit that produced them, per the claim rules in [CONVENTIONS.md](CONVENTIONS.md); an assertion outside a claim record is a working note, not knowledge.

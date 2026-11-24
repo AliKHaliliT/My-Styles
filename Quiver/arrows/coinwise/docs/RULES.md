@@ -1,6 +1,6 @@
 # The rules of the tree
 
-The hard rules the tree itself must satisfy, read whole before any work; the rules of conduct, how a worker behaves in this tree, are in [CONDUCT.md](CONDUCT.md).
+The hard rules the tree itself must satisfy, read whole before any work; the rules of conduct, how a worker behaves in this tree, are in [CONDUCT.md](CONDUCT.md), and the rules of landing, how a change reaches main, are in [LANDING.md](LANDING.md).
 
 - The Dependency Rule is absolute. `domain` and `services` never import from `facade`, `adapters`, or any SDK; layer-owned objects cross a layer boundary only through translators, a clause no import graph can see, so it is carried in review by the agent writing a change and the human reading it alike.
 - Library citizenship: no global mutable state, no environment reads at import time, and a `NullHandler` on the package logger.

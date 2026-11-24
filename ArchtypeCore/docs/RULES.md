@@ -1,6 +1,6 @@
 # The rules of the tree
 
-The hard rules the tree itself must satisfy, read whole before any work; the rules of conduct, how a worker behaves in this tree, are in [CONDUCT.md](CONDUCT.md).
+The hard rules the tree itself must satisfy, read whole before any work; the rules of conduct, how a worker behaves in this tree, are in [CONDUCT.md](CONDUCT.md), and the rules of landing, how a change reaches main, are in [LANDING.md](LANDING.md).
 
 - The Dependency Rule is absolute. `domain` and `services` never import from `api`, `models`, or any framework; data crosses layer boundaries only through translators, a clause no import graph can see, so it is carried in review by the agent writing a change and the human reading it alike. Engines never import from `app/`.
 - A function stays within three shape limits, ten paths through it, five nested blocks, and fifty statements, and the linter gates all three with the rest of the lint, the audit scripts included. A finding is answered by splitting the function, moving a repeated block into one helper, or turning a branch chain into a table, never by removing a guard; a function that genuinely needs more is a conflict for the owner under the pause rule, never a suppression.
