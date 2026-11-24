@@ -34,6 +34,10 @@ async def test_a_stamp_the_database_wrote_crosses_the_wire_with_its_offset() -> 
     assert SENT.fullmatch(sent), sent
 
 
-def test_a_stamp_without_an_offset_is_refused_before_it_reaches_the_wire() -> None:
+# Each field is sent without its offset in a case of its own, so a field left to take a naive stamp fails its case.
+@pytest.mark.parametrize("field", ["created_at", "updated_at"])
+def test_a_stamp_without_an_offset_is_refused_before_it_reaches_the_wire(field: str) -> None:
+    stamps = {"created_at": MOMENT, "updated_at": MOMENT} | {field: MOMENT.replace(tzinfo=None)}
+
     with pytest.raises(ValidationError, match="timezone"):
-        TimeStampMixin(created_at=MOMENT.replace(tzinfo=None), updated_at=MOMENT)
+        TimeStampMixin.model_validate(stamps)

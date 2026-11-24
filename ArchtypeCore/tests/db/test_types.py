@@ -5,10 +5,13 @@ import pytest
 from alembic.autogenerate.api import AutogenContext
 from sqlalchemy import DateTime
 from sqlalchemy.dialects import sqlite
+from sqlalchemy.engine import make_url
 
 from db.types import UTCDateTime, render_stored_type
 
 DIALECT = sqlite.dialect()
+# A database that keeps the offset, which SQLite does not, so the column's asking for the time zone shows in its type.
+KEEPS_OFFSETS = make_url("postgresql://").get_dialect()()
 # One moment in UTC, and the same moment as a clock seven hours behind it reads it.
 MOMENT = datetime(2026, 11, 22, 1, 57, 35, tzinfo=UTC)
 BEHIND = MOMENT.astimezone(timezone(timedelta(hours=-7)))
@@ -40,6 +43,12 @@ def test_a_moment_bound_with_an_offset_is_stored_in_utc_at_the_same_instant() ->
 
     assert bound == MOMENT
     assert bound is not None and bound.utcoffset() == timedelta(0)
+
+
+# SQLite stores the same text whether the column asks for the time zone or not, while a database that keeps the offset
+# drops it from a column that does not ask, so the moment would come back from it without one.
+def test_the_column_asks_a_database_that_keeps_offsets_for_one() -> None:
+    assert UTCDateTime().compile(dialect=KEEPS_OFFSETS) == "TIMESTAMP WITH TIME ZONE"
 
 
 def test_no_moment_stays_none_both_ways() -> None:

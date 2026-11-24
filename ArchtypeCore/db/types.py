@@ -125,7 +125,8 @@ def render_stored_type(type_: str, obj: object, autogen_context: AutogenContext)
     A UTCDateTime column stores a timezone-aware DateTime, and the offset it attaches is the
     application's work on the way out. Left to Alembic, a revision named the application's type
     without importing it and failed when applied. Every other item is rendered as Alembic would.
-    The migration environment passes it to Alembic as the item renderer in both of its modes.
+    The migration environment passes it to Alembic as the item renderer in its online mode, the only one
+    in which Alembic generates a revision.
 
 
     Parameters
