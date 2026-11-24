@@ -20,6 +20,7 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const AUDIT = join(ROOT, "scripts", "audit-docs.mjs");
 const BUDGET_WORDS = 2000;
 const HORIZON_DAYS = 90;
+const NOW_HORIZON_DAYS = 30;
 const NOW_CAP = 5;
 const NAME_CAP = 72;
 const TODAY = new Date().toISOString().slice(0, 10);
@@ -374,6 +375,71 @@ function proveStatePlants() {
     `entries against the cap of ${NOW_CAP}`,
   ]);
   console.log("queue age firing case skipped: no queued entry in this tree has two horizons of history");
+}
+
+/** A legal state file, every section holding its empty line, that the point plants are cut from. */
+const STATE_CANON = "# Project State\n\n## Now\n\n- Nothing in flight.\n\n## Next\n\n- Nothing queued.\n\n## Deferred\n\n- Nothing deferred.\n\n## Blocked\n\n- Nothing blocked.\n";
+
+/** A calendar date some days back on the local clock, the one the audit reads a stamp against. */
+function daysAgo(days) {
+  const day = new Date();
+  day.setDate(day.getDate() - days);
+  return `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, "0")}-${String(day.getDate()).padStart(2, "0")}`;
+}
+
+/** The finding a planted line raises, named by the number of the line in the planted file. */
+function atLine(text, line, finding) {
+  return `STATE.md:${text.split("\n").indexOf(line) + 1}: ${finding}`;
+}
+
+/**
+ * Each point of the STATE schema fires on a file cut from a legal one, and the legal cuts raise nothing.
+ *
+ * The plants share a run only where each raises a finding that no other plant in its run can raise, by its message
+ * or by the line it names, so a break of one point leaves its own plant's finding missing whatever the others print.
+ * The horizons are planted away from their edges, because this proof and the audit read two clocks.
+ */
+function proveStatePoints() {
+  const path = join(ROOT, "STATE.md");
+  if (!existsSync(path)) {
+    console.log("STATE point plants skipped: no STATE.md in this tree");
+    return;
+  }
+  const today = `(${daysAgo(0)})`;
+  const five = Array.from({ length: NOW_CAP }, (_, n) => `- Planted in-flight work ${n} ${today}\n`).join("");
+  const undated = "entry does not end with its last-verified date";
+  const scattered = STATE_CANON.replace("## Now\n", "Planted narration of finished work.\n# A planted second title\n\n## Now\n")
+    .replace("- Nothing in flight.\n", `A planted paragraph inside a section.\n- Planted stalled work (${daysAgo(60)})\n`)
+    .replace("- Nothing queued.\n", `- Planted undated work\n- Planted work ${today} with words after its date\n- Nothing from the planted source counts yet\n`)
+    .replace("- Nothing deferred.\n", `- Nothing queued.\n- Nothing deferred.\n- Planted deferred work ${today}\n`)
+    .replace("- Nothing blocked.\n", `\n## Done\n\n- Planted finished work ${today}\n`);
+  proveReplaced("a scattered STATE plant", "STATE.md", scattered, [
+    atLine(scattered, "Planted narration of finished work.", "stands above the sections"),
+    atLine(scattered, "# A planted second title", "stands above the sections"),
+    atLine(scattered, "A planted paragraph inside a section.", "is not an entry"),
+    `against the ${NOW_HORIZON_DAYS}-day horizon of Now`,
+    atLine(scattered, "- Planted undated work", undated),
+    atLine(scattered, `- Planted work ${today} with words after its date`, undated),
+    atLine(scattered, "- Nothing from the planted source counts yet", undated),
+    atLine(scattered, "- Nothing queued.", undated),
+    atLine(scattered, "- Nothing deferred.", "says - Nothing deferred. beside other lines in Deferred"),
+    "STATE.md: Blocked holds neither an entry nor its empty line",
+    "not the four the schema fixes",
+  ]);
+  const ordered = STATE_CANON.replace("## Next", "## Swapped").replace("## Deferred", "## Next").replace("## Swapped", "## Deferred")
+    .replace("- Nothing in flight.\n", `${five}- Nothing else starts before the planted source arrives ${today}\n`);
+  proveReplaced("an ordered STATE plant", "STATE.md", ordered, ["not the four the schema fixes", `entries against the cap of ${NOW_CAP}`]);
+  const legal = STATE_CANON.replace("- Nothing in flight.\n", five)
+    .replace("- Nothing queued.\n", `- Planted queued work (${daysAgo(60)})\n- Planted work first seen (2025-01-01), verified again ${today}\n`)
+    .replace(/\n/g, "\r\n");
+  const original = readFileSync(path);
+  writeFileSync(path, legal);
+  try {
+    const raised = findings().filter((line) => line.startsWith("STATE.md"));
+    if (raised.length > 0) wrong(`a legal STATE file raised ${JSON.stringify(raised.slice(0, 2))}`);
+  } finally {
+    writeFileSync(path, original);
+  }
 }
 
 const UPSTREAM_HEAD = "# Upstream\n\nAligned to Planted at 0123456789ab.\n\nEvery entry is a lead, not a verdict.\n\n## Open\n\n";
@@ -871,7 +937,7 @@ if (baseline.length > 0) {
   for (const p of baseline.slice(0, 5)) console.log(`  ${p}`);
   process.exit(1);
 }
-for (const proof of [proveFilePlants, proveTrackedPlants, proveRecordDashes, proveDeclaredDashes, proveNestedProject, proveOverlayGuide, proveAppendedPlants, proveInvariantPlants, proveStatePlants, proveUpstreamPlants, provePalettePlant, proveCitationPlant, proveDensePlant, proveVocabularyPlant, proveSpliceAdvice, proveActionPins, proveApprovalPlant, proveSpellingPlant, proveUntrackedSpelling, proveIgnoredTerm, proveImmutability, proveBulletEdit, proveLinkRepair, proveIgnoredPath, proveRecordLinkPlant, proveAnchors, proveTemplateCopy, proveDisposition, proveIgnorePlant, proveStaleBranch, proveNoRemoteReport, proveUnrunReport, proveOwnedCitationLine]) {
+for (const proof of [proveFilePlants, proveTrackedPlants, proveRecordDashes, proveDeclaredDashes, proveNestedProject, proveOverlayGuide, proveAppendedPlants, proveInvariantPlants, proveStatePlants, proveStatePoints, proveUpstreamPlants, provePalettePlant, proveCitationPlant, proveDensePlant, proveVocabularyPlant, proveSpliceAdvice, proveActionPins, proveApprovalPlant, proveSpellingPlant, proveUntrackedSpelling, proveIgnoredTerm, proveImmutability, proveBulletEdit, proveLinkRepair, proveIgnoredPath, proveRecordLinkPlant, proveAnchors, proveTemplateCopy, proveDisposition, proveIgnorePlant, proveStaleBranch, proveNoRemoteReport, proveUnrunReport, proveOwnedCitationLine]) {
   proof();
 }
 console.log(failures === 0 ? "every rule fires" : `${failures} rule(s) do not work`);

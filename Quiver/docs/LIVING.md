@@ -14,20 +14,24 @@ The rulebook's rules for living documents, the questions file and the invariants
 
 ### The STATE.md schema
 
-`STATE.md` has exactly four sections, and every entry in them is one line that ends with its last-verified date (YYYY-MM-DD).
+`STATE.md` holds its title and exactly four sections, in the order of the table, and nothing else. Every line in a section is an entry, one line that ends with its last-verified date (YYYY-MM-DD), or the section's empty line, which stands alone in a section that holds no entry.
 
-| Section | Holds |
-| --- | --- |
-| `Now` | Work in flight, or a condition future work must honor that no other document carries |
-| `Next` | Work queued |
-| `Deferred` | Work consciously postponed |
-| `Blocked` | Work waiting on something external |
+| Section | Holds | Empty line |
+| --- | --- | --- |
+| `Now` | Work in flight, or a condition future work must honor that no other document carries | `- Nothing in flight.` |
+| `Next` | Work queued | `- Nothing queued.` |
+| `Deferred` | Work consciously postponed | `- Nothing deferred.` |
+| `Blocked` | Work waiting on something external | `- Nothing blocked.` |
 
-- An entry earns `Now` only while its work is genuinely unfinished.
-- Completing work deletes its entry in the same change.
-- The file is swept at both ends of every change.
-- The audit caps `Now` at five entries.
+- An entry earns `Now` only while its work is genuinely unfinished, or while it names a condition future work must honor that no other document carries.
+- Completing the work deletes the entry in the same change, and a narration of the landing never replaces it, because finished work is git's memory, not STATE.md's.
+- An entry is deleted when it no longer applies; striking a line through does not delete it.
+- The file is swept at both ends of every change. Before starting anything new, delete entries describing finished work and re-verify or delete any entry the tree no longer confirms. After finishing, sweep for entries the change completed or invalidated.
+- Re-verifying an entry means re-checking its claim or re-making its choice; a fresh date over an unexamined claim re-verifies nothing.
+- The audit caps `Now` at five entries, so accretion fails the build instead of accumulating quietly.
+- The audit fails any line the schema does not shape, such as a paragraph above the sections or inside one, because a line no rule reads is where finished work collects.
 - An entry in `Next`, `Deferred`, or `Blocked` whose text has stood unchanged, its date aside, for two horizons is a decision record trying to be born, so it is promoted to `Now`, written as a record and removed, or dropped; the audit reads the entry's age from history and fails it past that point, because the file's dates are last-verified stamps and cannot show it.
+- After a long absence, expired stamps everywhere are the horizon working as intended, and the first task back is the sweep.
 - Execution tracking lives here and never in a record.
 - A pass over the literature queues in `Blocked` what it left to a person, one dated entry per source it could not open, search it prepared but could not run, or verification it needs, each naming what it waits on and why, a queued search naming the pass record whose Left out carries it written out, and the entry is deleted when a later pass resolves it. The horizon and the two-horizon rule above hold the queue, so a fetch nobody makes goes red rather than quiet.
 

@@ -25,7 +25,7 @@ import sys
 import tomllib
 from collections.abc import Generator
 from contextlib import contextmanager
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -58,7 +58,6 @@ UNBUDGETED = {"README.md", "STATE.md", "docs/INVARIANTS.md", "docs/UPSTREAM.md"}
 
 BACKTICK = re.compile(r"`([^`\n]+)`")
 LINK = re.compile(r"\[[^\]]*\]\(([^)\s]+)\)")
-STATE_DATE = re.compile(r"\((\d{4}-\d{2}-\d{2})\)")
 RECORD_NAME = re.compile(r"^\d{4}-[a-z0-9-]+\.md$")
 DATED_RECORD_NAME = re.compile(r"^\d{4}-\d{2}-\d{2}-[a-z0-9-]+\.md$")
 # The numbered record folders: decisions/, this project's own, and inherited/, the template's
@@ -110,7 +109,11 @@ IMMUTABILITY_SCOPE = "records held immutable on every line beyond their Status l
 # commit that carried the entry's text, and like every history-reading check this one binds
 # from the arrival of its own scope sentence, counting no entry's age from before it.
 STATE_AGE_SCOPE = "entries of Next, Deferred, and Blocked held to two horizons of unchanged text"
-STATE_TEXT = re.compile(r"\s*\(\d{4}-\d{2}-\d{2}\)\s*$")
+# An entry closes with its last-verified date, the one date the horizon reads and the one the age check strips to find
+# the entry's text in history, so an entry dated anywhere else would read a stale date or look new at every re-dating.
+STATE_TEXT = re.compile(r"\s*\((\d{4}-\d{2}-\d{2})\)\s*$")
+# The schema's four sections in their order, each with the one line it holds alone when it holds no entry.
+STATE_SECTIONS = {"Now": "- Nothing in flight.", "Next": "- Nothing queued.", "Deferred": "- Nothing deferred.", "Blocked": "- Nothing blocked."}
 # A record's filename stays within this many characters, because the folders it lives under are
 # deep and a Windows clone has a path limit; like every history-reading check, the cap binds from
 # the arrival of its own scope sentence, so a record added in a commit before that arrival is
@@ -926,52 +929,97 @@ def standing_days(raw: str, binding: str, today: date) -> int:
     return (today - start).days if start is not None else 0
 
 
-def check_state_entries(problems: list[str], text: str, today: date) -> None:
-    """Every dated entry is within its section's horizon, and no queued entry has stood for two of them."""
-    section = ""
-    binding = first_commit(STATE_AGE_SCOPE, "scripts/audit_docs.py")
+def state_sections(problems: list[str], text: str) -> dict[str, list[tuple[int, str]]]:
+    """Each section's lines with their numbers, every line above the sections but the title reported where it stands."""
+    held: dict[str, list[tuple[int, str]]] = {}
+    section: str | None = None
+    titled = False
     for line_no, raw in enumerate(text.split("\n"), 1):
+        if not raw.strip():
+            continue
         if raw.startswith("## "):
             section = raw[3:].strip()
+            held.setdefault(section, [])
+        elif section is not None:
+            held[section].append((line_no, raw))
+        elif raw.startswith("# ") and not titled:
+            titled = True
+        else:
+            problems.append(f"STATE.md:{line_no}: stands above the sections, where the schema holds the title alone")
+    return held
+
+
+def check_state_line(problems: list[str], section: str, line: tuple[int, str], alone: bool) -> None:
+    """One line of a section, an entry closed by its date or the section's empty line standing alone."""
+    line_no, raw = line
+    empty = STATE_SECTIONS[section]
+    if raw == empty:
+        if not alone:
+            problems.append(f"STATE.md:{line_no}: says {empty} beside other lines in {section}")
+    elif not raw.startswith("- "):
+        problems.append(f"STATE.md:{line_no}: is not an entry; a section holds one-line entries or its empty line alone")
+    elif not STATE_TEXT.search(raw):
+        problems.append(f"STATE.md:{line_no}: entry does not end with its last-verified date")
+
+
+def check_state_lines(problems: list[str], held: dict[str, list[tuple[int, str]]]) -> None:
+    """Every section of the schema holds entries closed by their dates, or its empty line alone."""
+    for section, empty in STATE_SECTIONS.items():
+        lines = held.get(section)
+        if lines is None:
             continue
-        stamp = STATE_DATE.search(raw)
-        if not stamp:
-            continue
+        if not lines:
+            problems.append(f"STATE.md: {section} holds neither an entry nor its empty line, {empty}")
+        for line in lines:
+            check_state_line(problems, section, line, len(lines) == 1)
+
+
+def check_state_entries(problems: list[str], held: dict[str, list[tuple[int, str]]], today: date) -> None:
+    """Every entry is within its section's horizon, and no queued entry has stood for two of them."""
+    binding = first_commit(STATE_AGE_SCOPE, "scripts/audit_docs.py")
+    for section, lines in held.items():
         horizon = NOW_HORIZON_DAYS if section == "Now" else HORIZON_DAYS
-        age = (today - datetime.strptime(stamp.group(1), "%Y-%m-%d").date()).days
-        if age > horizon:
-            problems.append(
-                f"STATE.md:{line_no}: entry last verified {stamp.group(1)}, {age} days ago against the "
-                f"{horizon}-day horizon of {section}; re-verify it against reality, then re-date or remove it"
-            )
-        if section == "Now" or binding is None:
-            continue
-        standing = standing_days(raw, binding, today)
-        if standing > HORIZON_DAYS * 2:
-            problems.append(
-                f"STATE.md:{line_no}: entry has stood unchanged in {section} for {standing} days, two horizons; "
-                "promote it to Now, write it as a decision record, or drop it"
-            )
+        for line_no, raw in lines:
+            stamp = STATE_TEXT.search(raw)
+            if not stamp:
+                continue
+            age = (today - datetime.strptime(stamp.group(1), "%Y-%m-%d").date()).days
+            if age > horizon:
+                problems.append(
+                    f"STATE.md:{line_no}: entry last verified {stamp.group(1)}, {age} days ago against the "
+                    f"{horizon}-day horizon of {section}; re-verify it against reality, then re-date or remove it"
+                )
+            if section == "Now" or binding is None:
+                continue
+            standing = standing_days(raw, binding, today)
+            if standing > HORIZON_DAYS * 2:
+                problems.append(
+                    f"STATE.md:{line_no}: entry has stood unchanged in {section} for {standing} days, two horizons; "
+                    "promote it to Now, write it as a decision record, or drop it"
+                )
 
 
 def check_state(problems: list[str], today: date) -> None:
-    """The STATE schema: four sections, dated entries within their horizons, and a capped Now."""
+    """The STATE schema over the tree's state file, where it has one."""
     state = ROOT / "STATE.md"
-    if not state.exists():
-        return
-    text = state.read_text(encoding="utf-8")
+    if state.exists():
+        check_state_text(problems, state.read_text(encoding="utf-8"), today)
+
+
+def check_state_text(problems: list[str], text: str, today: date) -> None:
+    """A title over the four sections in order, each holding dated entries within their horizons or its empty line alone, and a capped Now."""
     sections = re.findall(r"^## (.+)$", text, re.MULTILINE)
-    if sections != ["Now", "Next", "Deferred", "Blocked"]:
+    if sections != list(STATE_SECTIONS):
         problems.append(f"STATE.md: sections are {sections}, not the four the schema fixes")
-    check_state_entries(problems, text, today)
-    now_section = re.search(r"^## Now\n(.*?)(?=^## )", text, re.MULTILINE | re.DOTALL)
-    if now_section:
-        entries = len(re.findall(r"^- ", now_section.group(1), re.MULTILINE))
-        if entries > NOW_CAP:
-            problems.append(
-                f"STATE.md: Now holds {entries} entries against the cap of {NOW_CAP}; "
-                f"sweep finished work into git's memory"
-            )
+    held = state_sections(problems, text)
+    check_state_lines(problems, held)
+    check_state_entries(problems, held, today)
+    now = held.get("Now", [])
+    if len(now) > NOW_CAP:
+        problems.append(
+            f"STATE.md: Now holds {len(now)} entries against the cap of {NOW_CAP}; "
+            f"sweep finished work into git's memory"
+        )
 
 
 def check_documents(problems: list[str]) -> None:
@@ -2123,6 +2171,58 @@ def prove_state_plants() -> int:
     return failures
 
 
+# A legal state file, every section holding its empty line, that the point plants are cut from.
+STATE_CANON = "# Project State\n\n## Now\n\n- Nothing in flight.\n\n## Next\n\n- Nothing queued.\n\n## Deferred\n\n- Nothing deferred.\n\n## Blocked\n\n- Nothing blocked.\n"
+
+
+def state_point_plants(today: date) -> list[tuple[str, str, str | None]]:
+    """Each point of the STATE schema as a file cut from a legal one, named, with the finding it raises or None where it must raise none."""
+    stamp = f"({today.isoformat()})"
+    ago = {days: f"({(today - timedelta(days=days)).isoformat()})" for days in (NOW_HORIZON_DAYS, 60, HORIZON_DAYS)}
+    five = "".join(f"- Planted in-flight work {n} {stamp}\n" for n in range(NOW_CAP))
+    canon = STATE_CANON
+    sections = "not the four the schema fixes"
+    undated = "entry does not end with its last-verified date"
+    return [
+        ("a fifth section", canon + f"\n## Done\n\n- Planted finished work {stamp}\n", sections),
+        ("two sections swapped", canon.replace("## Next", "## Swapped").replace("## Deferred", "## Next").replace("## Swapped", "## Deferred"), sections),
+        ("a paragraph above the sections", canon.replace("## Now\n", "Planted narration of finished work.\n\n## Now\n"), "stands above the sections"),
+        ("a second title", canon.replace("## Now\n", "# A planted second title\n\n## Now\n"), "stands above the sections"),
+        ("a paragraph inside a section", canon.replace("- Nothing in flight.\n", "A planted paragraph inside a section.\n"), "is not an entry"),
+        ("an undated entry", canon.replace("- Nothing queued.\n", "- Planted undated work\n"), undated),
+        ("a date before more words", canon.replace("- Nothing queued.\n", f"- Planted work {stamp} with words after its date\n"), undated),
+        ("an undated entry opening with Nothing", canon.replace("- Nothing queued.\n", "- Nothing from the planted source counts yet\n"), undated),
+        ("another section's empty line", canon.replace("- Nothing deferred.\n", "- Nothing queued.\n"), undated),
+        ("an empty line beside an entry", canon.replace("- Nothing deferred.\n", f"- Nothing deferred.\n- Planted deferred work {stamp}\n"), "beside other lines"),
+        ("a section with no line", canon.replace("- Nothing deferred.\n", ""), "holds neither an entry nor its empty line"),
+        ("six in Now, one naming Nothing", canon.replace("- Nothing in flight.\n", five + f"- Nothing else starts before the planted source arrives {stamp}\n"), f"entries against the cap of {NOW_CAP}"),
+        ("a stalled entry in Now", canon.replace("- Nothing in flight.\n", f"- Planted stalled work {ago[60]}\n"), f"against the {NOW_HORIZON_DAYS}-day horizon of Now"),
+        ("five in Now", canon.replace("- Nothing in flight.\n", five), None),
+        (
+            "entries at the edges of their horizons",
+            canon.replace("- Nothing in flight.\n", f"- Planted work at the edge of its horizon {ago[NOW_HORIZON_DAYS]}\n").replace(
+                "- Nothing queued.\n", f"- Planted queued work at the edge of its horizon {ago[HORIZON_DAYS]}\n"
+            ),
+            None,
+        ),
+        ("an older date inside an entry", canon.replace("- Nothing queued.\n", f"- Planted work first seen (2025-01-01), verified again {stamp}\n"), None),
+    ]
+
+
+def prove_state_points() -> int:
+    """Each point of the STATE schema fires on a file cut from a legal one, read without a run, and the legal cuts raise nothing."""
+    today = date.today()
+    failures = 0
+    for name, planted, needle in state_point_plants(today):
+        problems: list[str] = []
+        check_state_text(problems, planted, today)
+        if needle is not None:
+            failures += expect(problems, needle, f"the STATE point plant {name}")
+        elif problems:
+            failures += wrong(f"the legal STATE file {name} raised {problems[:2]}")
+    return failures
+
+
 def upstream_variants() -> list[tuple[str, str | None]]:
     """Each UPSTREAM.md plant and the finding it raises, None for one that must pass."""
     today = date.today().isoformat()
@@ -2818,6 +2918,7 @@ def selftest() -> int:
         prove_overlay_guide,
         prove_twin_numbers,
         prove_state_plants,
+        prove_state_points,
         prove_upstream_plants,
         prove_docstring_plants,
         prove_layout_plants,

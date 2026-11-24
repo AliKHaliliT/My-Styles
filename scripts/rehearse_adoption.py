@@ -134,7 +134,7 @@ def shape_child(child: Path, style: str, pin: str, today: str) -> None:
         doc.write_text(text.replace("docs/decisions/0", "docs/inherited/0").replace("](decisions/0", "](inherited/0"), encoding="utf-8")
     state = child / "STATE.md"
     state.write_text(
-        state.read_text(encoding="utf-8").replace("- Nothing deferred.", f"- A rehearsed deferral, verified today ({today}).", 1),
+        state.read_text(encoding="utf-8").replace("- Nothing deferred.", f"- A rehearsed deferral, verified today ({today})", 1),
         encoding="utf-8",
     )
 

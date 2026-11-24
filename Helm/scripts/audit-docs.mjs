@@ -61,7 +61,13 @@ function proseWords(text) {
 
 const BACKTICK = /`([^`\n]+)`/g;
 const LINK = /\[[^\]]*\]\(([^)\s]+)\)/g;
-const STATE_DATE = /\((\d{4}-\d{2}-\d{2})\)/g;
+/**
+ * An entry closes with its last-verified date, the one date the horizon reads and the one the age check strips to find
+ * the entry's text in history, so an entry dated anywhere else would read a stale date or look new at every re-dating.
+ */
+const STATE_TEXT = /\s*\((\d{4}-\d{2}-\d{2})\)\s*$/;
+/** The schema's four sections in their order, each with the one line it holds alone when it holds no entry. */
+const STATE_SECTIONS = { Now: "- Nothing in flight.", Next: "- Nothing queued.", Deferred: "- Nothing deferred.", Blocked: "- Nothing blocked." };
 const RECORD_NAME = /^\d{4}-[a-z0-9-]+\.md$/;
 const DATED_RECORD_NAME = /^\d{4}-\d{2}-\d{2}-[a-z0-9-]+\.md$/;
 // The numbered record folders: decisions/, this project's own, and inherited/, the template's own
@@ -403,50 +409,94 @@ function isBefore(commit, other) {
 // How long a queued entry has stood unchanged, counted from the binding commit or the entry's
 // own, whichever is later.
 function standingDays(raw, binding) {
-  const born = firstCommit(raw.replace(/\s*\(\d{4}-\d{2}-\d{2}\)\s*$/, "").trim(), "STATE.md");
+  const born = firstCommit(raw.replace(STATE_TEXT, "").trim(), "STATE.md");
   const start = born === null ? null : commitDate(isBefore(born, binding) ? binding : born);
   return start === null ? 0 : Math.floor((today - start) / 86_400_000);
 }
 
-const statePath = resolve(ROOT, "STATE.md");
-if (existsSync(statePath)) {
-  const text = readFileSync(statePath, "utf-8");
-  const sections = [...text.matchAll(/^## (.+)$/gm)].map((m) => m[1]);
-  if (sections.join(",") !== "Now,Next,Deferred,Blocked") {
-    problems.push(`STATE.md: sections are [${sections.join(", ")}], not the four the schema fixes`);
-  }
-  let section = "";
-  const binding = firstCommit(STATE_AGE_SCOPE, "scripts/audit-docs.mjs");
+/** Each section's lines with their numbers, every line above the sections but the title reported where it stands. */
+function stateSections(text) {
+  const held = new Map();
+  let section = null;
+  let titled = false;
   text.split("\n").forEach((raw, offset) => {
+    if (!raw.trim()) return;
     if (raw.startsWith("## ")) {
       section = raw.slice(3).trim();
-      return;
-    }
-    const stamp = raw.match(/\((\d{4}-\d{2}-\d{2})\)/);
-    if (!stamp) return;
-    const horizon = section === "Now" ? NOW_HORIZON_DAYS : HORIZON_DAYS;
-    const age = Math.floor((today - new Date(`${stamp[1]}T00:00:00`)) / 86_400_000);
-    if (age > horizon) {
-      problems.push(
-        `STATE.md:${offset + 1}: entry last verified ${stamp[1]}, ${age} days ago against the ` +
-          `${horizon}-day horizon of ${section}; re-verify it against reality, then re-date or remove it`,
-      );
-    }
-    if (section === "Now" || binding === null) return;
-    const standing = standingDays(raw, binding);
-    if (standing > HORIZON_DAYS * 2) {
-      problems.push(
-        `STATE.md:${offset + 1}: entry has stood unchanged in ${section} for ${standing} days, two horizons; ` +
-          "promote it to Now, write it as a decision record, or drop it",
-      );
+      if (!held.has(section)) held.set(section, []);
+    } else if (section !== null) {
+      held.get(section).push([offset + 1, raw]);
+    } else if (raw.startsWith("# ") && !titled) {
+      titled = true;
+    } else {
+      problems.push(`STATE.md:${offset + 1}: stands above the sections, where the schema holds the title alone`);
     }
   });
-  const nowSection = text.match(/^## Now\r?\n([\s\S]*?)(?=^## )/m);
-  if (nowSection) {
-    const entries = [...nowSection[1].matchAll(/^- /gm)].length;
-    if (entries > NOW_CAP) {
-      problems.push(`STATE.md: Now holds ${entries} entries against the cap of ${NOW_CAP}; sweep finished work into git's memory`);
+  return held;
+}
+
+/** One line of a section, an entry closed by its date or the section's empty line standing alone. */
+function checkStateLine(section, [lineNo, raw], alone) {
+  const empty = STATE_SECTIONS[section];
+  if (raw === empty) {
+    if (!alone) problems.push(`STATE.md:${lineNo}: says ${empty} beside other lines in ${section}`);
+  } else if (!raw.startsWith("- ")) {
+    problems.push(`STATE.md:${lineNo}: is not an entry; a section holds one-line entries or its empty line alone`);
+  } else if (!STATE_TEXT.test(raw)) {
+    problems.push(`STATE.md:${lineNo}: entry does not end with its last-verified date`);
+  }
+}
+
+/** Every section of the schema holds entries closed by their dates, or its empty line alone. */
+function checkStateLines(held) {
+  for (const [section, empty] of Object.entries(STATE_SECTIONS)) {
+    const lines = held.get(section);
+    if (lines === undefined) continue;
+    if (lines.length === 0) problems.push(`STATE.md: ${section} holds neither an entry nor its empty line, ${empty}`);
+    for (const line of lines) checkStateLine(section, line, lines.length === 1);
+  }
+}
+
+/** Every entry is within its section's horizon, and no queued entry has stood for two of them. */
+function checkStateEntries(held) {
+  const binding = firstCommit(STATE_AGE_SCOPE, "scripts/audit-docs.mjs");
+  for (const [section, lines] of held) {
+    const horizon = section === "Now" ? NOW_HORIZON_DAYS : HORIZON_DAYS;
+    for (const [lineNo, raw] of lines) {
+      const stamp = raw.match(STATE_TEXT);
+      if (!stamp) continue;
+      const age = Math.floor((today - new Date(`${stamp[1]}T00:00:00`)) / 86_400_000);
+      if (age > horizon) {
+        problems.push(
+          `STATE.md:${lineNo}: entry last verified ${stamp[1]}, ${age} days ago against the ` +
+            `${horizon}-day horizon of ${section}; re-verify it against reality, then re-date or remove it`,
+        );
+      }
+      if (section === "Now" || binding === null) continue;
+      const standing = standingDays(raw, binding);
+      if (standing > HORIZON_DAYS * 2) {
+        problems.push(
+          `STATE.md:${lineNo}: entry has stood unchanged in ${section} for ${standing} days, two horizons; ` +
+            "promote it to Now, write it as a decision record, or drop it",
+        );
+      }
     }
+  }
+}
+
+const statePath = resolve(ROOT, "STATE.md");
+if (existsSync(statePath)) {
+  const text = readFileSync(statePath, "utf-8").replace(/\r\n/g, "\n");
+  const sections = [...text.matchAll(/^## (.+)$/gm)].map((m) => m[1]);
+  if (sections.join(",") !== Object.keys(STATE_SECTIONS).join(",")) {
+    problems.push(`STATE.md: sections are [${sections.join(", ")}], not the four the schema fixes`);
+  }
+  const held = stateSections(text);
+  checkStateLines(held);
+  checkStateEntries(held);
+  const now = held.get("Now") ?? [];
+  if (now.length > NOW_CAP) {
+    problems.push(`STATE.md: Now holds ${now.length} entries against the cap of ${NOW_CAP}; sweep finished work into git's memory`);
   }
 }
 
