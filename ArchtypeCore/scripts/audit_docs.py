@@ -1786,6 +1786,8 @@ TRACKED_PLANTS = [
     ("docs/PLANTED-CITED.md", "# Planted\n\nSee decision 0001 in passing.\n", "docs/PLANTED-CITED.md:3: cites record 0001 by bare number"),
     ("tests/planted_seam.py", "from unittest.mock import patch\n", "tests/planted_seam.py:1: patches a module with 'unittest.mock'; module mocking is banned"),
     ("tests/planted_fixture.py", "def planted(monkeypatch) -> None:\n    monkeypatch.setattr('os.sep', '/')\n", "tests/planted_fixture.py:1: patches a module with 'monkeypatch'"),
+    ("tests/planted_patch.py", "@mock.patch('os.sep')\ndef planted() -> None: ...\n", "tests/planted_patch.py:1: patches a module with 'mock.patch'"),
+    ("tests/planted_class.py", "from pytest import MonkeyPatch\n", "tests/planted_class.py:1: patches a module with 'MonkeyPatch'"),
 ]
 
 # A source file carrying one defect per docstring rule, planted under the first package root.
@@ -2142,6 +2144,10 @@ def upstream_variants() -> list[tuple[str, str | None]]:
         (UPSTREAM_HEAD + entry + UPSTREAM_PARTS_TEXT.replace("**What it is.** x.", "**What it is.** x, write to someone@example.invalid for the rest."), "an address, a URL, an email or an absolute path"),
         (UPSTREAM_HEAD + entry + UPSTREAM_PARTS_TEXT.replace("**What it is.** x.", "**What it is.** x, write to someone@163.invalid for the rest."), "an address, a URL, an email or an absolute path"),
         (UPSTREAM_HEAD + entry + UPSTREAM_PARTS_TEXT.replace("**What it is.** x.", "**What it is.** x, as esbuild@0.28.1 and @tanstack/react-query@5.105.3 in the manifest show."), None),
+        (UPSTREAM_HEAD + entry + UPSTREAM_PARTS_TEXT.replace("**What it is.** x.", "**What it is.** x, as some-tool@1.4.b in the lock shows."), None),
+        (UPSTREAM_HEAD + entry + UPSTREAM_PARTS_TEXT.replace("**What it is.** x.", "**What it is.** x, as some-tool@1.4.beta2 in the lock shows."), None),
+        (UPSTREAM_HEAD + entry + UPSTREAM_PARTS_TEXT.replace("**What it is.** x.", "**What it is.** x, as some-tool@1.4.rc-1 in the lock shows."), None),
+        (UPSTREAM_HEAD + entry + UPSTREAM_PARTS_TEXT.replace("**What it is.** x.", "**What it is.** x, write to someone@example.zz for the rest."), "an address, a URL, an email or an absolute path"),
         (UPSTREAM_HEAD + entry + UPSTREAM_PARTS_TEXT.replace("**What it is.** x.", "**What it is.** x, in C:\\Users\\someone\\project."), "an address, a URL, an email or an absolute path"),
         (UPSTREAM_HEAD + entry + UPSTREAM_PARTS_TEXT.replace("**What it is.** x.", "**What it is.** x, in /Volumes/shared/project/app."), "an address, a URL, an email or an absolute path"),
         (UPSTREAM_HEAD + entry + UPSTREAM_PARTS_TEXT.replace("**What it is.** x.", "**What it is.** x, in /media/someone/disk/project."), "an address, a URL, an email or an absolute path"),
