@@ -12,7 +12,8 @@
  */
 
 import { execFileSync, spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, unlinkSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, symlinkSync, unlinkSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -728,6 +729,41 @@ function proveIgnoredPath() {
   }
 }
 
+/**
+ * A living document naming a path beyond a symbolic link is judged by the link, reported while the ignore
+ * file leaves the link out and passed once it covers it, the path absent behind the link either way.
+ */
+function proveIgnoredLink() {
+  const agents = join(ROOT, "AGENTS.md");
+  const ignore = join(ROOT, ".gitignore");
+  if (!existsSync(agents) || !existsSync(ignore)) {
+    console.log("ignored link plant skipped: no AGENTS.md or no .gitignore in this tree");
+    return;
+  }
+  const link = join(ROOT, "planted-link");
+  const scratch = mkdtempSync(join(tmpdir(), "planted-link-"));
+  try {
+    symlinkSync(scratch, link, "dir");
+  } catch {
+    rmSync(scratch, { recursive: true });
+    console.log("ignored link plant skipped: this machine cannot create a symbolic link");
+    return;
+  }
+  const original = readFileSync(agents);
+  const kept = readFileSync(ignore);
+  try {
+    writeFileSync(agents, Buffer.concat([original, Buffer.from("\nNames `planted-link/absent.json` in passing.\n")]));
+    expect(audit(), "names `planted-link/absent.json`, which does not exist", "a path beyond a link the ignore file leaves out");
+    writeFileSync(ignore, `${kept.toString("utf-8").replace(/\n+$/, "")}\n\n# Planted\nplanted-link\n`);
+    if (audit().some((p) => p.includes("`planted-link/absent.json`"))) wrong("a path beyond an ignored symbolic link was reported as one that does not exist");
+  } finally {
+    writeFileSync(ignore, kept);
+    writeFileSync(agents, original);
+    unlinkSync(link);
+    rmSync(scratch, { recursive: true });
+  }
+}
+
 /** A link target repaired to one that resolves passes; a changed link text or a target that does not resolve fails. */
 /** An untracked record with a link, sorting before every real one, is never the record the link plants choose. */
 function proveTrackedChoice() {
@@ -937,7 +973,7 @@ if (baseline.length > 0) {
   for (const p of baseline.slice(0, 5)) console.log(`  ${p}`);
   process.exit(1);
 }
-for (const proof of [proveFilePlants, proveTrackedPlants, proveRecordDashes, proveDeclaredDashes, proveNestedProject, proveOverlayGuide, proveAppendedPlants, proveInvariantPlants, proveStatePlants, proveStatePoints, proveUpstreamPlants, provePalettePlant, proveCitationPlant, proveDensePlant, proveVocabularyPlant, proveSpliceAdvice, proveActionPins, proveApprovalPlant, proveSpellingPlant, proveUntrackedSpelling, proveIgnoredTerm, proveImmutability, proveBulletEdit, proveLinkRepair, proveIgnoredPath, proveRecordLinkPlant, proveAnchors, proveTemplateCopy, proveDisposition, proveIgnorePlant, proveStaleBranch, proveNoRemoteReport, proveUnrunReport, proveOwnedCitationLine]) {
+for (const proof of [proveFilePlants, proveTrackedPlants, proveRecordDashes, proveDeclaredDashes, proveNestedProject, proveOverlayGuide, proveAppendedPlants, proveInvariantPlants, proveStatePlants, proveStatePoints, proveUpstreamPlants, provePalettePlant, proveCitationPlant, proveDensePlant, proveVocabularyPlant, proveSpliceAdvice, proveActionPins, proveApprovalPlant, proveSpellingPlant, proveUntrackedSpelling, proveIgnoredTerm, proveImmutability, proveBulletEdit, proveLinkRepair, proveIgnoredPath, proveIgnoredLink, proveRecordLinkPlant, proveAnchors, proveTemplateCopy, proveDisposition, proveIgnorePlant, proveStaleBranch, proveNoRemoteReport, proveUnrunReport, proveOwnedCitationLine]) {
   proof();
 }
 console.log(failures === 0 ? "every rule fires" : `${failures} rule(s) do not work`);

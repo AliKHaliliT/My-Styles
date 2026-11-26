@@ -22,6 +22,7 @@ import re
 import shutil
 import subprocess
 import sys
+import tempfile
 import tomllib
 from collections.abc import Generator
 from contextlib import contextmanager
@@ -306,9 +307,16 @@ def ignored(token: str) -> bool:
     An ignored path is by declaration not part of the tree, so a living document naming one claims
     nothing the tree can be held to, whatever happens to exist on the machine the audit runs on.
     """
-    # The token comes from a tracked document and git is the tool the family runs on.
-    done = subprocess.run(["git", "check-ignore", "-q", "--", repo_relative(token)], cwd=ROOT, capture_output=True, check=False)  # noqa: S603, S607
-    return done.returncode == 0
+    # The token comes from a tracked document and git is the tool the family runs on. A path git refuses to
+    # judge, one beyond a symbolic link, is judged by the nearest ancestor git answers for, because the ignore
+    # file that covers the link covers everything reached through it.
+    rel = repo_relative(token)
+    while rel:
+        done = subprocess.run(["git", "check-ignore", "-q", "--", rel], cwd=ROOT, capture_output=True, check=False)  # noqa: S603, S607
+        if done.returncode in (0, 1):
+            return done.returncode == 0
+        rel = rel.rstrip("/").rpartition("/")[0]
+    return False
 
 
 def looks_like_path(token: str) -> bool:
@@ -2634,6 +2642,34 @@ def prove_ignored_path() -> int:
             settings.rmdir()
 
 
+def prove_ignored_link() -> int:
+    """A living document naming a path beyond a symbolic link is judged by the link, reported while the ignore file leaves the link out and passed once it covers it, the path absent behind the link either way."""
+    agents = ROOT / "AGENTS.md"
+    ignore = ROOT / ".gitignore"
+    if not agents.exists() or not ignore.exists():
+        print("ignored link plant skipped: no AGENTS.md or no .gitignore in this tree")
+        return 0
+    link = ROOT / "planted-link"
+    original, kept = agents.read_bytes(), ignore.read_bytes()
+    with tempfile.TemporaryDirectory() as scratch:
+        try:
+            link.symlink_to(scratch, target_is_directory=True)
+        except OSError:
+            print("ignored link plant skipped: this machine cannot create a symbolic link")
+            return 0
+        try:
+            agents.write_bytes(original + b"\nNames `planted-link/absent.json` in passing.\n")
+            failures = expect(run()[0], "names `planted-link/absent.json`, which does not exist", "a path beyond a link the ignore file leaves out")
+            ignore.write_bytes(kept.rstrip(b"\n") + b"\n\n# Planted\nplanted-link\n")
+            if any("`planted-link/absent.json`" in p for p in run()[0]):
+                failures += wrong("a path beyond an ignored symbolic link was reported as one that does not exist")
+            return failures
+        finally:
+            ignore.write_bytes(kept)
+            agents.write_bytes(original)
+            link.unlink(missing_ok=True)
+
+
 def prove_record_link_plant() -> int:
     """A dead link in a record of the project's own is reported, and the same link in an inherited record is not."""
     decisions = ROOT / "docs/decisions"
@@ -2937,6 +2973,7 @@ def selftest() -> int:
         prove_bullet_edit,
         prove_link_repair,
         prove_ignored_path,
+        prove_ignored_link,
         prove_record_link_plant,
         prove_template_copy,
         prove_disposition,

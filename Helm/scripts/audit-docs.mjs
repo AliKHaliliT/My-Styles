@@ -253,10 +253,18 @@ function looksLikePath(token) {
 /**
  * Whether git ignores the path a token names, asked with its trailing slash kept so a directory pattern
  * answers. An ignored path is by declaration not part of the tree, so a living document naming one claims
- * nothing the tree can be held to, whatever happens to exist on the machine the audit runs on.
+ * nothing the tree can be held to, whatever happens to exist on the machine the audit runs on. A path git
+ * refuses to judge, one beyond a symbolic link, is judged by the nearest ancestor git answers for, because
+ * the ignore file that covers the link covers everything reached through it.
  */
 function ignored(token) {
-  return spawnSync("git", ["check-ignore", "-q", "--", token.replace(/^\.?\//, "")], { cwd: ROOT }).status === 0;
+  let rel = token.replace(/^\.?\//, "");
+  while (rel) {
+    const status = spawnSync("git", ["check-ignore", "-q", "--", rel], { cwd: ROOT }).status;
+    if (status === 0 || status === 1) return status === 0;
+    rel = rel.replace(/\/+$/, "").split("/").slice(0, -1).join("/");
+  }
+  return false;
 }
 
 function lineOf(text, index) {
