@@ -1,5 +1,5 @@
 import { HttpResponse, http } from "msw"
-import { describe, expect, it } from "vitest"
+import { describe, expect, it, vi } from "vitest"
 
 import { berthListDtoSchema } from "@/entities/berth/dto"
 import { ApiError, WireContractError, request } from "@/shared/api"
@@ -62,6 +62,36 @@ describe("request", () => {
     )
 
     await expect(request("/berths", berthListDtoSchema, { method: "PUT", body: [] })).resolves.toEqual([])
+  })
+
+  it("ends a request its caller aborts, and the request rejects with the AbortError", async () => {
+    let started = (): void => {}
+    const handlerStarted = new Promise<void>((resolve) => {
+      started = resolve
+    })
+    let ended = false
+    server.use(
+      http.get("/api/berths", async ({ request: held }) => {
+        started()
+        await new Promise<void>((resolve) => {
+          held.signal.addEventListener("abort", () => {
+            resolve()
+          })
+        })
+        ended = true
+        return HttpResponse.json([])
+      }),
+    )
+    const controller = new AbortController()
+
+    const pending = request("/berths", berthListDtoSchema, { signal: controller.signal })
+    await handlerStarted
+    controller.abort()
+
+    await expect(pending).rejects.toMatchObject({ name: "AbortError" })
+    await vi.waitFor(() => {
+      expect(ended).toBe(true)
+    })
   })
 
   it("falls back to the status line when the body is not JSON", async () => {

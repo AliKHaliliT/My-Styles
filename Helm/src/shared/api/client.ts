@@ -37,6 +37,8 @@ export interface RequestOptions {
   method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE"
   /** JSON-serializable request body. */
   body?: unknown
+  /** Ends the request when aborted; the request then rejects with the AbortError fetch raises. */
+  signal?: AbortSignal
 }
 
 /**
@@ -79,7 +81,7 @@ async function readErrorMessage(response: Response): Promise<string> {
  *
  * @param path - Path appended to the configured base URL, starting with "/".
  * @param schema - Zod schema the response body must satisfy.
- * @param options - Method and body; defaults to a bare GET.
+ * @param options - Method, body, and an abort signal; defaults to a bare GET.
  *
  * @returns The validated response payload.
  *
@@ -106,6 +108,7 @@ export async function request<T>(path: string, schema: ZodType<T>, options: Requ
     method: options.method ?? "GET",
     headers,
     body,
+    signal: options.signal,
   })
 
   if (!response.ok) {
