@@ -14,6 +14,7 @@ What must stay true about this product, one row per claim, each bound to the hol
 | A query the backend refused is asked once, so its reason reaches the page on the first reply. | `tests/src/app/providers.test.ts` "asks a refused query once" | listed cases |
 | A request goes through the door by any of GET, POST, PUT, PATCH and DELETE, so no caller needs fetch outside it. | `tests/src/shared/api/client.test.ts` "sends a PUT" | listed cases |
 | A request its caller aborts ends at the server and rejects with the AbortError. | `tests/src/shared/api/client.test.ts` "ends a request its caller aborts" | listed cases |
+| A field showing its error keeps its label as its accessible name and carries the message as its description. | `tests/src/shared/ui/TextField.test.tsx` "keeps its label as the input's accessible name while a message shows" | listed cases |
 | The mock backend is wired only when the build is not for production. | review | review |
 | No request from a suite leaves the loopback, through fetch or through a Node HTTP function imported by name. | `tests/src/mocks/node.test.ts` "imported by name" | listed cases |
 | No suite replaces a collaborator by patching a module's internals. | `scripts/audit-docs.mjs` "module mocking is banned" | impossible |
