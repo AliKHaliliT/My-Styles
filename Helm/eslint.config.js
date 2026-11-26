@@ -9,17 +9,27 @@ import tseslint from "typescript-eslint"
 /**
  * The layer rule, enforced rather than reviewed.
  *
- * Each entry names a layer and the layers it may not reach. Cross-slice imports
- * always travel through the "@/" alias, which is what makes them checkable here;
- * a slice's own files use relative paths and are untouched by these patterns.
+ * Each entry names a layer and the layers it may not reach, and a layer cut into
+ * slices names itself as well, because one slice never imports another of its own
+ * layer. Cross-slice imports always travel through the "@/" alias, which is what
+ * makes them checkable here; a slice's own files use relative paths and are
+ * untouched by these patterns.
  */
 const LAYERS = [
   { files: ["src/app/**"], forbid: [] },
-  { files: ["src/pages/**"], forbid: ["app"] },
-  { files: ["src/features/**"], forbid: ["app", "pages"] },
-  { files: ["src/entities/**"], forbid: ["app", "pages", "features"] },
+  { files: ["src/pages/**"], forbid: ["app"], sliced: "pages" },
+  { files: ["src/features/**"], forbid: ["app", "pages"], sliced: "features" },
+  { files: ["src/entities/**"], forbid: ["app", "pages", "features"], sliced: "entities" },
   { files: ["src/shared/**"], forbid: ["app", "pages", "features", "entities"] },
 ]
+
+// Inside a sliced layer the alias to that layer is another slice's door, since a
+// slice reaches its own files by relative path, so the alias is refused whole,
+// one pattern covering the layer and every path under it.
+const sideways = (layer) => ({
+  group: [`@/${layer}`],
+  message: `Slices of one layer never import each other: this slice may not reach @/${layer}.`,
+})
 
 // A slice is entered through its index.ts, so reaching past one is its own
 // violation. Suites are exempt by design and never match these globs.
@@ -37,7 +47,7 @@ const MOCKS_IMPORT = {
 
 // One rule per layer: ESLint's later config wins for a matching file, so the
 // directional patterns and the deep-import pattern have to travel together.
-const layerRules = LAYERS.map(({ files, forbid }) => ({
+const layerRules = LAYERS.map(({ files, forbid, sliced }) => ({
   files,
   rules: {
     "no-restricted-imports": [
@@ -48,6 +58,7 @@ const layerRules = LAYERS.map(({ files, forbid }) => ({
             group: [`@/${layer}`, `@/${layer}/**`],
             message: `Imports point downward only: this layer may not reach @/${layer}.`,
           })),
+          ...(sliced === undefined ? [] : [sideways(sliced)]),
           DEEP_IMPORT,
           MOCKS_IMPORT,
         ],
