@@ -46,7 +46,10 @@ carries its own `pyproject.toml`, manifest, or documentation spine, because the
 host repository's tooling already covers it; when the first engine lands, its
 paths join the Type-check command and the import contract gains the clause that
 engines never import `app/`, both already provided for in the style's decision 0009,
-Check the Dependency Rule instead of reviewing it.
+Check the Dependency Rule instead of reviewing it. The suite run, the lint's
+ignores for suites and ports, and the docs audit's seams check read an engine's
+`tests` and `domain/interfaces` folders already, so a first engine's suites run
+and its ports lint as the app's do from the day it lands.
 
 In the template itself this directory stays empty on purpose. A style is not a
 product, and the engine that belongs here is the one a real project grows when

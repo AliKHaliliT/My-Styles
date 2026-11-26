@@ -703,10 +703,10 @@ SEAMS = re.compile(r"monkeypatch|unittest\.mock|mock\.patch|MonkeyPatch")
 
 
 def check_seams(problems: list[str]) -> None:
-    """No tracked file under tests/ replaces a collaborator by patching a module, because a test bound to an implementation voids the substitution a seam provides."""
+    """No tracked file in a folder named tests, the root's or one an engine carries, replaces a collaborator by patching a module, because a test bound to an implementation voids the substitution a seam provides."""
     for rel in own_files():
         path = ROOT / rel
-        if not rel.startswith("tests/") or not path.is_file():
+        if "tests" not in rel.split("/")[:-1] or not path.is_file():
             continue
         data = path.read_bytes()
         if b"\0" in data:
@@ -1836,6 +1836,7 @@ TRACKED_PLANTS = [
     ("tests/planted_fixture.py", "def planted(monkeypatch) -> None:\n    monkeypatch.setattr('os.sep', '/')\n", "tests/planted_fixture.py:1: patches a module with 'monkeypatch'"),
     ("tests/planted_patch.py", "@mock.patch('os.sep')\ndef planted() -> None: ...\n", "tests/planted_patch.py:1: patches a module with 'mock.patch'"),
     ("tests/planted_class.py", "from pytest import MonkeyPatch\n", "tests/planted_class.py:1: patches a module with 'MonkeyPatch'"),
+    ("engines/planted/tests/planted_engine_seam.py", "from unittest.mock import patch\n", "engines/planted/tests/planted_engine_seam.py:1: patches a module with 'unittest.mock'"),
 ]
 
 # A source file carrying one defect per docstring rule, planted under the first package root.

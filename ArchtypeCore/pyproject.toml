@@ -49,9 +49,11 @@ max-statements = 50
 "__init__.py" = ["F401"]
 # A port's stub is a one-line signature; its documentation lives on each implementation.
 "app/domain/interfaces/*.py" = ["D102"]
+"engines/*/domain/interfaces/*.py" = ["D102"]
 # Suites document themselves through case names and assertions (see docs/CONVENTIONS.md).
 # A suite asserts for a living, and its fixtures carry throwaway credentials by design.
 "tests/**" = ["D101", "D102", "D103", "D107", "S101"]
+"engines/*/tests/**" = ["D101", "D102", "D103", "D107", "S101"]
 # The operational scripts and the Alembic environment put the repository root on sys.path
 # before importing from it, and Alembic needs the models imported for their side effect.
 # A script's output is its purpose; everywhere else a print is a diagnostic left behind,
@@ -111,7 +113,9 @@ asyncio_mode = "auto"
 # Every asynchronous fixture gets a loop of its own test, which is the isolation the suite already
 # assumes; the plugin warns at configuration while the scope is unset, and here a warning is an error.
 asyncio_default_fixture_loop_scope = "function"
-testpaths = ["tests"]
+# An engine carries its own suites inside its folder, as the engines README lays it out, so the run
+# collects them beside the root's.
+testpaths = ["tests", "engines"]
 # A suite cannot reach a provider or the network, because pytest-socket refuses every connection
 # that would leave the loopback, so an adapter that resolves its credentials from the environment
 # fails here before it bills; a test that must reach a host names it with @pytest.mark.allow_hosts,
