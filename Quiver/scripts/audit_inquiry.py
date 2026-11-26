@@ -139,11 +139,19 @@ UPSTREAM_ADDRESS = re.compile(
 )
 # A key is an author name closed by a year, or a standard's designation with
 # its year suffixed, so digits may sit inside the name (ieee754-2019).
-CITE_KEY = re.compile(r"\[([a-z][a-z0-9]*[0-9]{4}[a-z]?|[a-z][a-z0-9]*-[0-9]{4})\](?!\()")
+KEY_FORM = r"[a-z][a-z0-9]*[0-9]{4}[a-z]?|[a-z][a-z0-9]*-[0-9]{4}"
+CITE_KEY = re.compile(rf"\[({KEY_FORM})\](?!\()")
 # A key inside backticks names the form and cites nothing, so code spans are blanked before
 # citations are read; the rulebook's own example of the form is the case that needs this.
 CODE_SPAN = re.compile(r"```.*?```|`[^`\n]*`", re.DOTALL)
-BIB_ENTRY = re.compile(r"^- \*\*([a-z][a-z0-9]*[0-9]{4}[a-z]?|[a-z][a-z0-9]*-[0-9]{4})\*\*:")
+BIB_ENTRY = re.compile(rf"^- \*\*({KEY_FORM})\*\*:")
+# Bracketed text shaped like a key, a name that holds a year, whatever else it carries. The two patterns
+# above read a key of the form and nothing else, so a key outside it, with a word after its year, a capital,
+# or a hyphen in its name, is seen by no check until this pattern finds it.
+KEY_SHAPED = re.compile(r"\[([A-Za-z][A-Za-z0-9-]*[0-9]{4}[A-Za-z0-9-]*)\](?!\()")
+# A record that holds such text admits no edit that could mend it, so the form binds a record from the
+# arrival of its own scope sentence like every history-reading check, and a living document whatever its age.
+KEY_FORM_SCOPE = "records held to the form of a citation key"
 # The standing of a source, the sentence that closes its entry: reviewed, a preprint with the day it was last
 # checked for a published version, or grey literature by the tier of its outlet's control.
 STANDING = re.compile(
@@ -1788,6 +1796,12 @@ def check_bibliography(problems: list[str], root: Path) -> None:
     if not bib.exists():
         return
     text = bib.read_text(encoding="utf-8")
+    for number, line in enumerate(text.split("\n"), 1):
+        if line.startswith("- ") and not BIB_ENTRY.match(line):
+            problems.append(
+                f"docs/BIBLIOGRAPHY.md:{number}: a bullet at the margin that is no entry, so no check reads it; an entry opens with its"
+                " key in bold and a colon, the key an author's name closed by a year or a standard's designation with its year suffixed"
+            )
     for key, entry in bibliography_entries(text):
         match = STANDING.search(entry)
         if match is None:
@@ -1851,16 +1865,36 @@ def check_citations(problems: list[str], root: Path) -> None:
             entry = BIB_ENTRY.match(line)
             if entry:
                 keys.add(entry.group(1))
+    for path in citing_documents(root):
+        for cited in CITE_KEY.findall(prose_only(path.read_text(encoding="utf-8"))):
+            if cited not in keys:
+                problems.append(f"{path.relative_to(root)}: cited key [{cited}] not in the bibliography")
+
+
+def citing_documents(root: Path) -> list[Path]:
+    """Every document whose prose may cite a key and stands in the tree: the living documents, the claims, the decisions and the review records."""
     sources = [*(root / rel for rel in living_documents(root)),
                *sorted((root / "docs/claims").glob("*.md")),
                *sorted((root / "docs/decisions").glob("*.md")),
                *(sorted((root / "docs/reviews").glob("*.md")) if (root / "docs/reviews").exists() else [])]
-    for path in sources:
-        if not path.exists():
+    return [path for path in sources if path.exists()]
+
+
+def check_key_form(problems: list[str], root: Path) -> None:
+    """Bracketed text shaped like a key and outside the form is named where it stands, in a living document always and in a record from the rule's arrival; a key in backticks is a mention, and a bracket that opens a link is a link."""
+    arrival = first_commit(KEY_FORM_SCOPE, "scripts/audit_inquiry.py") if root == ROOT else None
+    added = added_commits("docs") if root == ROOT else {}
+    for path in citing_documents(root):
+        rel = path.relative_to(root).as_posix()
+        if is_record(rel) and not bound_from_arrival(added.get(rel), arrival):
             continue
-        for cited in CITE_KEY.findall(prose_only(path.read_text(encoding="utf-8"))):
-            if cited not in keys:
-                problems.append(f"{path.relative_to(root)}: cited key [{cited}] not in the bibliography")
+        for shaped in dict.fromkeys(KEY_SHAPED.findall(prose_only(path.read_text(encoding="utf-8")))):
+            if not re.fullmatch(KEY_FORM, shaped):
+                problems.append(
+                    f"{rel}: [{shaped}] reads as a key and is outside the form, so no check resolves it; write the key the"
+                    " bibliography holds, an author's name closed by a year or a standard's designation with its year suffixed,"
+                    " or put a mention in backticks"
+                )
 
 
 def record_date(text: str) -> date:
@@ -2221,6 +2255,7 @@ def audit_once(root: Path) -> tuple[list[str], list[str]]:
     check_reviews(problems, root)
     check_screening_logs(problems, root)
     check_citations(problems, root)
+    check_key_form(problems, root)
     check_bibliography(problems, root)
     advise_shallow_reads(advice, root)
     advise_standing(advice, root)
@@ -3257,6 +3292,115 @@ def prove_citation_plant() -> int:
     return failures
 
 
+# Text shaped like a key and outside the form, one way each, and text the check must leave alone.
+KEY_FORM_PLANTS = (
+    ("a word after the year", "It cites [planted9999word] here.", "[planted9999word] reads as a key"),
+    ("a second letter after the year", "It cites [planted9999ab] here.", "[planted9999ab] reads as a key"),
+    ("a capital in the name", "It cites [Planted9999] here.", "[Planted9999] reads as a key"),
+    ("a hyphen in the name", "It cites [planted-author9999] here.", "[planted-author9999] reads as a key"),
+    ("a word after a standard's year", "It cites [planted754-2019draft] here.", "[planted754-2019draft] reads as a key"),
+    ("a hyphen after the year", "It cites [planted9999-draft] here.", "[planted9999-draft] reads as a key"),
+)
+KEY_FORM_LEGAL = (
+    ("a key of the form", "It cites [planted9999] here."),
+    ("a key with its one letter", "It cites [planted9999a] here."),
+    ("a standard's designation", "It cites [planted754-2019] here."),
+    ("a mention in backticks", "It names `[planted9999word]` as a shape."),
+    ("a bracket that opens a link", "See [planted9999word](STATE.md) for it."),
+    ("a bracket that holds no year", "An aside [sic] and a range [a1, b2] stand here."),
+)
+BIBLIOGRAPHY_BULLETS = (
+    ("a key with a word after its year", "- **planted9999word**: Planted, P. 9999. A work. Source: reviewed.", True),
+    ("a key with a capital", "- **Planted9999**: Planted, P. 9999. A work. Source: reviewed.", True),
+    ("a key that is not in bold", "- planted9999: Planted, P. 9999. A work. Source: reviewed.", True),
+    ("a bold key with no colon", "- **planted9999** Planted, P. 9999. A work. Source: reviewed.", True),
+    ("a bullet that is prose", "- A note the file keeps at its margin.", True),
+    ("a legal entry", "- **planted9999**: Planted, P. 9999. A work. Source: reviewed.", False),
+    ("a legal entry with a bullet under it", "- **planted9999**: Planted, P. 9999. A work.\n  - Read in part. Source: reviewed.", False),
+)
+
+
+def prove_key_form() -> int:
+    """Each way a key leaves the form is named, in prose and in the bibliography, what stands inside the form or cites nothing is left alone, and a record older than the rule is passed over."""
+    failures = 0
+    with tempfile.TemporaryDirectory() as scratch:
+        root = Path(scratch)
+        (root / "docs/claims").mkdir(parents=True)
+        for name, prose, needle in KEY_FORM_PLANTS:
+            for rel in ("README.md", "docs/claims/0001-planted.md"):
+                (root / rel).write_text(f"# Planted\n\n{prose}\n", encoding="utf-8")
+                problems: list[str] = []
+                check_key_form(problems, root)
+                failures += expect_finding(problems, f"{rel}: {needle}", f"{name} in {rel}")
+                (root / rel).unlink()
+        for name, prose in KEY_FORM_LEGAL:
+            (root / "README.md").write_text(f"# Planted\n\n{prose}\n", encoding="utf-8")
+            problems = []
+            check_key_form(problems, root)
+            if problems:
+                failures += 1
+                print(f"WRONG: {name} was named as a key outside the form: {problems[:1]}")
+        (root / "README.md").write_text("# Planted\n\nIt cites [planted9999word] here, and [planted9999word] again.\n", encoding="utf-8")
+        problems = []
+        check_key_form(problems, root)
+        if len(problems) != 1:
+            failures += 1
+            print(f"WRONG: one key outside the form written twice in a document was named {len(problems)} times")
+        (root / "README.md").unlink()
+        for name, bullet, named in BIBLIOGRAPHY_BULLETS:
+            (root / "docs/BIBLIOGRAPHY.md").write_text(f"# Bibliography\n\nPlanted.\n\n{bullet}\n", encoding="utf-8")
+            problems = []
+            check_bibliography(problems, root)
+            found = [p.split(": ", 1)[0] for p in problems if "a bullet at the margin that is no entry" in p]
+            if found != (["docs/BIBLIOGRAPHY.md:5"] if named else []):
+                failures += 1
+                print(f"WRONG: {name} in the bibliography was {'named at ' + ', '.join(found) if found else 'passed'}")
+    return failures + prove_key_form_wiring() + prove_key_form_arrival()
+
+
+def prove_key_form_wiring() -> int:
+    """A whole run names a key outside the form in a claim written now, so the check is one the audit runs."""
+    claim = ROOT / "docs/claims" / f"{free_number(ROOT / 'docs/claims', 900)}-planted-key-form.md"
+    claim.write_text(
+        f"# {claim.name[:4]}. Planted key form\n\nStatus: Conjecture\nDate: 2026-01-01\n\n## Claim\n\nIt cites [planted9999word] here.\n\n"
+        "## Evidence\n\nNone.\n\n## Threats\n\n- None named.\n",
+        encoding="utf-8",
+    )
+    try:
+        return expect_finding(run(ROOT)[0], f"docs/claims/{claim.name}: [planted9999word] reads as a key", "a key outside the form in a claim written now")
+    finally:
+        claim.unlink(missing_ok=True)
+
+
+def prove_key_form_arrival() -> int:
+    """A living document in history is held to the form whatever its age, and a record born before the rule arrived is passed over, since it admits no edit; a tree with no such record says so."""
+    arrival = first_commit(KEY_FORM_SCOPE, "scripts/audit_inquiry.py")
+    added = added_commits("docs")
+    living = next(rel for rel in living_documents(ROOT) if rel in added)
+    failures = expect_key_form(living, True, "a living document in history was not held to the key form")
+    older = [rel for rel in sorted(added) if rel.startswith("docs/decisions/") and (ROOT / rel).is_file() and not bound_from_arrival(added[rel], arrival)]
+    if not older:
+        print("key form arrival case skipped: no record in this tree is older than the rule")
+        return failures
+    return failures + expect_key_form(older[0], False, "a record older than the rule was held to the key form")
+
+
+def expect_key_form(rel: str, named: bool, wrong: str) -> int:
+    """Zero when text outside the form, appended to one tracked document for one reading, is named or passed over as wanted; the bytes come back."""
+    target = ROOT / rel
+    original = target.read_bytes()
+    try:
+        target.write_bytes(original + b"\nIt cites [planted9999word] here.\n")
+        problems: list[str] = []
+        check_key_form(problems, ROOT)
+    finally:
+        target.write_bytes(original)
+    if named == any(f"{rel}: [planted9999word] reads as a key" in p for p in problems):
+        return 0
+    print(f"WRONG: {wrong}, in {rel}")
+    return 1
+
+
 def prove_dense_plant() -> int:
     """A prose paragraph naming eight references is advised, and the same eight names as a list are not."""
     names = [f"`planted_{n}`" for n in range(DENSE_PARAGRAPH)]
@@ -3851,6 +3995,7 @@ ANCHORED_SCOPES = (
     (SCREENING_SCOPE, "screening"),
     (PROVENANCE_SCOPE, "provenance"),
     (QUESTION_SCOPE, "question"),
+    (KEY_FORM_SCOPE, "key form"),
 )
 
 
@@ -4075,6 +4220,7 @@ def selftest() -> int:
         prove_invariant_plants,
         prove_figure_pair,
         prove_citation_plant,
+        prove_key_form,
         prove_dense_plant,
         prove_vocabulary_plant,
         prove_splice_advice,
