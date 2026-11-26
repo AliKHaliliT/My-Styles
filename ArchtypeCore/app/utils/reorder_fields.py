@@ -1,9 +1,10 @@
+import annotationlib
 from collections.abc import Callable
 from functools import cache
 import logging
 import warnings
 
-from pydantic import BaseModel, create_model
+from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
 
@@ -22,9 +23,10 @@ def reorder_fields(
 
     A decorator to reorder Pydantic model fields with advanced control.
 
-    This decorator reconstructs a Pydantic model to enforce a specific field
-    ordering. It is useful for ensuring a consistent layout, especially in
-    complex inheritance scenarios.
+    This decorator reorders a Pydantic model's fields in place and rebuilds
+    its schema to enforce a specific field ordering, so the model keeps its
+    bases, methods, validators and configuration. It is useful for ensuring a
+    consistent layout, especially in complex inheritance scenarios.
 
     Field ordering logic
     --------------------
@@ -72,8 +74,8 @@ def reorder_fields(
     Returns
     -------
     Callable[[type], type]
-        A decorator that returns a new Pydantic model class with
-        reordered fields.
+        A decorator that returns the model it was handed, its fields
+        reordered and its schema rebuilt.
 
 
     Raises
@@ -105,6 +107,8 @@ def reorder_fields(
         
         """
 
+        if not (isinstance(cls, type) and issubclass(cls, BaseModel)):
+            raise TypeError(f"reorder_fields decorates a pydantic model. Received: {cls} with type {type(cls)}")
         _check_mro(cls, last_class_names_set)
         order = _FieldOrder(include_fields, exclude_fields, verbose)
         _add_inherited_fields(cls, last_class_names_set, order, debug)
@@ -254,7 +258,9 @@ def _add_own_fields(cls: type, order: _FieldOrder, debug: bool) -> None:
     if debug: logger.debug(f"\n[{cls.__name__}] Adding own fields...")
     # A model keeps its defaults on the field, not on the class, so the field is what carries them.
     declared = getattr(cls, "model_fields", {})
-    for fname, annotation in getattr(cls, "__annotations__", {}).items():
+    # The annotations are read with a name the module has not defined yet kept as a reference, because
+    # evaluating them would raise for a forward reference the class may hold.
+    for fname, annotation in annotationlib.get_annotations(cls, format=annotationlib.Format.FORWARDREF).items():
         if order.allowed(fname):
             order.add(fname, annotation, declared[fname] if fname in declared else getattr(cls, fname, ...))
         elif order.verbose:
@@ -318,35 +324,22 @@ def _add_last_fields(
             order.add(fname, *val)
 
 
-def _build_model(cls: type, ordered_fields: list[tuple[str, tuple[object, object]]], debug: bool) -> type:
+def _build_model(cls: type[BaseModel], ordered_fields: list[tuple[str, tuple[object, object]]], debug: bool) -> type[BaseModel]:
 
     """
     
-    Build the new model from the ordered fields, preserving config and validators.
+    Reorder the class's own fields and rebuild its schema, so the class keeps its bases, methods, validators and configuration.
     
     """
 
-    new_model_name = cls.__name__
-    new_model_bases = (BaseModel,)
-    new_model_dict = dict(ordered_fields)
-    new_model = create_model(  # type: ignore[call-overload]  # create_model takes fields as keywords, not a mapping
-        new_model_name,
-        **new_model_dict,
-        __base__=new_model_bases[0]
-    )
-
-    for attr in ("model_config",):
-        if hasattr(cls, attr):
-            setattr(new_model, attr, getattr(cls, attr))
-
-    if hasattr(cls, "__dict__"):
-        for name, value in cls.__dict__.items():
-            if hasattr(value, "_attributes") and "validator" in value._attributes:
-                setattr(new_model, name, value)
-
+    fields = cls.__pydantic_fields__
+    # A name the annotations carry that is no field, a class variable or a private attribute, stays an attribute.
+    cls.__pydantic_fields__ = {name: fields[name] for name, _ in ordered_fields if name in fields}
+    # A forward reference to a class the module has not defined yet resolves on the model's first use.
+    cls.model_rebuild(force=True, raise_errors=False)
 
     if debug:
-        logger.debug(f"\n[{cls.__name__}] Final field order: {[f[0] for f in ordered_fields]}")
+        logger.debug(f"\n[{cls.__name__}] Final field order: {list(cls.__pydantic_fields__)}")
 
 
-    return new_model
+    return cls

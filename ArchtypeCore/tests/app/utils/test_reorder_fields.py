@@ -1,12 +1,14 @@
 import warnings
+from types import SimpleNamespace
+from typing import ClassVar
 
 import pytest
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 
 from app.utils.reorder_fields import reorder_fields
 
-# The decorator rebuilds a model, so every case reads the rebuilt model's field order and
-# defaults rather than the class it was handed.
+# The decorator reorders the class it is handed and rebuilds that class's schema, so every case
+# reads the field order, the defaults and the behavior of the very class its statement made.
 
 
 class StampMixin(BaseModel):
@@ -19,8 +21,49 @@ class Identified(BaseModel):
     labels: list[str] = Field(default_factory=list, description="free-form labels")
 
 
+class Named(BaseModel):
+    name: str
+
+    def label(self) -> str:
+        return f"named {self.name}"
+
+    @field_validator("name")
+    @classmethod
+    def refuse_a_blank_name(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("a blank name is refused")
+        return value
+
+
+@reorder_fields(StampMixin)
+class Sized(Named, StampMixin):
+    size: int
+    kind: ClassVar[str] = "sized"
+    model_config = ConfigDict(from_attributes=True)
+
+    @field_validator("size")
+    @classmethod
+    def refuse_a_negative_size(cls, value: int) -> int:
+        if value < 0:
+            raise ValueError("a negative size is refused")
+        return value
+
+
+@reorder_fields(StampMixin)
+class Early(Identified, StampMixin):
+    later: Later | None = None
+
+
+class Later(BaseModel):
+    note: str
+
+
 def field_names(model: type[BaseModel]) -> list[str]:
     return list(model.model_fields)
+
+
+def sized(**overrides: object) -> dict[str, object]:
+    return {"name": "a", "size": 1, "created_at": 2, "updated_at": 3} | overrides
 
 
 def test_inherited_fields_lead_own_fields_follow_and_the_last_classes_close_the_order() -> None:
@@ -110,3 +153,56 @@ def test_a_clean_call_raises_no_warning() -> None:
             name: str
 
     assert field_names(Thing) == ["id", "labels", "name", "created_at"]
+
+
+def test_the_class_keeps_every_base_its_statement_names() -> None:
+    model = Sized.model_validate(sized())
+
+    assert isinstance(model, Named)
+    assert isinstance(model, StampMixin)
+
+
+def test_the_class_keeps_the_methods_it_inherits() -> None:
+    assert Sized.model_validate(sized()).label() == "named a"
+
+
+@pytest.mark.parametrize(
+    ("field", "value", "reason"),
+    [("name", " ", "a blank name is refused"), ("size", -1, "a negative size is refused")],
+)
+def test_the_validators_it_inherits_and_declares_still_refuse(field: str, value: object, reason: str) -> None:
+    with pytest.raises(ValidationError, match=reason):
+        Sized.model_validate(sized(**{field: value}))
+
+
+def test_the_configuration_built_into_its_schema_applies() -> None:
+    row = SimpleNamespace(**sized())
+
+    assert Sized.model_validate(row).size == 1
+
+
+def test_the_order_holds_where_the_model_is_written_and_described() -> None:
+    expected = ["name", "size", "created_at", "updated_at"]
+
+    assert list(Sized.model_validate(sized()).model_dump()) == expected
+    assert list(Sized.model_json_schema()["properties"]) == expected
+
+
+def test_a_class_variable_stays_a_class_variable() -> None:
+    assert Sized.kind == "sized"
+    assert "kind" not in Sized.model_fields
+
+
+def test_a_forward_reference_resolves_once_its_class_exists() -> None:
+    early = Early.model_validate({"id": 1, "later": {"note": "n"}, "created_at": 2, "updated_at": 3})
+
+    assert early.later is not None
+    assert early.later.note == "n"
+    assert field_names(Early) == ["id", "labels", "later", "created_at", "updated_at"]
+
+
+def test_a_class_that_is_no_pydantic_model_is_refused() -> None:
+    with pytest.raises(TypeError, match="decorates a pydantic model"):
+        @reorder_fields(StampMixin)
+        class Plain:
+            name: str
