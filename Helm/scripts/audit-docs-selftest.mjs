@@ -45,6 +45,13 @@ function fixtureGit(tree, ...args) {
   execFileSync("git", args, { cwd: tree, env: fixtureEnv(), stdio: "ignore" });
 }
 
+/** Everything in a tree of a proof's own making committed, the commit dated at noon of the day given, by the clock the audit reads. */
+function fixtureCommit(tree, day) {
+  fixtureGit(tree, "add", "-A");
+  const dated = { GIT_AUTHOR_DATE: `${day}T12:00:00`, GIT_COMMITTER_DATE: `${day}T12:00:00` };
+  execFileSync("git", ["-c", "user.name=selftest", "-c", "user.email=selftest@example.invalid", "-c", "commit.gpgsign=false", "commit", "-q", "-m", "fixture"], { cwd: tree, env: fixtureEnv(dated), stdio: "ignore" });
+}
+
 /** The audit's findings and advice on the tree as it stands, one per line, the verdict lines excluded. */
 function audit() {
   const done = spawnSync(process.execPath, [AUDIT], { cwd: ROOT, encoding: "utf-8" });
@@ -385,7 +392,61 @@ function proveStatePlants() {
     `against the ${HORIZON_DAYS}-day horizon of Blocked`,
     `entries against the cap of ${NOW_CAP}`,
   ]);
-  console.log("queue age firing case skipped: no queued entry in this tree has two horizons of history");
+}
+
+// The entries the queue-age proof plants, each beside the empty line of the section it takes the place of.
+const AGED_NEXT = ["- Nothing queued.", "- Planted queued work that stands"];
+const AGED_DEFERRED = ["- Nothing deferred.", "- Planted deferred work a day short"];
+const AGED_NOW = ["- Nothing in flight.", "- Planted in-flight work that stands"];
+
+/** A legal state file holding the entries given, each in place of its section's empty line and dated the day given. */
+function agedState(day, entries) {
+  return entries.reduce((text, [empty, entry]) => text.replace(`${empty}\n`, `${entry} (${day})\n`), STATE_CANON);
+}
+
+/**
+ * What a copy of the audit names as standing too long in a repository of the proof's own making. Each commit is
+ * dated that many days before today and brings the entries given, with the audit where it says so, and the
+ * entries are dated today on disk, the way an entry is kept alive without a change of text. No plant can give
+ * this tree's own history an old entry.
+ */
+function agedFindings(commits) {
+  const tree = mkdtempSync(join(tmpdir(), "planted-aged-"));
+  try {
+    fixtureGit(tree, "init", "-q", ".");
+    fixtureGit(tree, "config", "core.autocrlf", "false");
+    for (const [days, withAudit, entries] of commits) {
+      if (withAudit) {
+        mkdirSync(join(tree, "scripts"), { recursive: true });
+        writeFileSync(join(tree, "scripts", "audit-docs.mjs"), readFileSync(AUDIT));
+      }
+      writeFileSync(join(tree, "STATE.md"), agedState(daysAgo(days), entries));
+      fixtureCommit(tree, daysAgo(days));
+    }
+    writeFileSync(join(tree, "STATE.md"), agedState(daysAgo(0), commits.at(-1)[2]));
+    const done = spawnSync(process.execPath, [join(tree, "scripts", "audit-docs.mjs")], { cwd: tree, encoding: "utf-8", env: fixtureEnv() });
+    return `${done.stdout}`.split("\n").filter((line) => line.includes("has stood unchanged"));
+  } finally {
+    rmSync(tree, { recursive: true, force: true });
+  }
+}
+
+/**
+ * A queued entry a day past two horizons is named, while a deferred one a day short and one in flight are not,
+ * and an entry older than the rule is counted from the rule's arrival. The ages are planted at their edge, so the
+ * proof starts over where the day turned while it ran.
+ */
+function proveQueueAge() {
+  const two = HORIZON_DAYS * 2;
+  const day = daysAgo(0);
+  const stood = agedFindings([[two * 2, true, []], [two + 1, false, [AGED_NEXT, AGED_NOW]], [two, false, [AGED_NEXT, AGED_NOW, AGED_DEFERRED]]]);
+  const younger = agedFindings([[two * 2, false, [AGED_NEXT]], [Math.floor(HORIZON_DAYS / 3), true, [AGED_NEXT]]]);
+  if (daysAgo(0) !== day) {
+    proveQueueAge();
+    return;
+  }
+  if (stood.length !== 1 || !stood[0].includes(`in Next for ${two + 1} days`)) wrong(`of a queued entry a day past two horizons, a deferred one a day short and one in flight, the audit named ${stood.length > 0 ? stood.join("; ") : "none"}`);
+  if (younger.length > 0) wrong(`an entry older than the rule was counted from its own first day and named: ${younger.join("; ")}`);
 }
 
 /** A legal state file, every section holding its empty line, that the point plants are cut from. */
@@ -1075,7 +1136,7 @@ if (baseline.length > 0) {
   for (const p of baseline.slice(0, 5)) console.log(`  ${p}`);
   process.exit(1);
 }
-for (const proof of [proveFilePlants, proveTrackedPlants, proveRecordDashes, proveDeclaredDashes, proveNestedProject, proveOverlayGuide, proveAppendedPlants, proveInvariantPlants, proveStatePlants, proveStatePoints, proveUpstreamPlants, provePalettePlant, proveCitationPlant, proveDensePlant, proveVocabularyPlant, proveSpliceAdvice, proveActionPins, proveApprovalPlant, proveSpellingPlant, proveUntrackedSpelling, proveSpellingReach, proveSpellingRuns, proveIgnoredTerm, proveImmutability, proveBulletEdit, proveLinkRepair, proveIgnoredPath, proveIgnoredLink, proveRecordLinkPlant, proveAnchors, proveTemplateCopy, proveDisposition, proveIgnorePlant, proveStaleBranch, proveNoRemoteReport, proveUnrunReport, proveOwnedCitationLine]) {
+for (const proof of [proveFilePlants, proveTrackedPlants, proveRecordDashes, proveDeclaredDashes, proveNestedProject, proveOverlayGuide, proveAppendedPlants, proveInvariantPlants, proveStatePlants, proveStatePoints, proveQueueAge, proveUpstreamPlants, provePalettePlant, proveCitationPlant, proveDensePlant, proveVocabularyPlant, proveSpliceAdvice, proveActionPins, proveApprovalPlant, proveSpellingPlant, proveUntrackedSpelling, proveSpellingReach, proveSpellingRuns, proveIgnoredTerm, proveImmutability, proveBulletEdit, proveLinkRepair, proveIgnoredPath, proveIgnoredLink, proveRecordLinkPlant, proveAnchors, proveTemplateCopy, proveDisposition, proveIgnorePlant, proveStaleBranch, proveNoRemoteReport, proveUnrunReport, proveOwnedCitationLine]) {
   proof();
 }
 console.log(failures === 0 ? "every rule fires" : `${failures} rule(s) do not work`);

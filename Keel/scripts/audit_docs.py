@@ -18,6 +18,7 @@ check that cannot fire look identical.
 import ast
 import fnmatch
 import importlib.machinery
+import os
 import posixpath
 import re
 import shutil
@@ -2198,7 +2199,75 @@ def prove_state_plants() -> int:
             failures += expect(run()[0], needle, f"STATE plant {needle!r}")
         finally:
             state.write_bytes(original)
-    print("queue age firing case skipped: no queued entry in this tree has two horizons of history")
+    return failures
+
+
+def fixture_env(**extra: str) -> dict[str, str]:
+    """The environment without a variable that names another repository, so a tree of a proof's own making answers for itself."""
+    return {name: value for name, value in os.environ.items() if not name.startswith("GIT_")} | extra
+
+
+def fixture_git(root: Path, *args: str, day: date | None = None) -> None:
+    """One git call in a tree of a proof's own making, which must succeed, a commit dated at noon of the day given."""
+    # The arguments are this script's own constants and git is the tool the family runs on.
+    dated = {} if day is None else dict.fromkeys(("GIT_AUTHOR_DATE", "GIT_COMMITTER_DATE"), f"{day.isoformat()}T12:00:00")
+    subprocess.run(["git", *args], cwd=root, env=fixture_env(**dated), capture_output=True, check=True)  # noqa: S603, S607
+
+
+# The entries the queue-age proof plants, each beside the empty line of the section it takes the place of.
+AGED_NEXT = ("- Nothing queued.", "- Planted queued work that stands")
+AGED_DEFERRED = ("- Nothing deferred.", "- Planted deferred work a day short")
+AGED_NOW = ("- Nothing in flight.", "- Planted in-flight work that stands")
+AUDIT_HOME = "scripts/audit_docs.py"
+
+
+def aged_state(day: date, entries: tuple[tuple[str, str], ...]) -> bytes:
+    """A legal state file holding the entries given, each in place of its section's empty line and dated the day given."""
+    text = STATE_CANON
+    for empty, entry in entries:
+        text = text.replace(f"{empty}\n", f"{entry} ({day.isoformat()})\n")
+    return text.encode("utf-8")
+
+
+def aged_findings(commits: list[tuple[int, bool, tuple[tuple[str, str], ...]]], today: date) -> list[str]:
+    """What a copy of this audit names as standing too long in a repository of the proof's own making.
+
+    Each commit is dated that many days before today and brings the entries given, with the audit
+    where it says so, and the entries are dated today on disk, the way an entry is kept alive
+    without a change of text. No plant can give this tree's own history an old entry.
+    """
+    with tempfile.TemporaryDirectory() as scratch:
+        root = Path(scratch)
+        fixture_git(root, "init", "-q")
+        fixture_git(root, "config", "core.autocrlf", "false")
+        for days, with_audit, entries in commits:
+            day = today - timedelta(days=days)
+            if with_audit:
+                (root / AUDIT_HOME).parent.mkdir(exist_ok=True)
+                (root / AUDIT_HOME).write_bytes(Path(__file__).read_bytes())
+            (root / "STATE.md").write_bytes(aged_state(day, entries))
+            fixture_git(root, "add", "-A")
+            fixture_git(root, "-c", "user.name=selftest", "-c", "user.email=selftest@example.invalid", "-c", "commit.gpgsign=false", "commit", "-q", "-m", "fixture", day=day)
+        (root / "STATE.md").write_bytes(aged_state(today, commits[-1][2]))
+        # The interpreter is this one and the script is this file's own copy.
+        done = subprocess.run([sys.executable, AUDIT_HOME], cwd=root, env=fixture_env(), capture_output=True, text=True, encoding="utf-8", errors="replace", check=False)  # noqa: S603
+    return [line for line in done.stdout.splitlines() if "has stood unchanged" in line]
+
+
+def prove_queue_age() -> int:
+    """A queued entry a day past two horizons is named, while a deferred one a day short and one in flight are not, and an entry older than the rule is counted from the rule's arrival."""
+    today = date.today()
+    two = HORIZON_DAYS * 2
+    stood = aged_findings([(two * 2, True, ()), (two + 1, False, (AGED_NEXT, AGED_NOW)), (two, False, (AGED_NEXT, AGED_NOW, AGED_DEFERRED))], today)
+    younger = aged_findings([(two * 2, False, (AGED_NEXT,)), (HORIZON_DAYS // 3, True, (AGED_NEXT,))], today)
+    if date.today() != today:
+        # The day turned while the proof ran, so every age it planted is a day off; the proof starts over.
+        return prove_queue_age()
+    failures = 0
+    if len(stood) != 1 or f"in Next for {two + 1} days" not in stood[0]:
+        failures += wrong(f"of a queued entry a day past two horizons, a deferred one a day short and one in flight, the audit named {stood or 'none'}")
+    if younger:
+        failures += wrong(f"an entry older than the rule was counted from its own first day and named: {younger}")
     return failures
 
 
@@ -3044,6 +3113,7 @@ def selftest() -> int:
         prove_twin_numbers,
         prove_state_plants,
         prove_state_points,
+        prove_queue_age,
         prove_upstream_plants,
         prove_docstring_plants,
         prove_layout_plants,

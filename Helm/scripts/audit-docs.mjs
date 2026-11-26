@@ -352,6 +352,10 @@ function* walkAll(dir) {
 const problems = [];
 const advice = [];
 const today = new Date();
+// Whole days from a date to today, counted by the calendar and not by the clock, because a machine that keeps
+// daylight saving has a day of twenty-three hours and one of twenty-five each year, and a count of elapsed
+// hours turns a day an hour late or early there.
+const daysSince = (date) => (Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()) - Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())) / 86_400_000;
 const basenames = new Set();
 for (const file of walkAll(ROOT)) basenames.add(file.split(/[\\/]/).pop());
 
@@ -423,7 +427,7 @@ function isBefore(commit, other) {
 function standingDays(raw, binding) {
   const born = firstCommit(raw.replace(STATE_TEXT, "").trim(), "STATE.md");
   const start = born === null ? null : commitDate(isBefore(born, binding) ? binding : born);
-  return start === null ? 0 : Math.floor((today - start) / 86_400_000);
+  return start === null ? 0 : daysSince(start);
 }
 
 /** Each section's lines with their numbers, every line above the sections but the title reported where it stands. */
@@ -477,7 +481,7 @@ function checkStateEntries(held) {
     for (const [lineNo, raw] of lines) {
       const stamp = raw.match(STATE_TEXT);
       if (!stamp) continue;
-      const age = Math.floor((today - new Date(`${stamp[1]}T00:00:00`)) / 86_400_000);
+      const age = daysSince(new Date(`${stamp[1]}T00:00:00`));
       if (age > horizon) {
         problems.push(
           `STATE.md:${lineNo}: entry last verified ${stamp[1]}, ${age} days ago against the ` +
@@ -625,7 +629,7 @@ function checkUpstream() {
     if (hit) {
       problems.push(`${label}: carries ${JSON.stringify(hit[0])}, an address, a URL, an email or an absolute path; an entry names none, because it is written to leave the repository`);
     }
-    const age = Math.floor((today - new Date(`${entry[1]}T00:00:00`)) / 86_400_000);
+    const age = daysSince(new Date(`${entry[1]}T00:00:00`));
     if (age > HORIZON_DAYS) {
       problems.push(
         `${label}: past the ${HORIZON_DAYS}-day horizon; re-verify against the template and re-date, ` +
