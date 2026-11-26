@@ -1,6 +1,6 @@
 # 0083. Advise on spelling in the files git tracks alone
 
-Status: Accepted
+Status: Superseded by [0151](0151-hand-the-spelling-tool-the-files-git-tracks-by-name.md)
 Date: 2026-09-30
 
 ## Context

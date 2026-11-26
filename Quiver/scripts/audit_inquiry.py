@@ -14,6 +14,7 @@ Run with --selftest first on any change to this file, because a check that
 never fires and a check that cannot fire look identical.
 """
 
+import fnmatch
 import posixpath
 import re
 import shutil
@@ -263,6 +264,10 @@ RUNGS = ("impossible", "generated cases", "listed cases", "advised", "review")
 HOLDER = re.compile(r'^`([^`]+)`(?: "([^"]+)")?$')
 # The audits are skipped as quoting ground, because they carry the banned-word list the vocabulary advisory reads.
 CODESPELL_SKIP = ".git,node_modules,.hypothesis,__pycache__,dist,package-lock.json,*.svg,*.png,*.ico,*.woff,*.woff2,*.map,decisions,claims,reviews,inherited,mockServiceWorker.js,arrows,audit_docs.py,audit-docs.mjs,audit_inquiry.py"
+# The spelling pass hands the tool the files git tracks by name, because a walk of the folder also reads
+# whatever lies beside the tree, a saved log or a retained output, however large. One call takes paths up to
+# this many characters, which stays under the shortest command line a system the family runs on allows.
+SPELLING_BATCH = 7000
 IGNORE_FILE = ".codespellignore"
 # The dictionaries codespell reads: its two defaults and the British spellings read as misspellings of the
 # American ones, because one variety holds across a tree.
@@ -608,30 +613,47 @@ def check_bare_citations(problems: list[str], root: Path) -> None:
             )
 
 
-def advise_spelling(advice: list[str], root: Path) -> None:
-    """Misspellings in the files git tracks, advised where codespell is installed and named as not run elsewhere; a finding on a path git does not track is dropped, because the law binds a tracked byte.
+def spelling_paths(tracked: set[str], root: Path) -> list[str]:
+    """The tracked paths the spelling pass reads, in order: a file that stands in the tree, no part of its path hidden or named in the skip list, since the tool applies both rules on a walk and neither to a file it is handed."""
+    skip = CODESPELL_SKIP.split(",")
+    return sorted(
+        path for path in tracked
+        if (root / path).is_file() and not any(part.startswith(".") or any(fnmatch.fnmatch(part, glob) for glob in skip) for part in path.split("/"))
+    )
 
-    The pass spawns a process, so it runs once per audit command rather than with the checks the
-    proofs repeat forty times, and its proof calls it directly.
+
+def spelling_batches(paths: list[str], limit: int) -> list[list[str]]:
+    """The paths in their order, cut into runs whose names together stay within the limit, a path longer than the limit standing alone."""
+    batches: list[list[str]] = []
+    size = 0
+    for path in paths:
+        if not batches or size + len(path) + 1 > limit:
+            batches.append([])
+            size = 0
+        batches[-1].append(path)
+        size += len(path) + 1
+    return batches
+
+
+def advise_spelling(advice: list[str], root: Path, limit: int = SPELLING_BATCH) -> None:
+    """Misspellings in the files git tracks and no other, advised where codespell is installed and named as not run elsewhere; the tool is handed those files by name, a bounded run at a time, so nothing beside the tree is read.
+
+    The pass spawns a process for each run of paths, so it runs once per audit command rather than with the
+    checks the proofs repeat forty times, and its proof calls it directly.
     """
     tool = shutil.which("codespell")
     if tool is None or root != ROOT:
         return
-    # The tool is a development dependency of the arrows, and the arguments are this script's own constants
-    # and the project's own list of terms, which lives beside the check and is never recopied.
+    # The tool is a development dependency of the arrows, and the arguments are this script's own constants,
+    # the project's own list of terms, which lives beside the check and is never recopied, and paths git tracks.
     own_terms = ["--ignore-words", IGNORE_FILE] if (root / IGNORE_FILE).is_file() else []
-    done = subprocess.run([tool, "--builtin", CODESPELL_BUILTIN, "--skip", CODESPELL_SKIP, *own_terms, "."], cwd=root, capture_output=True, text=True, check=False)
-    tracked = set(tracked_files()) - declared_generated()
-    advice.extend(
-        f"{line.strip()}; correct it, or name a real term of the domain in {IGNORE_FILE}, one word per line"
-        for line in done.stdout.splitlines()
-        if line.strip() and spelled_path(line) in tracked
-    )
-
-
-def spelled_path(line: str) -> str:
-    """The path a codespell line names, spelled as git lists it, the leading dot dropped and the separators forward."""
-    return line.split(":", 1)[0].strip().replace("\\", "/").removeprefix("./")
+    for batch in spelling_batches(spelling_paths(set(tracked_files()) - declared_generated(), root), limit):
+        done = subprocess.run([tool, "--builtin", CODESPELL_BUILTIN, *own_terms, *batch], cwd=root, capture_output=True, text=True, check=False)
+        advice.extend(
+            f"{line.strip()}; correct it, or name a real term of the domain in {IGNORE_FILE}, one word per line"
+            for line in done.stdout.splitlines()
+            if line.strip()
+        )
 
 
 def local_main() -> bool:
@@ -3926,6 +3948,77 @@ def prove_untracked_spelling() -> int:
         planted.unlink()
 
 
+# Tracked files carrying one misspelling each, with whether the spelling pass reads them. The tool's walk passed
+# over a hidden name and a name in its skip list, a folder's or a file's, and the pass keeps both rules; the
+# last of them sorts after every path of the tree, so it falls in the last run when the paths are cut.
+SPELLING_REACH = (
+    ("planted-reach/plain/notes.md", True),
+    ("planted-reach/.hidden/notes.md", False),
+    ("planted-reach/claims/notes.md", False),
+    ("planted-reach/planted.map", False),
+    ("zz-planted-reach.md", True),
+)
+SPELLING_TURNED = "planted-reach/turned"
+
+
+def prove_spelling_batches() -> int:
+    """Paths are cut in their order into runs within the limit, none lost and none twice, a run starts its count afresh, and a path longer than the limit stands alone."""
+    cuts: tuple[tuple[list[str], int, list[list[str]]], ...] = (
+        (["aa", "bbb", "c", "dddddddd", "ee"], 7, [["aa", "bbb"], ["c"], ["dddddddd"], ["ee"]]),
+        (["dddddddd", "aa", "bbb"], 7, [["dddddddd"], ["aa", "bbb"]]),
+        (["aaa", "bbbb"], 8, [["aaa"], ["bbbb"]]),
+        (["aa", "bbb", "c"], 100, [["aa", "bbb", "c"]]),
+        ([], 7, []),
+    )
+    failures = 0
+    for paths, limit, wanted in cuts:
+        if spelling_batches(paths, limit) != wanted:
+            failures += 1
+            print(f"WRONG: {paths} cut at {limit} characters came out as {spelling_batches(paths, limit)}")
+    return failures
+
+
+def prove_spelling_reach() -> int:
+    """The spelling pass reads a tracked file under a plain name and passes over one under a hidden name or a name in the skip list, as the tool's walk did, whole and with the paths cut into runs, the last run read like the first."""
+    failures = prove_spelling_batches()
+    if shutil.which("codespell") is None:
+        print("spelling reach plants skipped: codespell is not on PATH")
+        return failures
+    turned = ROOT / SPELLING_TURNED
+    planted = (*(rel for rel, _ in SPELLING_REACH), SPELLING_TURNED)
+    for rel in planted:
+        target = ROOT / rel
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(b"The reciever waits here.\n")  # codespell:ignore reciever
+        git("add", "-N", "--", rel)
+    try:
+        # The path git tracks as a file becomes a folder on disk, which the tool would walk if it were handed it.
+        turned.unlink()
+        turned.mkdir()
+        (turned / "notes.md").write_bytes(b"The reciever waits here.\n")  # codespell:ignore reciever
+        paths = spelling_paths(set(tracked_files()) - declared_generated(), ROOT)
+        if paths != sorted(paths):
+            failures += 1
+            print("WRONG: the paths the spelling pass reads came out of their order")
+        halved = sum(len(path) + 1 for path in paths) // 2 + 1
+        for limit in (SPELLING_BATCH, halved):
+            advice: list[str] = []
+            advise_spelling(advice, ROOT, limit)
+            for rel, read in SPELLING_REACH:
+                if read != any(a.startswith(f"{rel}:1:") for a in advice):
+                    failures += 1
+                    print(f"WRONG: the spelling pass {'passed over' if read else 'read'} {rel}, with its runs cut at {limit} characters")
+            if any(SPELLING_TURNED in a for a in advice):
+                failures += 1
+                print(f"WRONG: the spelling pass walked {SPELLING_TURNED}, a tracked path that is a folder on disk")
+    finally:
+        for rel in planted:
+            git("rm", "--cached", "-q", "--", rel)
+        shutil.rmtree(ROOT / "planted-reach", ignore_errors=True)
+        (ROOT / "zz-planted-reach.md").unlink(missing_ok=True)
+    return failures
+
+
 def prove_ignored_term() -> int:
     """A misspelling named in the project's own ignore file is not advised, and both files come back."""
     readme = ROOT / "README.md"
@@ -4226,6 +4319,7 @@ def selftest() -> int:
         prove_splice_advice,
         prove_spelling_plant,
         prove_untracked_spelling,
+        prove_spelling_reach,
         prove_ignored_term,
         prove_duplicate_numbers,
         prove_immutability,

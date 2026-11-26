@@ -14,7 +14,7 @@
 import { execFileSync, spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, symlinkSync, unlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { dirname, join, resolve } from "node:path";
+import { delimiter, dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -33,6 +33,16 @@ function git(...args) {
   } catch {
     return "";
   }
+}
+
+/** The environment without a variable that names another repository, so a tree of a proof's own making answers for itself. */
+function fixtureEnv(extra = {}) {
+  return { ...Object.fromEntries(Object.entries(process.env).filter(([name]) => !name.startsWith("GIT_"))), ...extra };
+}
+
+/** One git call in a tree of a proof's own making, which must succeed. */
+function fixtureGit(tree, ...args) {
+  execFileSync("git", args, { cwd: tree, env: fixtureEnv(), stdio: "ignore" });
 }
 
 /** The audit's findings and advice on the tree as it stands, one per line, the verdict lines excluded. */
@@ -632,6 +642,98 @@ function proveUntrackedSpelling() {
   }
 }
 
+// Tracked files carrying one misspelling each, with whether the spelling pass reads them. The tool's walk passed
+// over a hidden name and a name in its skip list, a folder's or a file's, and the pass keeps both rules, a name
+// that only holds a listed one, or differs from it where the listed one has a dot, being read; the last of them
+// sorts after every path of the tree, so it falls in the last run when the paths are cut.
+const SPELLING_REACH = [
+  ["planted-reach/plain/notes.md", true],
+  ["planted-reach/.hidden/notes.md", false],
+  ["planted-reach/claims/notes.md", false],
+  ["planted-reach/claims-kept/notes.md", true],
+  ["planted-reach/kept-claims/notes.md", true],
+  ["planted-reach/planted.map", false],
+  ["planted-reach/package-lockxjson", true],
+  ["zz-planted-reach.md", true],
+];
+const SPELLING_TURNED = "planted-reach/turned";
+
+/**
+ * The spelling pass reads a tracked file under a plain name once and passes over one under a hidden name or a
+ * name in the skip list, as the tool's walk did, and it does not walk a tracked path that is a folder on disk.
+ */
+function proveSpellingReach() {
+  if (spawnSync("codespell", ["--version"], { encoding: "utf-8" }).status !== 0) {
+    console.log("spelling reach plants skipped: codespell is not on PATH");
+    return;
+  }
+  const planted = [...SPELLING_REACH.map(([rel]) => rel), SPELLING_TURNED];
+  for (const rel of planted) plant(rel, "The reciever waits here.\n"); // codespell:ignore reciever
+  git("add", "-N", "--", ...planted);
+  try {
+    // The path git tracks as a file becomes a folder on disk, which the tool would walk if it were handed it.
+    unlinkSync(join(ROOT, SPELLING_TURNED));
+    plant(`${SPELLING_TURNED}/notes.md`, "The reciever waits here.\n"); // codespell:ignore reciever
+    const advice = adviceLines();
+    for (const [rel, read] of SPELLING_REACH) {
+      const found = advice.filter((line) => line.trimStart().startsWith(`${rel}:1:`)).length;
+      if (found !== (read ? 1 : 0)) wrong(`the spelling pass named ${rel} ${found} time(s), where ${read ? "one finding" : "none"} was due`);
+    }
+    if (advice.some((line) => line.includes(SPELLING_TURNED))) wrong(`the spelling pass walked ${SPELLING_TURNED}, a tracked path that is a folder on disk`);
+  } finally {
+    git("rm", "--cached", "-q", "--", ...planted);
+    rmSync(join(ROOT, "planted-reach"), { recursive: true, force: true });
+    unplant("zz-planted-reach.md");
+  }
+}
+
+// Paths whose lengths are chosen so the cut falls where one character decides it: a hundred that fill a run to
+// the last character, then one a character longer and ninety-eight more that leave a run one character short of
+// taking the next, then that next one, alone.
+const RUN_PATHS = Array.from({ length: 200 }, (_, n) => `f/${String(n).padStart(3, "0")}-${"x".repeat(n === 100 ? 61 : 60)}.md`);
+const RUN_CUTS = [RUN_PATHS.slice(0, 100), RUN_PATHS.slice(100, 199), RUN_PATHS.slice(199)];
+
+/**
+ * The audit shows what the spelling pass read and not how its runs were cut, so a stand-in for the tool, first
+ * on the path, records what it is handed in a repository of the proof's own making: the tracked files and
+ * nothing else, in git's order, cut where the limit asks and nowhere else. A system that runs only a compiled
+ * program by name cannot be handed the stand-in, and the proof says so there.
+ */
+function proveSpellingRuns() {
+  if (process.platform === "win32") {
+    console.log("spelling runs plant skipped: this system runs only a compiled program by name, so no stand-in for the tool can be handed to the audit");
+    return;
+  }
+  const scratch = mkdtempSync(join(tmpdir(), "planted-runs-"));
+  const calls = join(scratch, "calls.txt");
+  const tree = join(scratch, "tree");
+  const file = (rel, text) => {
+    mkdirSync(dirname(join(tree, rel)), { recursive: true });
+    writeFileSync(join(tree, rel), text);
+  };
+  try {
+    mkdirSync(join(scratch, "bin"));
+    writeFileSync(join(scratch, "bin", "codespell"), `#!/bin/sh\n( IFS='\t'; printf '%s\\n' "$*" ) >> '${calls}'\n`, { mode: 0o755 });
+    file("scripts/audit-docs.mjs", readFileSync(AUDIT));
+    for (const rel of [...RUN_PATHS, ".hidden/notes.md", "claims/notes.md", "planted.map", "turned"]) file(rel, "Planted.\n");
+    fixtureGit(tree, "init", "-q", ".");
+    fixtureGit(tree, "add", "-A");
+    // A path git tracks as a file becomes a folder on disk, and a file is written that git does not track.
+    unlinkSync(join(tree, "turned"));
+    file("turned/notes.md", "Planted.\n");
+    file("untracked.md", "Planted.\n");
+    spawnSync(process.execPath, [join(tree, "scripts", "audit-docs.mjs")], { cwd: tree, encoding: "utf-8", env: fixtureEnv({ PATH: `${join(scratch, "bin")}${delimiter}${process.env.PATH}` }) });
+    const handed = existsSync(calls) ? readFileSync(calls, "utf-8").split("\n").filter(Boolean).map((line) => line.split("\t")) : [];
+    // A call opens with its options, each a name and a value, and the paths follow.
+    const runs = handed.filter((args) => args[0] !== "--version").map((args) => args.slice(args.findIndex((arg, index) => index % 2 === 0 && !arg.startsWith("--"))));
+    if (JSON.stringify(runs) !== JSON.stringify(RUN_CUTS)) {
+      wrong(`the tool was handed ${runs.length} run(s) of ${runs.map((run) => run.length).join(", ")} path(s), ${runs.flat().filter((rel) => !RUN_PATHS.includes(rel)).length} of them not the planted files, where runs of ${RUN_CUTS.map((run) => run.length).join(", ")} were due`);
+    }
+  } finally {
+    rmSync(scratch, { recursive: true, force: true });
+  }
+}
+
 function proveImmutability() {
   const folder = join(ROOT, "docs", "decisions");
   // The record edited is one git tracks, read with either line ending, because an untracked record a script has
@@ -973,7 +1075,7 @@ if (baseline.length > 0) {
   for (const p of baseline.slice(0, 5)) console.log(`  ${p}`);
   process.exit(1);
 }
-for (const proof of [proveFilePlants, proveTrackedPlants, proveRecordDashes, proveDeclaredDashes, proveNestedProject, proveOverlayGuide, proveAppendedPlants, proveInvariantPlants, proveStatePlants, proveStatePoints, proveUpstreamPlants, provePalettePlant, proveCitationPlant, proveDensePlant, proveVocabularyPlant, proveSpliceAdvice, proveActionPins, proveApprovalPlant, proveSpellingPlant, proveUntrackedSpelling, proveIgnoredTerm, proveImmutability, proveBulletEdit, proveLinkRepair, proveIgnoredPath, proveIgnoredLink, proveRecordLinkPlant, proveAnchors, proveTemplateCopy, proveDisposition, proveIgnorePlant, proveStaleBranch, proveNoRemoteReport, proveUnrunReport, proveOwnedCitationLine]) {
+for (const proof of [proveFilePlants, proveTrackedPlants, proveRecordDashes, proveDeclaredDashes, proveNestedProject, proveOverlayGuide, proveAppendedPlants, proveInvariantPlants, proveStatePlants, proveStatePoints, proveUpstreamPlants, provePalettePlant, proveCitationPlant, proveDensePlant, proveVocabularyPlant, proveSpliceAdvice, proveActionPins, proveApprovalPlant, proveSpellingPlant, proveUntrackedSpelling, proveSpellingReach, proveSpellingRuns, proveIgnoredTerm, proveImmutability, proveBulletEdit, proveLinkRepair, proveIgnoredPath, proveIgnoredLink, proveRecordLinkPlant, proveAnchors, proveTemplateCopy, proveDisposition, proveIgnorePlant, proveStaleBranch, proveNoRemoteReport, proveUnrunReport, proveOwnedCitationLine]) {
   proof();
 }
 console.log(failures === 0 ? "every rule fires" : `${failures} rule(s) do not work`);
