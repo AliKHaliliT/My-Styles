@@ -54,6 +54,16 @@ describe("request", () => {
     })
   })
 
+  it("sends a PUT, the method a backend may take a whole record's replacement by", async () => {
+    server.use(
+      http.put("/api/berths", () => {
+        return HttpResponse.json([])
+      }),
+    )
+
+    await expect(request("/berths", berthListDtoSchema, { method: "PUT", body: [] })).resolves.toEqual([])
+  })
+
   it("falls back to the status line when the body is not JSON", async () => {
     server.use(
       http.get("/api/berths", () => {

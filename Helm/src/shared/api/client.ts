@@ -34,7 +34,7 @@ export function setTokenProvider(provider: TokenProvider): void {
 /** Options accepted by {@link request}. */
 export interface RequestOptions {
   /** HTTP method. Defaults to "GET". */
-  method?: "GET" | "POST" | "PATCH" | "DELETE"
+  method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE"
   /** JSON-serializable request body. */
   body?: unknown
 }
