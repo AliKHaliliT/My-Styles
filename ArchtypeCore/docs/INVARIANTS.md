@@ -10,6 +10,7 @@ What must stay true about this product, one row per claim, each bound to the hol
 | The domain and the services never import the web framework, the database layer, or the outer layers. | `pyproject.toml` "The core is framework-free" | impossible |
 | A duplicate username is refused before the provider is touched. | `tests/app/services/test_user_service.py` "test_a_duplicate_username_is_refused_before_the_provider_is_touched" | listed cases |
 | A malformed request is refused in the standard error shape. | `tests/test_main.py` "test_a_malformed_request_is_refused_in_the_standard_error_shape" | listed cases |
+| A value a request validator refuses is answered as unprocessable, with the validator's own reason. | `tests/app/core/exception_handlers/test_validation_exception_handler.py` "test_a_value_a_validator_refuses_is_answered_as_unprocessable_with_its_reason" | listed cases |
 | A constraint a model declares stands on its table and never inside a column, where a generated migration would pass over it. | `tests/db/test_base.py` "test_no_column_holds_a_constraint_a_generated_migration_would_pass_over" | listed cases |
 | Every timestamp the API sends carries its offset. | `tests/app/api/v1/schemas/common/test_mixins.py` "test_a_stamp_the_database_wrote_crosses_the_wire_with_its_offset" | listed cases |
 | A revision generated from the models applies as generated and names only the types the database stores. | `tests/db/migrations/test_env.py` "test_a_revision_generated_from_the_models_applies_and_names_only_what_the_database_stores" | listed cases |
