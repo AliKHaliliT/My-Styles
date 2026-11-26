@@ -1,5 +1,6 @@
 import { HttpResponse, http } from "msw"
 import { describe, expect, it, vi } from "vitest"
+import { z } from "zod"
 
 import { berthListDtoSchema } from "@/entities/berth/dto"
 import { ApiError, WireContractError, request } from "@/shared/api"
@@ -91,6 +92,38 @@ describe("request", () => {
     await expect(pending).rejects.toMatchObject({ name: "AbortError" })
     await vi.waitFor(() => {
       expect(ended).toBe(true)
+    })
+  })
+
+  it.each([204, 200])("reads an answer with no body as nothing, which a schema of nothing accepts, at status %i", async (status) => {
+    server.use(
+      http.delete("/api/berths/b-1", () => {
+        return new HttpResponse(null, { status })
+      }),
+    )
+
+    await expect(request("/berths/b-1", z.void(), { method: "DELETE" })).resolves.toBeUndefined()
+  })
+
+  it("refuses an answer with no body where the contract promised content", async () => {
+    server.use(
+      http.delete("/api/berths/b-1", () => {
+        return new HttpResponse(null, { status: 204 })
+      }),
+    )
+
+    await expect(request("/berths/b-1", berthListDtoSchema, { method: "DELETE" })).rejects.toBeInstanceOf(WireContractError)
+  })
+
+  it("refuses a success whose body is not JSON as a broken contract", async () => {
+    server.use(
+      http.get("/api/berths", () => {
+        return HttpResponse.text("<html>gateway</html>", { status: 200 })
+      }),
+    )
+
+    await expect(request("/berths", berthListDtoSchema)).rejects.toSatisfy((error: unknown) => {
+      return error instanceof WireContractError && error.path === "/berths" && error.message.endsWith("The body is not JSON.")
     })
   })
 

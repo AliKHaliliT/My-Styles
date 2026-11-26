@@ -77,7 +77,38 @@ async function readErrorMessage(response: Response): Promise<string> {
 }
 
 /**
+ * Reads a successful answer's body as the value the wire contract is checked against.
+ *
+ * An answer with no body, the 204 a server commonly sends once a removal is done, reads as
+ * nothing, so the caller's schema decides whether nothing was the promise. A body that is not
+ * JSON was never the contract's, so it is refused as a broken contract instead of escaping as
+ * the JSON reader's own error.
+ *
+ * @param path - The request path, named in the error when the body is not JSON.
+ * @param response - The 2xx response.
+ *
+ * @returns The parsed JSON value, or undefined when the body is empty.
+ *
+ * @throws WireContractError
+ *   When the body is neither empty nor JSON.
+ */
+async function readPayload(path: string, response: Response): Promise<unknown> {
+  const text = await response.text()
+  if (text === "") {
+    return undefined
+  }
+  try {
+    return JSON.parse(text) as unknown
+  } catch {
+    throw new WireContractError(path, "The body is not JSON.")
+  }
+}
+
+/**
  * Performs a request against the configured API and validates the response.
+ *
+ * An answer with no body is checked against the schema as nothing, so a caller whose endpoint
+ * answers with no content passes a schema of nothing, such as `z.void()`.
  *
  * @param path - Path appended to the configured base URL, starting with "/".
  * @param schema - Zod schema the response body must satisfy.
@@ -88,7 +119,7 @@ async function readErrorMessage(response: Response): Promise<string> {
  * @throws ApiError
  *   When the backend answers with a non-2xx status.
  * @throws WireContractError
- *   When the response body does not satisfy `schema`.
+ *   When the response body is not JSON or does not satisfy `schema`.
  */
 export async function request<T>(path: string, schema: ZodType<T>, options: RequestOptions = {}): Promise<T> {
   const headers: Record<string, string> = { Accept: "application/json" }
@@ -115,8 +146,7 @@ export async function request<T>(path: string, schema: ZodType<T>, options: Requ
     throw new ApiError(response.status, await readErrorMessage(response))
   }
 
-  const payload: unknown = await response.json()
-  const parsed = schema.safeParse(payload)
+  const parsed = schema.safeParse(await readPayload(path, response))
   if (!parsed.success) {
     throw new WireContractError(path, parsed.error.message)
   }
