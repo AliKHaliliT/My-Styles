@@ -1,7 +1,8 @@
 # Architecture
 
 The map of the inquiry as it is today. The inquiry layer holds no code beyond
-the audit script; its structure is the flow of knowledge.
+the style's two tools, the audit and the edition tool; its structure is the
+flow of knowledge.
 
 ## The flow
 
@@ -38,7 +39,9 @@ by its own import-linter configuration.
 ## Testing
 
 The inquiry layer is tested by `scripts/audit_inquiry.py`, whose own rules are
-proven by `--selftest` against planted defects. Arrow code is tested by each
+proven by `--selftest` against planted defects, and the edition tool,
+`scripts/cut_edition.py`, proves itself the same way on a project of its own
+making. Arrow code is tested by each
 arrow's own suite under its own style's testing contract; the audit never
 reaches into an arrow, and an arrow's suite never checks a claim.
 

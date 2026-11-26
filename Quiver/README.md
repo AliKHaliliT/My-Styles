@@ -62,6 +62,7 @@ Quiver/
     coinwise/            A Keel-style library arrow, whole and under Keel's law.
   scripts/
     audit_inquiry.py     The mechanical half of the rules, with a selftest.
+    cut_edition.py       The edition tool, which cuts the tree a public repository receives.
   util_resources/
     searches/            The raw exports a pass's searches returned, declared generated.
 ```
